@@ -10,7 +10,7 @@ class Ekspedisi extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $table = 'Ekspedisi';
+    protected $table = 'ekspedisi';
 
     protected $guarded = ['id'];
 

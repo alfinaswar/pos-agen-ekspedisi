@@ -4,97 +4,122 @@ namespace App\Http\Controllers;
 
 use App\Models\Ekspedisi;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Log;
 
 class EkspedisiController extends Controller
 {
-    public function index()
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(Request $request)
     {
-        return view('ekspedisi.index');
+        if ($request->ajax()) {
+            $data = Ekspedisi::select(['id', 'NamaEkspedisi', 'Deskripsi']);
+            return DataTables::of($data)
+                ->addIndexColumn()
+                ->addColumn('action', function ($row) {
+                    $btn = '<div class="d-flex gap-1 justify-content-center">';
+                    $btn .= '<a href="' . route('ekspedisi.edit', $row->id) . '" class="btn btn-warning btn-sm text-white" title="Edit">';
+                    $btn .= '<i class="fas fa-edit"></i></a> ';
+                    $btn .= '<button type="button" class="btn btn-danger btn-sm btn-delete" data-id="' . $row->id . '" data-nama="' . htmlspecialchars($row->NamaEkspedisi) . '" title="Hapus">';
+                    $btn .= '<i class="fas fa-trash"></i></button>';
+                    $btn .= '</div>';
+                    return $btn;
+                })
+                ->rawColumns(['action'])
+                ->make(true);
+        }
+
+
+        // Return view untuk request biasa
+        return view('ekspedisi.index'); // Sesuaikan path view Anda (misal: 'admin.ekspedisi.index')
     }
 
-    public function data()
-    {
-        $ekspedisi = Ekspedisi::with('Creator')
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return response()->json([
-            'data' => $ekspedisi->map(function ($item) {
-                return [
-                    'id' => $item->id,
-                    'NamaEkspedisi' => $item->NamaEkspedisi,
-                    'Deskripsi' => $item->Deskripsi,
-                    'UserCreate' => $item->Creator->Nama ?? '-',
-                    'created_at' => $item->created_at->format('d/m/Y H:i'),
-                    'actions' => '
-                        <button class="btn btn-sm btn-primary me-1" onclick="editEkspedisi(' . $item->id . ')">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteEkspedisi(' . $item->id . ')">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    ',
-                ];
-            })
-        ]);
-    }
-
+    /**
+     * Show the form for creating a new resource.
+     */
     public function create()
     {
-        return view('ekspedisi.create');
+        return view('ekspedisi.create'); // Sesuaikan path view Anda
     }
 
+    /**
+     * Store a newly created resource in storage.
+     */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'NamaEkspedisi' => 'required|string|max:100',
-            'Deskripsi' => 'nullable|string',
+        // Validasi input
+        $request->validate([
+            'NamaEkspedisi' => 'required|string|max:255|unique:ekspedisis,NamaEkspedisi',
+            'Deskripsi' => 'nullable|string|max:1000',
+        ], [
+            'NamaEkspedisi.required' => 'Nama ekspedisi wajib diisi.',
+            'NamaEkspedisi.unique' => 'Nama ekspedisi sudah terdaftar.',
         ]);
 
-        $validated['UserCreate'] = Auth::id();
+        // Simpan data
+        Ekspedisi::create([
+            'NamaEkspedisi' => $request->NamaEkspedisi,
+            'Deskripsi' => $request->Deskripsi,
+        ]);
 
-        Ekspedisi::create($validated);
-
-        return redirect()->route('ekspedisi.index')
-            ->with('success', 'Ekspedisi berhasil ditambahkan');
+        // Redirect dengan pesan sukses (akan ditangkap oleh SweetAlert2 Toast di view)
+        return redirect()->route('ekspedisi.index')->with('success', 'Data ekspedisi berhasil ditambahkan.');
     }
 
-    public function show($id)
-    {
-        $ekspedisi = Ekspedisi::with('Creator')->findOrFail($id);
-        return view('ekspedisi.show', compact('ekspedisi'));
-    }
-
+    /**
+     * Show the form for editing the specified resource.
+     */
     public function edit($id)
     {
-        $ekspedisi = Ekspedisi::findOrFail($id);
+        $ekspedisi = Ekspedisi::findOrFail($id); // cari dulu datanya
         return view('ekspedisi.edit', compact('ekspedisi'));
     }
 
+    /**
+     * Update the specified resource in storage.
+     */
     public function update(Request $request, $id)
     {
-        $ekspedisi = Ekspedisi::findOrFail($id);
 
-        $validated = $request->validate([
-            'NamaEkspedisi' => 'required|string|max:100',
-            'Deskripsi' => 'nullable|string',
+        $ekspedisi = Ekspedisi::findOrFail($id);
+        $request->validate([
+            'NamaEkspedisi' => 'required|string|max:255|unique:ekspedisi,NamaEkspedisi,' . $ekspedisi->id,
+            'Deskripsi' => 'nullable|string|max:1000',
         ]);
 
-        $ekspedisi->update($validated);
+        $ekspedisi->update([
+            'NamaEkspedisi' => $request->NamaEkspedisi,
+            'Deskripsi' => $request->Deskripsi,
+        ]);
 
-        return redirect()->route('ekspedisi.index')
-            ->with('success', 'Ekspedisi berhasil diupdate');
+        return redirect()->route('ekspedisi.index')->with('success', 'Data ekspedisi berhasil diperbarui.');
     }
 
-    public function destroy($id)
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Ekspedisi $ekspedisi)
     {
-        $ekspedisi = Ekspedisi::findOrFail($id);
-        $ekspedisi->delete();
+        try {
+            $ekspedisi->delete();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Ekspedisi berhasil dihapus'
-        ]);
+            // Response JSON ini dirancang agar cocok dengan logika JS:
+            // if (response.status === 200 || response.success)
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'message' => 'Data ekspedisi berhasil dihapus.'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Gagal menghapus ekspedisi: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'status' => 500,
+                'message' => 'Gagal menghapus data. Pastikan data tidak sedang digunakan di transaksi lain.'
+            ], 500);
+        }
     }
 }

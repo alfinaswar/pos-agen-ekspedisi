@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Tambah Ekspedisi')
+@section('title', 'Edit Ekspedisi')
 
 @section('content')
 <style>
@@ -18,13 +18,13 @@
     <div class="container-fluid">
         <div class="row mb-2">
             <div class="col-sm-6">
-                <h1 class="m-0 h3 fw-bold text-dark">Tambah Ekspedisi</h1>
+                <h1 class="m-0 h3 fw-bold text-dark">Edit Ekspedisi</h1>
             </div>
             <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-end">
                     <li class="breadcrumb-item"><a href="{{ route('home') }}" class="text-decoration-none">Home</a></li>
                     <li class="breadcrumb-item"><a href="{{ route('ekspedisi.index') }}" class="text-decoration-none">Ekspedisi</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Tambah</li>
+                    <li class="breadcrumb-item active" aria-current="page">Edit</li>
                 </ol>
             </div>
         </div>
@@ -40,13 +40,14 @@
                 <div class="card shadow-sm border-0">
                     <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
                         <h5 class="mb-0 fw-bold text-primary">
-                            <i class="ti ti-truck me-2"></i>Form Tambah Ekspedisi
+                            <i class="ti ti-truck me-2"></i>Form Edit Ekspedisi
                         </h5>
                     </div>
 
                     <div class="card-body p-4">
-                        <form action="{{ route('ekspedisi.store') }}" method="POST">
+                        <form action="{{ route('ekspedisi.update', $ekspedisi->id) }}" method="POST">
                             @csrf
+                            @method('PUT')
 
                             <!-- Nama Ekspedisi -->
                             <div class="mb-4">
@@ -57,7 +58,7 @@
                                        class="form-control @error('NamaEkspedisi') is-invalid @enderror"
                                        id="NamaEkspedisi"
                                        name="NamaEkspedisi"
-                                       value="{{ old('NamaEkspedisi') }}"
+                                       value="{{ old('NamaEkspedisi', $ekspedisi->NamaEkspedisi) }}"
                                        placeholder="Contoh: JNE, J&T, SiCepat"
                                        required
                                        autofocus>
@@ -80,7 +81,7 @@
                                           id="Deskripsi"
                                           name="Deskripsi"
                                           rows="4"
-                                          placeholder="Jelaskan detail layanan, area jangkauan, atau catatan tambahan...">{{ old('Deskripsi') }}</textarea>
+                                          placeholder="Jelaskan detail layanan, area jangkauan, atau catatan tambahan...">{{ old('Deskripsi', $ekspedisi->Deskripsi) }}</textarea>
                                 <div class="form-text text-muted mt-1">
                                     <i class="ti ti-info-circle me-1"></i>Opsional: Tambahkan informasi pendukung seperti estimasi waktu atau area layanan.
                                 </div>
@@ -94,7 +95,7 @@
                             <!-- Action Buttons -->
                             <div class="d-flex gap-3 pt-3 border-top mt-4">
                                 <button type="submit" class="btn btn-primary px-4 d-flex align-items-center fw-semibold">
-                                    <i class="ti ti-device-floppy me-2"></i>Simpan
+                                    <i class="ti ti-device-floppy me-2"></i>Update
                                 </button>
                                 <a href="{{ route('ekspedisi.index') }}" class="btn btn-light text-muted px-4 d-flex align-items-center border fw-semibold">
                                     <i class="ti ti-x me-2"></i>Batal
