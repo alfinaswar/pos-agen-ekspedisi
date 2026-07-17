@@ -21,12 +21,14 @@ class EkspedisiController extends Controller
                 ->addColumn('action', function ($row) {
                     $btn = '<div class="d-flex gap-1 justify-content-center">';
                     $btn .= '<a href="' . route('ekspedisi.edit', $row->id) . '" class="btn btn-warning btn-sm text-white" title="Edit">';
-                    $btn .= '<i class="fas fa-edit"></i></a> ';
+                    $btn .= '<i class="ti ti-edit"></i></a> ';
                     $btn .= '<button type="button" class="btn btn-danger btn-sm btn-delete" data-id="' . $row->id . '" data-nama="' . htmlspecialchars($row->NamaEkspedisi) . '" title="Hapus">';
-                    $btn .= '<i class="fas fa-trash"></i></button>';
+                    $btn .= '<i class="ti ti-trash"></i></button>';
                     $btn .= '</div>';
                     return $btn;
                 })
+
+
                 ->rawColumns(['action'])
                 ->make(true);
         }
