@@ -25,7 +25,19 @@ class TransaksiController extends Controller
                     'Metode',
                     'Pendapatan'
                 ])
-                ->orderBy('created_at', 'desc'); // Urutkan dari created at terbaru
+                ->orderBy('created_at', 'desc');
+
+            // Tambahkan filter berdasarkan request
+            if ($request->filled('tanggal_awal')) {
+                $data->whereDate('Tanggal', '>=', $request->input('tanggal_awal'));
+            }
+            if ($request->filled('tanggal_akhir')) {
+                $data->whereDate('Tanggal', '<=', $request->input('tanggal_akhir'));
+            }
+            if ($request->filled('metode')) {
+                $data->where('Metode', $request->input('metode'));
+            }
+
             return DataTables::of($data)
                 ->addIndexColumn()
                 ->editColumn('Ekspedisi', function($row) {
@@ -47,7 +59,6 @@ class TransaksiController extends Controller
                 ->make(true);
 
         }
-
 
         return view('transaksi.index');
     }

@@ -38,10 +38,25 @@
                                 <!-- Kolom Kiri: Data Karyawan -->
                                 <div class="col-md-6">
                                     <div class="mb-4">
-                                        <label for="Nama" class="form-label fw-semibold"><i class="ti ti-user me-1 text-primary"></i> Nama <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control @error('Nama') is-invalid @enderror" id="Nama" name="Nama" value="{{ old('Nama') }}" placeholder="Masukkan nama lengkap" required autofocus>
-                                        @error('Nama') <div class="invalid-feedback d-block error-fade-in"><i class="ti ti-alert-circle me-1"></i>{{ $message }}</div> @enderror
+                                        <label for="Nama" class="form-label fw-semibold">
+                                            <i class="ti ti-user me-1 text-primary"></i> Nama <span class="text-danger">*</span>
+                                        </label>
+                                        <select class="form-select @error('Nama') is-invalid @enderror" id="Nama" name="Nama" required autofocus style="pointer-events: none; background-color: #e9ecef;">
+                                            <option value="{{ auth()->user()->id }}">
+                                                {{ auth()->user()->name }}
+                                            </option>
+                                        </select>
+
+                                        <input type="hidden" name="Nama" value="{{ auth()->user()->id }}">
+
+
+                                        @error('Nama')
+                                            <div class="invalid-feedback d-block error-fade-in">
+                                                <i class="ti ti-alert-circle me-1"></i>{{ $message }}
+                                            </div>
+                                        @enderror
                                     </div>
+
 
                                     <div class="mb-4">
                                         <label for="Divisi" class="form-label fw-semibold"><i class="ti ti-building me-1 text-primary"></i> Divisi <span class="text-danger">*</span></label>

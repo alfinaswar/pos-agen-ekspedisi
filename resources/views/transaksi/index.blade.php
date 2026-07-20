@@ -23,6 +23,8 @@
             </nav>
         </div>
 
+
+
         <!-- Content Card -->
         <div class="row">
             <div class="col-12">
@@ -39,6 +41,33 @@
 
                     <!-- Card Body -->
                     <div class="card-body">
+                           <!-- Filter Row -->
+   <div class="row mb-3">
+            <div class="col-md-3">
+                <label for="filter_tanggal_awal" class="form-label">Tanggal Awal</label>
+                <input type="date" class="form-control" id="filter_tanggal_awal">
+            </div>
+            <div class="col-md-3">
+                <label for="filter_tanggal_akhir" class="form-label">Tanggal Akhir</label>
+                <input type="date" class="form-control" id="filter_tanggal_akhir">
+            </div>
+            <div class="col-md-3">
+                <label for="filter_metode" class="form-label">Metode</label>
+                <select id="filter_metode" class="form-select">
+                    <option value="">Semua Metode</option>
+                    <option value="Tunai">Tunai</option>
+                    <option value="Non-Tunai">Non-Tunai</option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button class="btn btn-sm btn-secondary me-2" id="filter_reset">
+                    <i class="ti ti-refresh"></i> Reset
+                </button>
+                <button class="btn btn-sm btn-primary" id="filter_submit">
+                    <i class="ti ti-filter"></i> Tampilkan
+                </button>
+            </div>
+        </div>
                         <div class="table-responsive">
                             <table class="table table-striped table-bordered dt-responsive nowrap align-middle mb-0"
                                 id="transaksiTable" style="width: 100%;">
@@ -79,6 +108,14 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
+        let transaksiTable;
+
+        function getMetodeLabel(val) {
+            if (val === 'Tunai') return 'Tunai';
+            if (val === 'Non-Tunai') return 'Non-Tunai';
+            return '';
+        }
+
         $(document).ready(function() {
             // 1. Toast notification config
             const Toast = Swal.mixin({
@@ -142,7 +179,7 @@
                                         timer: 2000,
                                         showConfirmButton: false
                                     });
-                                    $('#transaksiTable').DataTable().ajax.reload(null, false);
+                                    transaksiTable.ajax.reload(null, false);
                                 } else {
                                     Swal.fire('Gagal!', response.message || 'Terjadi kesalahan', 'error');
                                 }
@@ -157,7 +194,7 @@
             });
 
             // 4. DataTables Init
-            $('#transaksiTable').DataTable({
+            transaksiTable = $('#transaksiTable').DataTable({
                 responsive: true,
                 serverSide: true,
                 processing: true,
@@ -165,7 +202,12 @@
                 autoWidth: false,
                 ajax: {
                     url: "{{ route('transaksi.index') }}",
-                    type: 'GET'
+                    type: 'GET',
+                    data: function(d) {
+                        d.tanggal_awal = $('#filter_tanggal_awal').val();
+                        d.tanggal_akhir = $('#filter_tanggal_akhir').val();
+                        d.metode = $('#filter_metode').val();
+                    }
                 },
 
                 columnDefs: [
@@ -227,11 +269,11 @@
                         name: 'Metode',
                         render: function(data) {
                             if (!data) return '<span class="badge bg-secondary">-</span>';
-
+                            const label = (data === 'Tunai' || data === 'Non-Tunai') ? data : (data === 'Tunai' ? 'Tunai' : 'Non-Tunai');
                             const badgeClass = data === 'Tunai' ? 'bg-success' : 'bg-info text-dark';
                             const icon = data === 'Tunai' ? 'ti ti-cash' : 'ti ti-credit-card';
 
-                            return `<span class="badge ${badgeClass}"><i class="${icon} me-1"></i>${data}</span>`;
+                            return `<span class="badge ${badgeClass}"><i class="${icon} me-1"></i>${label}</span>`;
                         }
                     },
                     {
@@ -252,6 +294,24 @@
                         searchable: false
                     }
                 ]
+            });
+
+            // Filter: reload datatable on change or submit
+            $('#filter_submit').on('click', function() {
+                transaksiTable.ajax.reload();
+            });
+
+            $('#filter_tanggal_awal, #filter_tanggal_akhir, #filter_metode').on('change', function(e) {
+                // Untuk live reload saat filter berubah, bisa diaktifkan
+                // transaksiTable.ajax.reload();
+            });
+
+            // Reset button
+            $('#filter_reset').on('click', function() {
+                $('#filter_tanggal_awal').val('');
+                $('#filter_tanggal_akhir').val('');
+                $('#filter_metode').val('');
+                transaksiTable.ajax.reload();
             });
         });
     </script>

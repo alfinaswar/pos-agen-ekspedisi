@@ -439,9 +439,9 @@
                 <span class="header-date">{{ now()->locale('id')->isoFormat('dddd, D MMMM YYYY') }}</span>
                 <div class="user-dropdown dropdown">
                     <div class="user-avatar">
-                        {{ substr(auth()->user()->Nama, 0, 1) }}
+                        {{ substr(auth()->user()->name, 0, 1) }}
                     </div>
-                    <span>{{ auth()->user()->Nama }}</span>
+                    <span>{{ auth()->user()->name }}</span>
                     <i class="bi bi-chevron-down"></i>
                 </div>
             </div>

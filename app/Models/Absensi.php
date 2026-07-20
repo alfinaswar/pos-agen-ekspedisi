@@ -13,4 +13,8 @@ class Absensi extends Model
     protected $table = 'absensis';
 
     protected $guarded = ['id'];
+    public function getUser()
+    {
+        return $this->belongsTo(User::class, 'Nama');
+    }
 }

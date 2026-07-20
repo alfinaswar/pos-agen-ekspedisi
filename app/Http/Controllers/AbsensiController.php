@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Absensi;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Log;
@@ -12,7 +13,10 @@ class AbsensiController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $data = Absensi::select(['id', 'Nama', 'Divisi', 'NoHp', 'Tanggal', 'JamHadir', 'JamPulang', 'Status', 'Lembur', 'MulaiLembur', 'SelesaiLembur']);
+            // Tampilkan data terbaru (terbaru di atas) dengan order by Tanggal DESC, id DESC
+            $data = Absensi::with('getUser')->select(['id', 'Nama', 'Divisi', 'NoHp', 'Tanggal', 'JamHadir', 'JamPulang', 'Status', 'Lembur', 'MulaiLembur', 'SelesaiLembur'])
+                ->orderBy('Tanggal', 'desc')
+                ->orderBy('id', 'desc');
 
             return DataTables::of($data)
                 ->addIndexColumn()
@@ -25,6 +29,13 @@ class AbsensiController extends Controller
                     $btn .= '</div>';
                     return $btn;
                 })
+                ->editColumn('Nama', function ($row) {
+                    if ($row->getUser) {
+                        return $row->getUser->name;
+                    }
+                    return $row->Nama;
+                })
+
                 ->rawColumns(['action'])
                 ->make(true);
         }
@@ -34,7 +45,8 @@ class AbsensiController extends Controller
 
     public function create()
     {
-        return view('absensi.create');
+        $user = User::get();
+        return view('absensi.create',compact('user'));
     }
 
     public function store(Request $request)
@@ -73,7 +85,8 @@ class AbsensiController extends Controller
 
     public function edit(Absensi $absensi)
     {
-        return view('absensi.edit', compact('absensi'));
+        $user = User::get();
+        return view('absensi.edit', compact('absensi','user'));
     }
 
     public function update(Request $request, Absensi $absensi)
