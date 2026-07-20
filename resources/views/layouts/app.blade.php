@@ -404,10 +404,11 @@
             </li>
             @php
                 $user = auth()->user();
+                // dd($user);
             @endphp
 
             {{-- ini level akses nya --}}
-            @if($user && $user->akses == 'admin')
+            @if($user && $user->role == 'Admin')
             <li>
                 <a href="{{ route('users.index') }}">
                     <i class="bi bi-people"></i>
