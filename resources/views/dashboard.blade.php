@@ -219,7 +219,7 @@
                                     <td class="ps-4 fw-semibold text-primary">{{ $trx->KodeTransaksi }}</td>
                                     <td>
                                         <span class="badge bg-light text-dark border">
-                                            <i class="ti ti-truck me-1"></i>{{ $trx->Ekspedisi }}
+                                            <i class="ti ti-truck me-1"></i>{{ $trx->ekspedisi->NamaEkspedisi }}
                                         </span>
                                     </td>
                                     <td class="text-end fw-bold">Rp {{ number_format($trx->Pendapatan, 0, ',', '.') }}</td>
