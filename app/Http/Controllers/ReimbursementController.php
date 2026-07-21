@@ -2,43 +2,105 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\ReimbursementExport;
 use App\Models\Reimbursement;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ReimbursementController extends Controller
 {
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $data = Reimbursement::select(['id', 'Tanggal', 'Nama', 'Item', 'Nominal', 'Status', 'BuktiUpload']);
+            // Mulai query dasar
+            $query = Reimbursement::with('getUser')->latest()->select(['id', 'Tanggal', 'Nama', 'Item', 'Nominal', 'Status', 'BuktiUpload']);
 
-            return DataTables::of($data)
+
+            // FILTER: Berdasarkan tanggal_awal dan tanggal_akhir
+            if ($request->filled('tanggal_awal')) {
+                $query->whereDate('Tanggal', '>=', $request->input('tanggal_awal'));
+            }
+            if ($request->filled('tanggal_akhir')) {
+                $query->whereDate('Tanggal', '<=', $request->input('tanggal_akhir'));
+            }
+
+            // FILTER: Status reimbursement (optional)
+            if ($request->filled('status')) {
+                $query->where('Status', $request->input('status'));
+            }
+
+            // FILTER: Berdasarkan Nama pengaju (optional, gunakan id user)
+            if ($request->filled('nama')) {
+                $query->where('Nama', $request->input('nama'));
+            }
+
+            return DataTables::of($query)
                 ->addIndexColumn()
                 ->addColumn('action', function ($row) {
                     $btn = '<div class="d-flex gap-1 justify-content-center">';
-                    // Owner bisa klik edit untuk mengubah status
-                    $btn .= '<a href="' . route('reimbursement.edit', $row->id) . '" class="btn btn-warning btn-sm text-white" title="Update Status / Edit">';
-                    $btn .= '<i class="ti ti-edit"></i></a> ';
+                    // Admin atau Owner bisa klik edit untuk mengubah status
+                    if (auth()->user() && auth()->user()->role === 'Admin') {
+                        $btn .= '<a href="' . route('reimbursement.edit', $row->id) . '" class="btn btn-warning btn-sm text-white" title="Update Status / Edit">';
+                        $btn .= '<i class="ti ti-edit"></i></a> ';
+                    }
                     $btn .= '<button type="button" class="btn btn-danger btn-sm btn-delete" data-id="' . $row->id . '" data-nama="' . htmlspecialchars($row->Nama) . '" title="Hapus">';
                     $btn .= '<i class="ti ti-trash"></i></button>';
                     $btn .= '</div>';
                     return $btn;
                 })
+
+                ->editColumn('Nama', function ($row) {
+                    return optional($row->getUser)->name ?: $row->Nama;
+                })
                 ->rawColumns(['action'])
                 ->make(true);
         }
 
-        return view('reimbursement.index');
+        // Dapatkan list user untuk filter (opsional dikirim ke blade)
+        $users = User::select(['id', 'name'])->get();
+
+        return view('reimbursement.index', compact('users'));
     }
 
     public function create()
     {
-        return view('reimbursement.create');
+        $user = User::get();
+        return view('reimbursement.create',compact('user'));
     }
+    public function export(Request $request)
+    {
+        $query = Reimbursement::query();
+        $filters = [];
 
+        // 1. Filter Tanggal
+        if ($request->filled('tanggal_awal') && $request->filled('tanggal_akhir')) {
+            $query->whereBetween('Tanggal', [$request->tanggal_awal, $request->tanggal_akhir]);
+            $filters[] = "Periode: " . Carbon::parse($request->tanggal_awal)->isoFormat('D MMM YYYY') . " s/d " . Carbon::parse($request->tanggal_akhir)->isoFormat('D MMM YYYY');
+        }
+
+        // 2. Filter Status
+        if ($request->filled('status')) {
+            $query->where('Status', $request->status);
+            $filters[] = "Status: " . $request->status;
+        }
+
+        $filterInfo = !empty($filters) ? implode(' | ', $filters) : "Semua Data";
+
+        // Ambil data sesuai filter, urutkan dari terbaru
+        $data = $query->orderBy('Tanggal', 'desc')->get();
+
+        $filename = 'Laporan_Reimbursement_' . Carbon::now()->format('Ymd_His') . '.xlsx';
+
+        return Excel::download(
+            new ReimbursementExport($data, $filterInfo),
+            $filename
+        );
+    }
     public function store(Request $request)
     {
         $request->validate([
@@ -67,7 +129,8 @@ class ReimbursementController extends Controller
 
     public function edit(Reimbursement $reimbursement)
     {
-        return view('reimbursement.edit', compact('reimbursement'));
+        $user = User::get();
+        return view('reimbursement.edit', compact('reimbursement','user'));
     }
 
     public function update(Request $request, Reimbursement $reimbursement)

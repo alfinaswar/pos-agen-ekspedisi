@@ -42,11 +42,27 @@
                                         @error('Tanggal') <div class="invalid-feedback d-block error-fade-in"><i class="ti ti-alert-circle me-1"></i>{{ $message }}</div> @enderror
                                     </div>
 
+
                                     <div class="mb-4">
-                                        <label for="Nama" class="form-label fw-semibold"><i class="ti ti-user me-1 text-primary"></i> Nama Pengaju <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control @error('Nama') is-invalid @enderror" id="Nama" name="Nama" value="{{ old('Nama') }}" placeholder="Nama lengkap Anda" required>
-                                        @error('Nama') <div class="invalid-feedback d-block error-fade-in"><i class="ti ti-alert-circle me-1"></i>{{ $message }}</div> @enderror
+                                        <label for="Nama" class="form-label fw-semibold">
+                                            <i class="ti ti-user me-1 text-primary"></i> Nama Pengaju <span class="text-danger">*</span>
+                                        </label>
+                                        @php
+                                            $authUserId = auth()->user()->id;
+                                        @endphp
+                                        <select class="form-select @error('Nama') is-invalid @enderror" id="Nama" name="Nama" style="pointer-events: none; background-color: #f8f9fa;" required>
+                                            @foreach($user as $u)
+                                                <option value="{{ $u->id }}" {{ (old('Nama', $authUserId) == $u->id) ? 'selected' : '' }}>{{ $u->name }}</option>
+                                            @endforeach
+                                        </select>
+                                        @error('Nama')
+                                            <div class="invalid-feedback d-block error-fade-in">
+                                                <i class="ti ti-alert-circle me-1"></i>{{ $message }}
+                                            </div>
+                                        @enderror
                                     </div>
+
+
                                 </div>
 
                                 <div class="col-md-6">

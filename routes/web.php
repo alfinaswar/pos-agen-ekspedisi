@@ -37,9 +37,14 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/ekspedisi/{id}', [App\Http\Controllers\EkspedisiController::class, 'update'])->name('ekspedisi.update');
     Route::delete('/ekspedisi/{id}', [App\Http\Controllers\EkspedisiController::class, 'destroy'])->name('ekspedisi.destroy');
 
+    //route transaksi
+    Route::get('/transaksi/export', [TransaksiController::class, 'export'])->name('transaksi.export');
     Route::resource('transaksi', TransaksiController::class);
-
+    //route absensi
+    Route::get('/absensi/export', [AbsensiController::class, 'export'])->name('absensi.export');
     Route::resource('absensi', AbsensiController::class);
+    // route rembes
+    Route::get('/reimbursement/export', [ReimbursementController::class, 'export'])->name('reimbursement.export');
     Route::resource('reimbursement', ReimbursementController::class);
     Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
     Route::resource('users', UserController::class);

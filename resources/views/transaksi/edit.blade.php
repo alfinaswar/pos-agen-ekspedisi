@@ -159,6 +159,7 @@
                                                 name="Metode"
                                                 required>
                                             <option value="Tunai" {{ old('Metode', $transaksi->Metode) == 'Tunai' ? 'selected' : '' }}>Tunai</option>
+                                            <option value="COD" {{ old('Metode', $transaksi->Metode) == 'COD' ? 'selected' : '' }}>COD</option>
                                             <option value="Non-Tunai" {{ old('Metode', $transaksi->Metode) == 'Non-Tunai' ? 'selected' : '' }}>Non-Tunai</option>
                                         </select>
                                         @error('Metode')
@@ -190,7 +191,7 @@
                                         @enderror
                                     </div>
 
-                                    <!-- Kode Bayar (Conditional) -->
+                                    <!-- Kode Bayar (Conditional - NON-TUNAI SAJA) -->
                                     <div class="mb-4" id="KodeBayarWrapper" style="display: none;">
                                         <label for="KodeBayar" class="form-label fw-semibold">
                                             <i class="ti ti-receipt me-1 text-primary"></i> Kode Bayar <span class="text-danger">*</span>
@@ -208,7 +209,7 @@
                                         @enderror
                                     </div>
 
-                                    <!-- Bukti Bayar (Conditional) -->
+                                    <!-- Bukti Bayar (Conditional - NON-TUNAI SAJA) -->
                                     <div class="mb-4" id="BuktiBayarWrapper" style="display: none;">
                                         <label for="BuktiBayar" class="form-label fw-semibold">
                                             <i class="ti ti-photo me-1 text-primary"></i> Bukti Pembayaran
@@ -328,7 +329,7 @@
                 kodeBayarWrapper.style.display = 'none';
                 buktiBayarWrapper.style.display = 'none';
                 kodeBayarInput.removeAttribute('required');
-                // Jangan reset value di halaman edit agar data lama tidak hilang jika user iseng ganti ke Tunai lalu kembali
+                // Jangan reset value di halaman edit agar data lama tidak hilang jika user iseng ganti ke Tunai/COD lalu kembali
             }
         }
 

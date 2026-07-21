@@ -13,7 +13,7 @@ class UserController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $data = User::select(['id', 'name', 'email', 'email_verified_at', 'role', 'created_at']);
+            $data = User::select(['id', 'name', 'email', 'email_verified_at', 'role', 'divisi', 'no_hp', 'created_at']);
 
             return DataTables::of($data)
                 ->addIndexColumn()
@@ -33,7 +33,13 @@ class UserController extends Controller
                     $badge = $row->role === 'Admin' ? 'bg-primary' : 'bg-info text-dark';
                     return '<span class="badge ' . $badge . '">' . $row->role . '</span>';
                 })
-                ->rawColumns(['email_verified_at', 'role', 'action'])
+                ->editColumn('divisi', function ($row) {
+                    return $row->divisi ?? '<span class="text-muted">-</span>';
+                })
+                ->editColumn('no_hp', function ($row) {
+                    return $row->no_hp ?? '<span class="text-muted">-</span>';
+                })
+                ->rawColumns(['email_verified_at', 'role', 'divisi', 'no_hp', 'action'])
                 ->make(true);
         }
 
@@ -52,11 +58,11 @@ class UserController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
             'role' => 'required|in:Admin,Kasir,Leader,Viewer',
-
+            'divisi' => 'nullable|string|max:255',
+            'no_hp' => 'nullable|string|max:50',
         ]);
 
         $data = $request->all();
-        // dd($data);
         $data['password'] = Hash::make($request->password);
         $data['user_create'] = auth()->user()->name ?? 'System';
 
@@ -77,7 +83,8 @@ class UserController extends Controller
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'password' => 'nullable|string|min:8|confirmed',
             'role' => 'required|in:Admin,Kasir,Leader,Viewer',
-
+            'divisi' => 'nullable|string|max:255',
+            'no_hp' => 'nullable|string|max:50',
         ]);
 
         $data = $request->except(['password']);

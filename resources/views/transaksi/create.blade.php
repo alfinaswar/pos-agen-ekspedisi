@@ -127,6 +127,7 @@
                                                 name="Metode"
                                                 required>
                                             <option value="Tunai" {{ old('Metode', 'Tunai') == 'Tunai' ? 'selected' : '' }}>Tunai</option>
+                                            <option value="COD" {{ old('Metode') == 'COD' ? 'selected' : '' }}>COD</option>
                                             <option value="Non-Tunai" {{ old('Metode') == 'Non-Tunai' ? 'selected' : '' }}>Non-Tunai</option>
                                         </select>
                                         @error('Metode')

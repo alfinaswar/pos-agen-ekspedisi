@@ -59,16 +59,44 @@
 
 
                                     <div class="mb-4">
-                                        <label for="Divisi" class="form-label fw-semibold"><i class="ti ti-building me-1 text-primary"></i> Divisi <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control @error('Divisi') is-invalid @enderror" id="Divisi" name="Divisi" value="{{ old('Divisi') }}" placeholder="Contoh: IT, HRD, Gudang" required>
-                                        @error('Divisi') <div class="invalid-feedback d-block error-fade-in"><i class="ti ti-alert-circle me-1"></i>{{ $message }}</div> @enderror
+                                        <label for="Divisi" class="form-label fw-semibold">
+                                            <i class="ti ti-building me-1 text-primary"></i> Divisi <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="text"
+                                            class="form-control @error('Divisi') is-invalid @enderror"
+                                            id="Divisi"
+                                            name="Divisi"
+                                            value="{{ old('Divisi', session('user_divisi', auth()->user()->divisi ?? '')) }}"
+                                            placeholder="Contoh: IT, HRD, Gudang"
+                                            readonly
+                                            required>
+                                        @error('Divisi')
+                                            <div class="invalid-feedback d-block error-fade-in">
+                                                <i class="ti ti-alert-circle me-1"></i>{{ $message }}
+                                            </div>
+                                        @enderror
                                     </div>
 
                                     <div class="mb-4">
-                                        <label for="NoHp" class="form-label fw-semibold"><i class="ti ti-phone me-1 text-primary"></i> No. HP <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control @error('NoHp') is-invalid @enderror" id="NoHp" name="NoHp" value="{{ old('NoHp') }}" placeholder="08xxxxxxxxxx" required>
-                                        @error('NoHp') <div class="invalid-feedback d-block error-fade-in"><i class="ti ti-alert-circle me-1"></i>{{ $message }}</div> @enderror
+                                        <label for="NoHp" class="form-label fw-semibold">
+                                            <i class="ti ti-phone me-1 text-primary"></i> No. HP <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="text"
+                                            class="form-control @error('NoHp') is-invalid @enderror"
+                                            id="NoHp"
+                                            name="NoHp"
+                                            value="{{ old('NoHp', session('user_no_hp', auth()->user()->no_hp ?? '')) }}"
+                                            placeholder="08xxxxxxxxxx"
+                                            readonly
+                                            required>
+                                        @error('NoHp')
+                                            <div class="invalid-feedback d-block error-fade-in">
+                                                <i class="ti ti-alert-circle me-1"></i>{{ $message }}
+                                            </div>
+                                        @enderror
                                     </div>
+
+
                                 </div>
 
                                 <!-- Kolom Kanan: Data Absensi -->

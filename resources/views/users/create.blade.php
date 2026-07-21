@@ -94,6 +94,48 @@
                                             </div>
                                         @enderror
                                     </div>
+
+                                    <!-- Divisi -->
+                                    <div class="mb-4">
+                                        <label for="divisi" class="form-label fw-semibold">
+                                            <i class="ti ti-building me-1 text-primary"></i> Divisi
+                                        </label>
+                                        <input type="text"
+                                               class="form-control @error('divisi') is-invalid @enderror"
+                                               id="divisi"
+                                               name="divisi"
+                                               value="{{ old('divisi') }}"
+                                               placeholder="Misal: Keuangan, Operasional, HRD">
+                                        <div class="form-text text-muted mt-1">
+                                            <i class="ti ti-info-circle me-1"></i>Optional. Diisi bila ingin mengelompokkan user berdasarkan divisi.
+                                        </div>
+                                        @error('divisi')
+                                            <div class="invalid-feedback d-block error-fade-in">
+                                                <i class="ti ti-alert-circle me-1"></i>{{ $message }}
+                                            </div>
+                                        @enderror
+                                    </div>
+
+                                    <!-- Nomor HP -->
+                                    <div class="mb-4">
+                                        <label for="no_hp" class="form-label fw-semibold">
+                                            <i class="ti ti-phone me-1 text-primary"></i> No HP
+                                        </label>
+                                        <input type="text"
+                                               class="form-control @error('no_hp') is-invalid @enderror"
+                                               id="no_hp"
+                                               name="no_hp"
+                                               value="{{ old('no_hp') }}"
+                                               placeholder="Contoh: 081212345678">
+                                        <div class="form-text text-muted mt-1">
+                                            <i class="ti ti-info-circle me-1"></i>Optional. Bisa diisi untuk kontak user.
+                                        </div>
+                                        @error('no_hp')
+                                            <div class="invalid-feedback d-block error-fade-in">
+                                                <i class="ti ti-alert-circle me-1"></i>{{ $message }}
+                                            </div>
+                                        @enderror
+                                    </div>
                                 </div>
 
                                 <!-- Kolom Kanan -->

@@ -18,6 +18,8 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->enum('role', ['Admin', 'Kasir', 'Leader', 'Viewer'])->nullable();
+            $table->string('divisi')->nullable();
+            $table->string('no_hp')->nullable();
             $table->string('user_create')->nullable();
             $table->string('user_update')->nullable();
             $table->string('user_delete')->nullable();

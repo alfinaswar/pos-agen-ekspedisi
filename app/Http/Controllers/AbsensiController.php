@@ -2,45 +2,80 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\AbsensiExport;
 use App\Models\Absensi;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Facades\Excel;
 
 class AbsensiController extends Controller
 {
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            // Tampilkan data terbaru (terbaru di atas) dengan order by Tanggal DESC, id DESC
-            $data = Absensi::with('getUser')->select(['id', 'Nama', 'Divisi', 'NoHp', 'Tanggal', 'JamHadir', 'JamPulang', 'Status', 'Lembur', 'MulaiLembur', 'SelesaiLembur'])
-                ->orderBy('Tanggal', 'desc')
-                ->orderBy('id', 'desc');
+            $query = Absensi::with('getUser')->select([
+                'id', 'Nama', 'Divisi', 'NoHp', 'Tanggal',
+                'JamHadir', 'JamPulang', 'Status', 'Lembur', 'MulaiLembur', 'SelesaiLembur'
+            ]);
 
-            return DataTables::of($data)
+            // Jika bukan Admin, filter data agar hanya menampilkan absensi user ini saja
+            if (!auth()->user() || auth()->user()->role !== 'Admin') {
+                $query->where('Nama', auth()->user()->id);
+            }
+            // Kalau Admin, tampilkan semua dan izinkan filter
+            else {
+                // 1. Filter Bulan
+                if ($request->filled('bulan')) {
+                    $query->whereMonth('Tanggal', $request->bulan);
+                }
+
+                // 2. Filter Status
+                if ($request->filled('status')) {
+                    $query->where('Status', $request->status);
+                }
+
+                // 3. Filter User (berdasarkan Nama)
+                if ($request->filled('user_name')) {
+                    $query->where('Nama', $request->user_name);
+                }
+            }
+
+            return DataTables::of($query)
                 ->addIndexColumn()
                 ->addColumn('action', function ($row) {
                     $btn = '<div class="d-flex gap-1 justify-content-center">';
-                    $btn .= '<a href="' . route('absensi.edit', $row->id) . '" class="btn btn-warning btn-sm text-white" title="Edit">';
-                    $btn .= '<i class="ti ti-edit"></i></a> ';
-                    $btn .= '<button type="button" class="btn btn-danger btn-sm btn-delete" data-id="' . $row->id . '" data-nama="' . htmlspecialchars($row->Nama) . '" title="Hapus">';
-                    $btn .= '<i class="ti ti-trash"></i></button>';
+                    // Admin: Bisa edit & hapus
+                    if (auth()->user() && auth()->user()->role === 'Admin') {
+                        $btn .= '<a href="' . route('absensi.edit', $row->id) . '" class="btn btn-warning btn-sm text-white" title="Edit">';
+                        $btn .= '<i class="ti ti-edit"></i></a> ';
+                        $btn .= '<button type="button" class="btn btn-danger btn-sm btn-delete" data-id="' . $row->id . '" data-nama="' . htmlspecialchars($row->getUser->name) . '" title="Hapus">';
+                        $btn .= '<i class="ti ti-trash"></i></button>';
+                    }
+                    // User lain selain admin, hanya boleh hapus
+                    elseif (auth()->user()) {
+                        $btn .= '<button type="button" class="btn btn-danger btn-sm btn-delete" data-id="' . $row->id . '" data-nama="' . htmlspecialchars($row->getUser->name) . '" title="Hapus">';
+                        $btn .= '<i class="ti ti-trash"></i></button>';
+                    }
                     $btn .= '</div>';
                     return $btn;
                 })
-                ->editColumn('Nama', function ($row) {
-                    if ($row->getUser) {
-                        return $row->getUser->name;
-                    }
-                    return $row->Nama;
+                ->editColumn('Nama', function($row) {
+                    return htmlspecialchars($row->getUser->name);
                 })
-
                 ->rawColumns(['action'])
                 ->make(true);
         }
 
-        return view('absensi.index');
+        // Admin bisa memilih user untuk filter di view, non-admin hanya dapat dirinya
+        if (auth()->user() && auth()->user()->role === 'Admin') {
+            $users = User::get();
+        } else {
+            $users = User::where('name', auth()->user()->name)->get();
+        }
+        return view('absensi.index',compact('users'));
     }
 
     public function create()
@@ -82,7 +117,58 @@ class AbsensiController extends Controller
 
         return redirect()->route('absensi.index')->with('success', 'Data absensi berhasil ditambahkan.');
     }
+    public function export(Request $request)
+    {
+        $query = Absensi::select([
+            'id',
+            'Nama',
+            'Divisi',
+            'NoHp',
+            'Tanggal',
+            'JamHadir',
+            'JamPulang',
+            'Status',
+            'Lembur',
+            'MulaiLembur',
+            'SelesaiLembur'
+        ])->orderBy('Tanggal', 'desc');
 
+        $filterParts = [];
+
+        // Filter Bulan
+        if ($request->filled('bulan')) {
+            $query->whereMonth('Tanggal', $request->bulan);
+            $filterParts[] = 'Bulan: ' . Carbon::create()->month($request->bulan)->isoFormat('MMMM');
+        }
+
+        // Filter Status
+        if ($request->filled('status')) {
+            $query->where('Status', $request->status);
+            $statusLabels = [
+                'H' => 'Hadir',
+                'I' => 'Izin',
+                'S' => 'Sakit',
+                'TK' => 'Tanpa Keterangan'
+            ];
+            $filterParts[] = 'Status: ' . ($statusLabels[$request->status] ?? $request->status);
+        }
+
+        // Filter User
+        if ($request->filled('user_name')) {
+            $query->where('Nama', $request->user_name);
+            $filterParts[] = 'Karyawan: ' . $request->user_name;
+        }
+
+        $data = $query->get();
+        $filterInfo = !empty($filterParts) ? implode(' | ', $filterParts) : 'Semua Data';
+
+        $filename = 'Laporan_Absensi_' . Carbon::now()->format('Y-m-d_His') . '.xlsx';
+
+        return Excel::download(
+            new AbsensiExport($data, $filterInfo),
+            $filename
+        );
+    }
     public function edit(Absensi $absensi)
     {
         $user = User::get();
@@ -96,8 +182,9 @@ class AbsensiController extends Controller
             'Divisi' => 'required|string|max:100',
             'NoHp' => 'required|string|max:20',
             'Tanggal' => 'required|date',
-            'JamHadir' => 'nullable|date_format:H:i',
-            'JamPulang' => 'nullable|date_format:H:i',
+            'JamHadir' => 'nullable',
+            'JamPulang' => 'nullable',
+
             'Status' => 'required|in:H,I,S,TK',
             'Lembur' => 'required|in:Y,N',
             'MulaiLembur' => 'required_if:Lembur,Y|nullable|string|max:50',

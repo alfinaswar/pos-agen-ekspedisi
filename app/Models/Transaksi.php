@@ -73,4 +73,9 @@ class Transaksi extends Model
     {
         return $this->belongsTo(Ekspedisi::class, 'Ekspedisi');
     }
+
+    public function userCreate()
+    {
+        return $this->belongsTo(User::class, 'UserCreate');
+    }
 }

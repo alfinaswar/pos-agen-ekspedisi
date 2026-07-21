@@ -11,4 +11,9 @@ class Reimbursement extends Model
     use HasFactory, SoftDeletes;
     protected $table = 'reimbursements';
     protected $guarded = ['id'];
+
+public function getUser()
+{
+    return $this->belongsTo(User::class, 'Nama');
+}
 }

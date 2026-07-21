@@ -57,9 +57,19 @@
                                         <input type="date" class="form-control" id="Tanggal" name="Tanggal" value="{{ old('Tanggal', $reimbursement->Tanggal) }}" readonly>
                                     </div>
                                     <div class="mb-4">
-                                        <label for="Nama" class="form-label fw-semibold"><i class="ti ti-user me-1 text-primary"></i> Nama Pengaju</label>
-                                        <input type="text" class="form-control" id="Nama" name="Nama" value="{{ old('Nama', $reimbursement->Nama) }}" readonly>
+                                        <label for="Nama" class="form-label fw-semibold"><i class="ti ti-user me-1 text-primary"></i> Nama Pengaju <span class="text-danger">*</span></label>
+
+                                        <select class="form-select @error('Nama') is-invalid @enderror" id="Nama" name="Nama" style="pointer-events: none; background-color: #f8f9fa;">
+                                            @foreach($user as $u)
+                                                <option value="{{ $u->id }}" {{ (old('Nama', $reimbursement->Nama) == $u->id) ? 'selected' : '' }}>{{ $u->name }}</option>
+                                            @endforeach
+                                        </select>
+
+
+
+                                        @error('Nama') <div class="invalid-feedback d-block error-fade-in"><i class="ti ti-alert-circle me-1"></i>{{ $message }}</div> @enderror
                                     </div>
+
                                 </div>
 
                                 <div class="col-md-6">
@@ -70,6 +80,7 @@
                                     </div>
 
                                     <!-- Field Khusus Owner: Ubah Status -->
+                                    @if(auth()->user() && auth()->user()->role === 'Admin')
                                     <div class="mb-4">
                                         <label for="Status" class="form-label fw-semibold text-danger"><i class="ti ti-shield-check me-1"></i> Ubah Status <span class="text-danger">*</span></label>
                                         <select class="form-select @error('Status') is-invalid @enderror" id="Status" name="Status" required>
@@ -79,12 +90,20 @@
                                         </select>
                                         @error('Status') <div class="invalid-feedback d-block error-fade-in"><i class="ti ti-alert-circle me-1"></i>{{ $message }}</div> @enderror
                                     </div>
+                                    @else
+                                    <div class="mb-4">
+                                        <label class="form-label fw-semibold text-danger"><i class="ti ti-shield-check me-1"></i> Status</label>
+                                        <input type="text" class="form-control bg-light" value="{{ $reimbursement->Status }}" readonly>
+                                        <input type="hidden" name="Status" value="{{ $reimbursement->Status }}">
+                                    </div>
+                                    @endif
+
                                 </div>
                             </div>
 
                             <div class="mb-4">
                                 <label class="form-label fw-semibold"><i class="ti ti-file-text me-1 text-primary"></i> Detail Item</label>
-                                <textarea class="form-control bg-light" rows="3" readonly>{{ old('Item', $reimbursement->Item) }}</textarea>
+                                <textarea class="form-control bg-light" name="Item" rows="3" readonly>{{ old('Item', $reimbursement->Item) }}</textarea>
                             </div>
 
                             <div class="mb-4">
