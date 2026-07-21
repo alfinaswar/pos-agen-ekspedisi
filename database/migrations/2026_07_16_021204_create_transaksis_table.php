@@ -17,7 +17,7 @@ return new class extends Migration
             $table->dateTime('Tanggal')->nullable();
             $table->string('Ekspedisi')->nullable();
             $table->string('NoResi')->nullable();
-            $table->enum('Metode', ['Tunai', 'Non-Tunai'])->nullable()->default('Tunai');
+            $table->enum('Metode', ['Tunai', 'Non-Tunai', 'COD'])->nullable()->default('Tunai');
             $table->decimal('Pendapatan', 15, 2)->nullable()->default(0.00);
             $table->text('KodeBayar')->nullable()->comment('Diisi jika Metode Non-Tunai');
             $table->string('BuktiBayar')->nullable()->comment('Upload bukti pembayaran jika metode non-tunai');
