@@ -43,16 +43,17 @@ class ReimbursementController extends Controller
                 ->addIndexColumn()
                 ->addColumn('action', function ($row) {
                     $btn = '<div class="d-flex gap-1 justify-content-center">';
-                    // Admin atau Owner bisa klik edit untuk mengubah status
+                    // Hanya admin yang bisa edit dan hapus
                     if (auth()->user() && auth()->user()->role === 'Admin') {
                         $btn .= '<a href="' . route('reimbursement.edit', $row->id) . '" class="btn btn-warning btn-sm text-white" title="Update Status / Edit">';
                         $btn .= '<i class="ti ti-edit"></i></a> ';
+                        $btn .= '<button type="button" class="btn btn-danger btn-sm btn-delete" data-id="' . $row->id . '" data-nama="' . htmlspecialchars($row->Nama) . '" title="Hapus">';
+                        $btn .= '<i class="ti ti-trash"></i></button>';
                     }
-                    $btn .= '<button type="button" class="btn btn-danger btn-sm btn-delete" data-id="' . $row->id . '" data-nama="' . htmlspecialchars($row->Nama) . '" title="Hapus">';
-                    $btn .= '<i class="ti ti-trash"></i></button>';
                     $btn .= '</div>';
                     return $btn;
                 })
+
 
                 ->editColumn('Nama', function ($row) {
                     return optional($row->getUser)->name ?: $row->Nama;
