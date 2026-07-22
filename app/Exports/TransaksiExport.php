@@ -39,11 +39,13 @@ class TransaksiExport implements FromView, WithStyles, WithTitle, WithColumnWidt
         return [
             'A' => 5,   // No (kecil)
             'B' => 20,  // Kode Transaksi
-            'C' => 22,  // Tanggal
-            'D' => 20,  // Ekspedisi
-            'E' => 20,  // No. Resi
-            'F' => 15,  // Metode
-            'G' => 22,  // Pendapatan
+            'C' => 20,  // Kode Bayar
+            'D' => 22,  // Tanggal
+            'E' => 20,  // Ekspedisi
+            'F' => 20,  // No. Resi
+            'G' => 15,  // Metode
+            'H' => 22,  // Pendapatan
+            'I' => 22,  // User Input
         ];
     }
 
@@ -51,17 +53,20 @@ class TransaksiExport implements FromView, WithStyles, WithTitle, WithColumnWidt
     {
         $dataCount = count($this->data);
 
-        // Baris-baris sesuai dengan struktur yang sesuai dengan blade (lihat referensi ReimbursementExport)
-        $headerRow = 6;
+        // Baris index pada blade:
+        // 1 - spasi, 2 - spasi, 3 - judul, 4 - filter, 5 - user input, 6 - spasi, 7 - header
+        // Data mulai baris 8. Setelah data: total, spacer, footer
+        $headerRow = 7;
         $footerRow = $headerRow + $dataCount + 3;
 
-        // Merge cells untuk judul, filter, dan footer
-        $sheet->mergeCells('A3:G3');
-        $sheet->mergeCells('A4:G4');
-        $sheet->mergeCells('A' . $footerRow . ':G' . $footerRow);
+        // Merge cells untuk judul, filter, user, dan footer
+        $sheet->mergeCells('A3:I3');
+        $sheet->mergeCells('A4:I4');
+        $sheet->mergeCells('A5:I5');
+        $sheet->mergeCells('A' . $footerRow . ':I' . $footerRow);
 
         // Border untuk header dan data
-        $sheet->getStyle('A6:G' . ($footerRow - 3))->applyFromArray([
+        $sheet->getStyle('A7:I' . ($footerRow - 3))->applyFromArray([
             'borders' => [
                 'allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'DEE2E6']],
             ],
@@ -79,8 +84,13 @@ class TransaksiExport implements FromView, WithStyles, WithTitle, WithColumnWidt
                 'font' => ['italic' => true, 'size' => 11, 'color' => ['rgb' => '6C757D']],
                 'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
             ],
-            // Baris 6: Header Tabel (Bold, Abu muda)
-            6 => [
+            // Baris 5: User Input (Italic, left)
+            5 => [
+                'font' => ['italic' => true, 'size' => 11, 'color' => ['rgb' => '444444']],
+                'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT],
+            ],
+            // Baris 7: Header Tabel (Bold, Abu muda)
+            7 => [
                 'font' => ['bold' => true, 'size' => 11],
                 'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F8F9FA']],
                 'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
