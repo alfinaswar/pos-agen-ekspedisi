@@ -185,8 +185,8 @@
                                                 required>
                                             <option value="" disabled selected>-- Pilih Role --</option>
                                             <option value="Admin" {{ old('role') == 'Admin' ? 'selected' : '' }}>Admin - Akses penuh semua menu</option>
-                                            <option value="Kasir" {{ old('role') == 'Kasir' ? 'selected' : '' }}>Kasir - Hanya input transaksi & lihat laporan</option>
                                             <option value="Leader" {{ old('role') == 'Leader' ? 'selected' : '' }}>Leader - Lihat laporan & rekap</option>
+                                            <option value="Kasir" {{ old('role') == 'Kasir' ? 'selected' : '' }}>Kasir - Hanya input transaksi & lihat laporan</option>
                                             <option value="Viewer" {{ old('role') == 'Viewer' ? 'selected' : '' }}>Viewer - Hanya lihat laporan</option>
                                         </select>
 
