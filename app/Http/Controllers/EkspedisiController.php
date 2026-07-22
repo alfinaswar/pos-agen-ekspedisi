@@ -15,7 +15,8 @@ class EkspedisiController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $data = Ekspedisi::select(['id', 'NamaEkspedisi', 'Deskripsi']);
+            $data = Ekspedisi::select(['id', 'NamaEkspedisi', 'Deskripsi'])
+                ->orderBy('id', 'desc'); // YANG TERBARU DULU
             return DataTables::of($data)
                 ->addIndexColumn()
                 ->addColumn('action', function ($row) {
@@ -27,11 +28,10 @@ class EkspedisiController extends Controller
                     $btn .= '</div>';
                     return $btn;
                 })
-
-
                 ->rawColumns(['action'])
                 ->make(true);
         }
+
 
 
         // Return view untuk request biasa
