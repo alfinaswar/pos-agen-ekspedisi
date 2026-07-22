@@ -408,13 +408,16 @@
             @endphp
 
             {{-- ini level akses nya --}}
-            @if($user && $user->role == 'Admin')
-            <li>
-                <a href="{{ route('users.index') }}">
-                    <i class="bi bi-people"></i>
-                    <span>User</span>
-                </a>
-            </li>
+            @if($user && ($user->role == 'Admin' || $user->role == 'Leader'))
+                {{-- Menu User hanya untuk Admin --}}
+                @if($user->role == 'Admin')
+                <li>
+                    <a href="{{ route('users.index') }}">
+                        <i class="bi bi-people"></i>
+                        <span>User</span>
+                    </a>
+                </li>
+                @endif
             @endif
             <!-- Menu Pengaturan dihapus -->
             <li class="logout">

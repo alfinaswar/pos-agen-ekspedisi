@@ -48,7 +48,7 @@ class AbsensiController extends Controller
                 ->addColumn('action', function ($row) {
                     $btn = '<div class="d-flex gap-1 justify-content-center">';
                     // Admin: Bisa edit & hapus
-                    if (auth()->user() && auth()->user()->role === 'Admin') {
+                    if (auth()->user() && (auth()->user()->role === 'Admin' || auth()->user()->role === 'Leader')) {
                         $btn .= '<a href="' . route('absensi.edit', $row->id) . '" class="btn btn-warning btn-sm text-white" title="Edit">';
                         $btn .= '<i class="ti ti-edit"></i></a> ';
                         $btn .= '<button type="button" class="btn btn-danger btn-sm btn-delete" data-id="' . $row->id . '" data-nama="' . htmlspecialchars($row->getUser->name) . '" title="Hapus">';
