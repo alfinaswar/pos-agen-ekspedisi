@@ -65,7 +65,8 @@
                             </div>
 
                             <!-- User (Hanya untuk Admin) -->
-                            @if(auth()->check() && auth()->user()->role === 'Admin') {{-- Sesuaikan 'role' dengan kolom di tabel users Anda --}}
+                            @if(auth()->check() && (auth()->user()->role === 'Admin' || auth()->user()->role === 'Leader')) {{-- Sesuaikan 'role' dengan kolom di tabel users Anda --}}
+
                             <div class="col-md-2">
                                 <label class="form-label small fw-semibold text-muted">User Input</label>
                                 <select id="filter_user" class="form-select form-select-sm">
@@ -78,7 +79,8 @@
                             @endif
 
                             <!-- Action Buttons -->
-                            @php $btnCol = (auth()->check() && auth()->user()->role === 'Admin') ? '3' : '5'; @endphp
+                            @php $btnCol = (auth()->check() && (auth()->user()->role === 'Admin' || auth()->user()->role === 'Leader')) ? '3' : '5'; @endphp
+
                             <div class="col-md-{{ $btnCol }} d-flex align-items-end flex-wrap gap-2">
                                 <button class="btn btn-sm btn-secondary" id="filter_reset" title="Reset Filter">
                                     <i class="ti ti-refresh"></i> Reset
@@ -99,11 +101,11 @@
                                     <tr>
                                         <th style="width: 50px;" class="text-center">#</th>
                                         <th>User Input</th>
-                                        <th>Kode Bayar</th>
                                         <th>Tanggal</th>
                                         <th>Ekspedisi</th>
                                         <th>No. Resi</th>
                                         <th>Metode</th>
+                                        <th>Kode Bayar</th>
                                         <th class="text-end">Pendapatan</th>
                                         <th style="width: 100px;" class="text-center">Aksi</th>
                                     </tr>
@@ -213,7 +215,6 @@
                 columns: [
                     { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false },
                     { data: 'UserCreate', name: 'UserCreate', render: (data) => data ? `<span class="fw-bold text-primary">${data}</span>` : '<span class="text-muted">-</span>' },
-                    { data: 'KodeBayar', name: 'KodeBayar', render: (data) => data ? `<span class="font-monospace text-dark">${data}</span>` : '<span class="text-muted">-</span>' },
                     {
                         data: 'Tanggal', name: 'Tanggal',
                         render: (data) => data ? new Date(data).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'
@@ -229,6 +230,7 @@
                             return `<span class="badge ${badgeClass}"><i class="${icon} me-1"></i>${data}</span>`;
                         }
                     },
+                    { data: 'KodeBayar', name: 'KodeBayar', render: (data) => data ? `<span class="font-monospace text-dark">${data}</span>` : '<span class="text-muted">-</span>' },
                     {
                         data: 'Pendapatan', name: 'Pendapatan',
                         render: (data) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(data || 0)
