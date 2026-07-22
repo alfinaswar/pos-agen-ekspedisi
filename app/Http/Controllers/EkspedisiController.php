@@ -53,7 +53,7 @@ class EkspedisiController extends Controller
     {
         // Validasi input
         $request->validate([
-            'NamaEkspedisi' => 'required|string|max:255|unique:ekspedisis,NamaEkspedisi',
+            'NamaEkspedisi' => 'required|string|max:255|unique:ekspedisi,NamaEkspedisi',
             'Deskripsi' => 'nullable|string|max:1000',
         ], [
             'NamaEkspedisi.required' => 'Nama ekspedisi wajib diisi.',
