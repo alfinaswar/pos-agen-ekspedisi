@@ -179,7 +179,7 @@
                                                placeholder="Rp 0"
                                                autocomplete="off"
                                                inputmode="numeric"
-                                               pattern="[0-9]*"
+                                               {{-- pattern="[0-9]*" --}}
                                                >
                                         <input type="hidden" name="Diskon" id="DiskonRaw" value="{{ old('Diskon', 0) }}">
                                         <span class="diskon-error" id="DiskonErrorMsg">
