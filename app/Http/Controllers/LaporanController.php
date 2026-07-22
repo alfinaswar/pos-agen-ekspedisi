@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exports\LaporanPendapatanExport;
 use App\Models\Transaksi;
+use App\Models\Ekspedisi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -55,14 +56,8 @@ class LaporanController extends Controller
         $chartLabels = $dataWithPercentage->pluck('Ekspedisi')->toArray();
         $chartData = $dataWithPercentage->pluck('total_pendapatan')->toArray();
 
-        // Mapping nama ekspedisi (jika perlu)
-        $expeditionNames = [
-            '1' => 'J&T Express',
-            '2' => 'JNE',
-            '3' => 'SiCepat',
-            '4' => 'AnterAja',
-            '5' => 'Ninja Express',
-        ];
+        // Ambil nama ekspedisi dari master ekspedisi
+        $expeditionNames = Ekspedisi::pluck('NamaEkspedisi', 'id')->toArray();
 
         return view('laporan.index', compact(
             'type',
@@ -106,13 +101,8 @@ class LaporanController extends Controller
         $totalTransaksi = $data->sum('jumlah_transaksi');
         $totalPendapatan = $data->sum('total_pendapatan');
 
-        $expeditionNames = [
-            '1' => 'J&T Express',
-            '2' => 'JNE',
-            '3' => 'SiCepat',
-            '4' => 'AnterAja',
-            '5' => 'Ninja Express',
-        ];
+        // Ambil nama ekspedisi dari master ekspedisi
+        $expeditionNames = Ekspedisi::pluck('NamaEkspedisi', 'id')->toArray();
 
         // Panggil Export Class yang baru (tanpa view)
         return Excel::download(

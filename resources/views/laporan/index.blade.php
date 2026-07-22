@@ -165,23 +165,36 @@
         document.addEventListener('DOMContentLoaded', function() {
             const ctx = document.getElementById('incomeChart').getContext('2d');
 
-            // Labels dari server (mapping nama ekspedisi)
-            const labels = @json($chartLabels).map(id => {
-                const names = @json($expeditionNames);
-                return names[id] || 'Ekspedisi ' + id;
+            // Dapatkan daftar ekspedisi & chartLabels/id ekspedisi
+            const expeditionNames = @json($expeditionNames);
+            const chartLabels = @json($chartLabels);
+
+            // Labels: nama ekspedisi sesuai id
+            const labels = chartLabels.map(id => {
+                return expeditionNames[id] || 'Ekspedisi ' + id;
             });
 
             const data = @json($chartData);
 
-            // Warna untuk setiap bar
-            const colors = [
-                '#dc3545', // merah
-                '#0d6efd', // biru
-                '#ffc107', // kuning
-                '#6f42c1', // ungu
-                '#198754', // hijau
-                '#fd7e14', // orange
-            ];
+            // Warna: generate warna unik per ekspedisi berdasarkan id, memastikan konsistensi, variasi, dan berbeda
+            function stringToColor(str) {
+                // Hash kode sederhana ke RGB, dibuat agar output konsisten
+                let hash = 0;
+                for (let i = 0; i < str.length; i++) {
+                    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+                }
+                // Hasilkan warna terang dan cukup kontras
+                const h = Math.abs(hash) % 360; // Hue
+                const s = 60 + (Math.abs(hash) % 20); // Saturation 60-80%
+                const l = 60; // Lightness = 60%
+                return `hsl(${h},${s}%,${l}%)`;
+            }
+
+            // Urutkan warna agar warna konsisten terhadap urutan chartLabels/nama
+            const colors = chartLabels.map(id => {
+                // Gunakan NamaEkspedisi jika ada, else pakai id (output tetap konsisten & unik)
+                return stringToColor(expeditionNames[id] ? expeditionNames[id] : String(id));
+            });
 
             new Chart(ctx, {
                 type: 'bar',
@@ -190,7 +203,7 @@
                     datasets: [{
                         label: 'Pendapatan (Rp)',
                         data: data,
-                        backgroundColor: colors.slice(0, data.length),
+                        backgroundColor: colors,
                         borderRadius: 8,
                         borderSkipped: false,
                     }]
