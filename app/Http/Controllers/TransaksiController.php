@@ -29,6 +29,8 @@ class TransaksiController extends Controller
                     'NoResi',
                     'Metode',
                     'KodeBayar',
+                    'Diskon',
+                    'PendapatanBersih',
                     'Pendapatan',
                     'UserCreate'
                 ])
@@ -38,7 +40,6 @@ class TransaksiController extends Controller
             if (!auth()->user() || !in_array(auth()->user()->role, ['Admin', 'Leader'])) {
                 $query->where('UserCreate', auth()->id());
             }
-
 
             // 2. Terapkan filter (khusus admin, filter user juga ditampilkan; kalau bukan admin user di-force ke dirinya)
             if ($request->filled('tanggal_awal')) {
@@ -58,8 +59,10 @@ class TransaksiController extends Controller
                 $query->where('UserCreate', $request->input('user'));
             }
 
-            // 3. Hitung total pendapatan (gunakan clone agar tidak mengganggu query utama DataTables)
+            // 3. Hitung total pendapatan, diskon, & pendapatan bersih (gunakan clone agar tidak mengganggu query utama DataTables)
             $totalPendapatan = (clone $query)->sum('Pendapatan') ?? 0;
+            $totalDiskon = (clone $query)->sum('Diskon') ?? 0;
+            $totalPendapatanBersih = (clone $query)->sum('PendapatanBersih') ?? 0;
 
             // 4. Return DataTables
             return DataTables::of($query)
@@ -84,15 +87,19 @@ class TransaksiController extends Controller
                         : '<span class="text-muted">-</span>';
                 })
 
-                // Kirim total ke frontend
-                ->with('total_pendapatan', number_format($totalPendapatan, 0, ',', '.'))
+                // Kirim total ke frontend (total_pendapatan, total_diskon, total_pendapatan_bersih)
+                ->with([
+                    'total_pendapatan' => number_format($totalPendapatan, 0, ',', '.'),
+                    'total_diskon' => number_format($totalDiskon, 0, ',', '.'),
+                    'total_pendapatan_bersih' => number_format($totalPendapatanBersih, 0, ',', '.'),
+                ])
                 ->rawColumns(['action', 'Ekspedisi'])
                 ->make(true);
         }
 
         $ekspedisi = Ekspedisi::get();
         // Kalau bukan admin, hanya kirim data user itu saja ke view (untuk filter jika pakai blade select dsb)
-        if (auth()->user() && auth()->user()->role !== 'Admin') {
+        if (auth()->user() && !in_array(auth()->user()->role, ['Admin', 'Leader'])) {
             $users = User::where('id', auth()->id())->get();
         } else {
             $users = User::all();

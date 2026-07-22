@@ -11,6 +11,13 @@
     .error-fade-in {
         animation: fadeIn 0.3s ease-in-out forwards;
     }
+    .diskon-error {
+        color: #d93025;
+        font-size: 0.95em;
+        margin-top: 3px;
+        display: none;
+        animation: fadeIn 0.3s;
+    }
 </style>
 
 <!-- Content Header dengan Breadcrumb -->
@@ -46,7 +53,7 @@
 
                     <div class="card-body p-4">
                         <!-- Tambahkan enctype untuk upload file BuktiBayar -->
-                        <form action="{{ route('transaksi.store') }}" method="POST" enctype="multipart/form-data">
+                        <form action="{{ route('transaksi.store') }}" method="POST" enctype="multipart/form-data" id="formTransaksi">
                             @csrf
 
                             <div class="row">
@@ -81,7 +88,7 @@
                                                 name="Ekspedisi">
                                             <option value="">-- Pilih Ekspedisi --</option>
                                             @foreach($ekspedisis as $exp)
-                                                <option value="{{ $exp->id }}" {{ old('Ekspedisi') == $exp->NamaEkspedisi ? 'selected' : '' }}>
+                                                <option value="{{ $exp->id }}" {{ old('Ekspedisi') == $exp->id ? 'selected' : '' }}>
                                                     {{ $exp->NamaEkspedisi }}
                                                 </option>
                                             @endforeach
@@ -161,6 +168,49 @@
                                         @enderror
                                     </div>
 
+                                    <!-- Diskon (Format Rupiah) -->
+                                    <div class="mb-4">
+                                        <label for="DiskonFormatted" class="form-label fw-semibold">
+                                            <i class="ti ti-discount-2 me-1 text-primary"></i> Diskon
+                                        </label>
+                                        <input type="text"
+                                               class="form-control @error('Diskon') is-invalid @enderror"
+                                               id="DiskonFormatted"
+                                               placeholder="Rp 0"
+                                               autocomplete="off"
+                                               inputmode="numeric"
+                                               pattern="[0-9]*"
+                                               >
+                                        <input type="hidden" name="Diskon" id="DiskonRaw" value="{{ old('Diskon', 0) }}">
+                                        <span class="diskon-error" id="DiskonErrorMsg">
+                                            <i class="ti ti-alert-circle me-1"></i>Nilai diskon tidak boleh lebih besar dari Pendapatan.
+                                        </span>
+                                        <div class="form-text text-muted mt-1">
+                                            <i class="ti ti-info-circle me-1"></i>Masukkan nilai diskon jika ada.
+                                        </div>
+                                        @error('Diskon')
+                                            <div class="invalid-feedback d-block error-fade-in">
+                                                <i class="ti ti-alert-circle me-1"></i>{{ $message }}
+                                            </div>
+                                        @enderror
+                                    </div>
+
+                                    <!-- Pendapatan Bersih (Readonly) -->
+                                    <div class="mb-4">
+                                        <label for="PendapatanBersihFormatted" class="form-label fw-semibold">
+                                            <i class="ti ti-cash-banknote me-1 text-primary"></i> Pendapatan Bersih
+                                        </label>
+                                        <input type="text"
+                                               class="form-control"
+                                               id="PendapatanBersihFormatted"
+                                               placeholder="Rp 0"
+                                               readonly>
+                                        <input type="hidden" name="PendapatanBersih" id="PendapatanBersihRaw" value="{{ old('PendapatanBersih', 0) }}">
+                                        <div class="form-text text-muted mt-1">
+                                            <i class="ti ti-info-circle me-1"></i>Otomatis dihitung: Pendapatan - Diskon.
+                                        </div>
+                                    </div>
+
                                     <!-- Kode Bayar (Conditional: Hanya muncul jika Non-Tunai) -->
                                     <div class="mb-4" id="KodeBayarWrapper" style="display: none;">
                                         <label for="KodeBayar" class="form-label fw-semibold">
@@ -201,6 +251,9 @@
                                             </div>
                                         @enderror
                                     </div>
+
+                                    <!-- Field Baru: StatusTransaksi -->
+
                                 </div>
                             </div>
 
@@ -241,33 +294,111 @@
 <!-- JavaScript untuk Logika Form -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // 1. Logika Format Rupiah Otomatis
+        // 1. Logika Format Rupiah Otomatis & Pendapatan Bersih
+
         const inputFormatted = document.getElementById('PendapatanFormatted');
         const inputRaw = document.getElementById('PendapatanRaw');
 
+        const diskonFormatted = document.getElementById('DiskonFormatted');
+        const diskonRaw = document.getElementById('DiskonRaw');
+
+        const pendapatanBersihFormatted = document.getElementById('PendapatanBersihFormatted');
+        const pendapatanBersihRaw = document.getElementById('PendapatanBersihRaw');
+
+        const diskonErrorMsg = document.getElementById('DiskonErrorMsg');
+        const form = document.getElementById('formTransaksi');
+
         // Fungsi format Rupiah
         const formatRupiah = (number) => {
+            number = parseInt(number) || 0;
             return new Intl.NumberFormat('id-ID').format(number);
         };
 
         // Set nilai awal jika ada old input (misal validasi gagal)
-        const initialValue = inputRaw.value;
-        if (initialValue && initialValue != '0') {
-            inputFormatted.value = 'Rp ' + formatRupiah(initialValue);
+        const initialPendapatan = inputRaw.value;
+        if (initialPendapatan && initialPendapatan != '0') {
+            inputFormatted.value = 'Rp ' + formatRupiah(initialPendapatan);
         }
+
+        const initialDiskon = diskonRaw.value;
+        if (initialDiskon && initialDiskon != '0') {
+            diskonFormatted.value = 'Rp ' + formatRupiah(initialDiskon);
+        }
+
+        // Set initial Pendapatan Bersih
+        function updatePendapatanBersih() {
+            let p = parseInt(inputRaw.value) || 0;
+            let d = parseInt(diskonRaw.value) || 0;
+            let bersih = p - d;
+            if (bersih < 0) bersih = 0;
+            pendapatanBersihFormatted.value = 'Rp ' + formatRupiah(bersih);
+            pendapatanBersihRaw.value = bersih;
+        }
+
+        // Validate: Diskon tidak boleh > Pendapatan, show/hide message & prevent submit
+        function validateDiskon(showError = true) {
+            let p = parseInt(inputRaw.value) || 0;
+            let d = parseInt(diskonRaw.value) || 0;
+            if (d > p) {
+                if (showError) {
+                    diskonErrorMsg.style.display = 'inline';
+                }
+                return false;
+            } else {
+                diskonErrorMsg.style.display = 'none';
+                return true;
+            }
+        }
+
+        updatePendapatanBersih();
+        validateDiskon();
 
         inputFormatted.addEventListener('input', function(e) {
             // Hapus semua karakter kecuali angka
             let rawValue = this.value.replace(/[^0-9]/g, '');
-
             // Update hidden input dengan raw value (tanpa titik)
             inputRaw.value = rawValue;
+
+            // Update batas maksimal diskon
+            diskonFormatted.setAttribute('max', rawValue);
 
             // Format tampilan
             if (rawValue === '') {
                 this.value = '';
             } else {
                 this.value = 'Rp ' + formatRupiah(rawValue);
+            }
+            // Jika Diskon saat ini lebih dari pendapatan, potong secara otomatis
+            if (parseInt(diskonRaw.value) > parseInt(rawValue)) {
+                diskonRaw.value = rawValue;
+                diskonFormatted.value = rawValue === "" ? "" : 'Rp ' + formatRupiah(rawValue);
+            }
+            updatePendapatanBersih();
+            validateDiskon();
+        });
+
+        diskonFormatted.addEventListener('input', function(e) {
+            let rawValue = this.value.replace(/[^0-9]/g, '');
+            // Langsung set maksimal diskon sesuai pendapatan
+            let pendapatanValue = parseInt(inputRaw.value) || 0;
+            if (rawValue !== "" && parseInt(rawValue) > pendapatanValue) {
+                rawValue = pendapatanValue.toString();
+            }
+            diskonRaw.value = rawValue;
+            if (rawValue === '') {
+                this.value = '';
+            } else {
+                this.value = 'Rp ' + formatRupiah(rawValue);
+            }
+            updatePendapatanBersih();
+            validateDiskon();
+        });
+
+        // Prevent submit if diskon > pendapatan
+        form.addEventListener('submit', function(e){
+            if (!validateDiskon(true)) {
+                diskonFormatted.focus();
+                e.preventDefault();
             }
         });
 

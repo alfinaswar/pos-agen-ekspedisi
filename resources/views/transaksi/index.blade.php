@@ -64,9 +64,8 @@
                                 </select>
                             </div>
 
-                            <!-- User (Hanya untuk Admin) -->
-                            @if(auth()->check() && (auth()->user()->role === 'Admin' || auth()->user()->role === 'Leader')) {{-- Sesuaikan 'role' dengan kolom di tabel users Anda --}}
-
+                            <!-- User (Hanya untuk Admin/Leader) -->
+                            @if(auth()->check() && (auth()->user()->role === 'Admin' || auth()->user()->role === 'Leader'))
                             <div class="col-md-2">
                                 <label class="form-label small fw-semibold text-muted">User Input</label>
                                 <select id="filter_user" class="form-select form-select-sm">
@@ -107,6 +106,8 @@
                                         <th>Metode</th>
                                         <th>Kode Bayar</th>
                                         <th class="text-end">Pendapatan</th>
+                                        <th class="text-end">Diskon</th>
+                                        <th class="text-end">Pendapatan Bersih</th>
                                         <th style="width: 100px;" class="text-center">Aksi</th>
                                     </tr>
                                 </thead>
@@ -114,12 +115,24 @@
                             </table>
                         </div>
 
-                        <!-- Total Pendapatan Accumulator -->
-                        <div class="mt-3 d-flex justify-content-end">
+                        <!-- Total Pendapatan, Diskon, dan Pendapatan Bersih Accumulator -->
+                        <div class="mt-3 d-flex justify-content-end gap-3 flex-wrap">
                             <div class="card bg-primary bg-opacity-10 border-0 shadow-sm px-4 py-2">
                                 <div class="d-flex align-items-center gap-3">
                                     <span class="fw-semibold text-primary">Total Pendapatan (Terfilter):</span>
                                     <span class="fs-4 fw-bold text-primary" id="total_pendapatan_display">Rp 0</span>
+                                </div>
+                            </div>
+                            <div class="card bg-warning bg-opacity-10 border-0 shadow-sm px-4 py-2">
+                                <div class="d-flex align-items-center gap-3">
+                                    <span class="fw-semibold text-warning">Total Diskon (Terfilter):</span>
+                                    <span class="fs-4 fw-bold text-warning" id="total_diskon_display">Rp 0</span>
+                                </div>
+                            </div>
+                            <div class="card bg-success bg-opacity-10 border-0 shadow-sm px-4 py-2">
+                                <div class="d-flex align-items-center gap-3">
+                                    <span class="fw-semibold text-success">Total Pendapatan Bersih (Terfilter):</span>
+                                    <span class="fs-4 fw-bold text-success" id="total_pendapatan_bersih_display">Rp 0</span>
                                 </div>
                             </div>
                         </div>
@@ -201,16 +214,33 @@
                 },
                 drawCallback: function(settings) {
                     var json = this.api().ajax.json();
-                    if (json && json.total_pendapatan !== undefined) {
-                        $('#total_pendapatan_display').text('Rp ' + json.total_pendapatan);
+                    if (json) {
+                        // Show Total Pendapatan
+                        if (json.total_pendapatan !== undefined) {
+                            $('#total_pendapatan_display').text('Rp ' + json.total_pendapatan);
+                        } else {
+                            $('#total_pendapatan_display').text('Rp 0');
+                        }
+                        // Show Total Diskon
+                        if (json.total_diskon !== undefined) {
+                            $('#total_diskon_display').text('Rp ' + json.total_diskon);
+                        } else {
+                            $('#total_diskon_display').text('Rp 0');
+                        }
+                        // Show Total Pendapatan Bersih
+                        if (json.total_pendapatan_bersih !== undefined) {
+                            $('#total_pendapatan_bersih_display').text('Rp ' + json.total_pendapatan_bersih);
+                        } else {
+                            $('#total_pendapatan_bersih_display').text('Rp 0');
+                        }
                     } else {
                         console.log("JSON Response dari Server:", json);
                     }
                 },
                 columnDefs: [
-                    { className: 'text-center', targets: [0, 8] },
-                    { className: 'text-end', targets: [7] },
-                    { orderable: false, targets: [0, 8] }
+                    { className: 'text-center', targets: [0, 10] },
+                    { className: 'text-end', targets: [7, 8, 9] },
+                    { orderable: false, targets: [0, 10] }
                 ],
                 columns: [
                     { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false },
@@ -232,10 +262,20 @@
                     },
                     { data: 'KodeBayar', name: 'KodeBayar', render: (data) => data ? `<span class="font-monospace text-dark">${data}</span>` : '<span class="text-muted">-</span>' },
                     {
+                        // Pendapatan NOW at index 7
                         data: 'Pendapatan', name: 'Pendapatan',
                         render: (data) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(data || 0)
                     },
-                    { data: 'action', name: 'action', searchable: false }
+                    {
+                        // Diskon NOW at index 8
+                        data: 'Diskon', name: 'Diskon',
+                        render: (data) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(data || 0)
+                    },
+                    {
+                        data: 'PendapatanBersih', name: 'PendapatanBersih',
+                        render: (data) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(data || 0)
+                    },
+                    { data: 'action', name: 'action', searchable: false },
                 ]
             });
 
