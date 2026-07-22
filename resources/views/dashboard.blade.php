@@ -226,7 +226,7 @@
                         <table class="table table-hover mb-0 align-middle">
                             <thead class="table-light">
                                 <tr>
-                                    <th class="ps-4">Kode</th>
+                                    <th class="ps-4">User Input</th>
                                     <th>Ekspedisi</th>
                                     <th class="text-end">Nominal</th>
                                     <th class="text-center">Status</th>
@@ -235,7 +235,7 @@
                             <tbody>
                                 @forelse($transaksiTerbaru ?? [] as $trx)
                                 <tr>
-                                    <td class="ps-4 fw-semibold text-primary">{{ $trx->KodeTransaksi }}</td>
+                                    <td class="ps-4 fw-semibold text-primary">{{ $trx->userCreate->name ?? '-' }}</td>
                                     <td>
                                         <span class="badge bg-light text-dark border">
                                             <i class="ti ti-truck me-1"></i>{{ $trx->ekspedisi->NamaEkspedisi }}
