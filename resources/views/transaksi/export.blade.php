@@ -33,11 +33,11 @@
     <tr style="background-color: #F8F9FA; font-weight: bold; text-align: center;">
         <th style="padding: 8px; border: 1px solid #DEE2E6;">No</th>
         <th style="padding: 8px; border: 1px solid #DEE2E6;">Kode Transaksi</th>
-        <th style="padding: 8px; border: 1px solid #DEE2E6;">Kode Bayar</th>
         <th style="padding: 8px; border: 1px solid #DEE2E6;">Tanggal</th>
         <th style="padding: 8px; border: 1px solid #DEE2E6;">Ekspedisi</th>
         <th style="padding: 8px; border: 1px solid #DEE2E6;">No. Resi</th>
         <th style="padding: 8px; border: 1px solid #DEE2E6;">Metode</th>
+        <th style="padding: 8px; border: 1px solid #DEE2E6;">Kode Bayar</th>
         <th style="padding: 8px; border: 1px solid #DEE2E6;">Pendapatan</th>
         <th style="padding: 8px; border: 1px solid #DEE2E6;">Diskon</th>
         <th style="padding: 8px; border: 1px solid #DEE2E6;">Pendapatan Bersih</th>
@@ -59,13 +59,13 @@
         <tr>
             <td style="padding: 6px; border: 1px solid #DEE2E6; text-align: center;">{{ $no++ }}</td>
             <td style="padding: 6px; border: 1px solid #DEE2E6;">{{ $row->KodeTransaksi }}</td>
-            <td style="padding: 6px; border: 1px solid #DEE2E6;">{{ $row->KodeBayar ?? '-' }}</td>
             <td style="padding: 6px; border: 1px solid #DEE2E6; text-align: center;">
                 {{ \Carbon\Carbon::parse($row->Tanggal)->isoFormat('D MMM YYYY') }}
             </td>
             <td style="padding: 6px; border: 1px solid #DEE2E6;">{{ $row->ekspedisi->NamaEkspedisi }}</td>
             <td style="padding: 6px; border: 1px solid #DEE2E6;">{{ $row->NoResi ?: '-' }}</td>
             <td style="padding: 6px; border: 1px solid #DEE2E6; text-align: center;">{{ $row->Metode }}</td>
+            <td style="padding: 6px; border: 1px solid #DEE2E6;">{{ $row->KodeBayar ?? '-' }}</td>
             <td style="padding: 6px; border: 1px solid #DEE2E6; text-align: right;">Rp {{ number_format($row->Pendapatan, 0, ',', '.') }}</td>
             <td style="padding: 6px; border: 1px solid #DEE2E6; text-align: right;">Rp {{ number_format($row->Diskon, 0, ',', '.') }}</td>
             <td style="padding: 6px; border: 1px solid #DEE2E6; text-align: right;">Rp {{ number_format($row->PendapatanBersih, 0, ',', '.') }}</td>
