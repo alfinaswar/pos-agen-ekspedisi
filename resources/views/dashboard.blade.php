@@ -126,10 +126,29 @@
         <!-- Pendapatan per Ekspedisi -->
         <div class="col-lg-8">
             <div class="card shadow-sm border-0 h-100">
-                <div class="card-header bg-white py-3">
+                <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
                     <h5 class="mb-0 fw-semibold">
                         <i class="ti ti-chart-bar me-2 text-primary"></i>Pendapatan per Ekspedisi
                     </h5>
+                    <!-- Dropdown Bulan -->
+                    <form id="filterBulanForm" class="d-flex gap-2 align-items-center" style="margin-bottom:0;">
+                        <label for="bulanSelect" class="mb-0 me-2 text-primary small">Bulan:</label>
+                        <select id="bulanSelect" name="bulan" class="form-select form-select-sm" style="min-width:150px;">
+                            @foreach($availableMonths as $key => $bulanOption)
+                                @php
+                                    // $availableMonths is just [1 => 'Januari', ...] so $key is the bulan value, $bulanOption is label
+                                    $optionValue = $key;
+                                    $optionLabel = $bulanOption;
+                                @endphp
+                                <option value="{{ $optionValue }}"
+                                    @if($optionValue == $selectedMonth) selected @endif>
+                                    {{ $optionLabel }}
+                                </option>
+                            @endforeach
+
+                        </select>
+                    </form>
+
                 </div>
                 <div class="card-body">
                     <div class="chart-container">
@@ -300,21 +319,31 @@
         Chart.defaults.font.family = "'Inter', sans-serif";
         Chart.defaults.color = '#6c757d';
 
+        // Data map for per-expedisi chart by bulan (from backend)
+        let ekspedisiDataPerBulan = @json($ekspedisiPerBulanData);
+
+        // Get initial data and labels for the selected month
+        let selectedBulan = "{{ $selectedBulan }}";
+        let ekspedisiLabels = ekspedisiDataPerBulan[selectedBulan]?.labels ?? [];
+        let ekspedisiValues = ekspedisiDataPerBulan[selectedBulan]?.values ?? [];
+
         // 1. Pendapatan per Ekspedisi
-        new Chart(document.getElementById('ekspedisiChart').getContext('2d'), {
+        let ekspedisiChartCtx = document.getElementById('ekspedisiChart').getContext('2d');
+        let ekspedisiChart = new Chart(ekspedisiChartCtx, {
             type: 'bar',
             data: {
-                labels: @json($ekspedisiLabels),
+                labels: ekspedisiLabels,
                 datasets: [{
                     label: 'Pendapatan',
-                    data: @json($ekspedisiValues),
+                    data: ekspedisiValues,
                     backgroundColor: ['#0d6efd', '#198754', '#ffc107', '#6f42c1', '#dc3545'],
                     borderRadius: 8,
                     borderSkipped: false,
                 }]
             },
             options: {
-                responsive: true, maintainAspectRatio: false,
+                responsive: true,
+                maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
                 scales: {
                     y: {
@@ -322,6 +351,18 @@
                         ticks: { callback: (val) => 'Rp ' + (val / 1000000).toFixed(1) + 'jt' }
                     }
                 }
+            }
+        });
+
+        // Handle bulan (month) selector for Pendapatan per Ekspedisi
+        document.getElementById('bulanSelect').addEventListener('change', function() {
+            let bulanValue = this.value;
+            if(ekspedisiDataPerBulan[bulanValue]) {
+                let labels = ekspedisiDataPerBulan[bulanValue].labels;
+                let values = ekspedisiDataPerBulan[bulanValue].values;
+                ekspedisiChart.data.labels = labels;
+                ekspedisiChart.data.datasets[0].data = values;
+                ekspedisiChart.update();
             }
         });
 
