@@ -45,7 +45,10 @@ class TransaksiExport implements FromView, WithStyles, WithTitle, WithColumnWidt
             'F' => 20,  // No. Resi
             'G' => 15,  // Metode
             'H' => 22,  // Pendapatan
-            'I' => 22,  // User Input
+            'I' => 18,  // Diskon
+            'J' => 22,  // Pendapatan Bersih
+            'K' => 28,  // Keterangan
+            'L' => 22,  // User Input
         ];
     }
 
@@ -60,13 +63,13 @@ class TransaksiExport implements FromView, WithStyles, WithTitle, WithColumnWidt
         $footerRow = $headerRow + $dataCount + 3;
 
         // Merge cells untuk judul, filter, user, dan footer
-        $sheet->mergeCells('A3:I3');
-        $sheet->mergeCells('A4:I4');
-        $sheet->mergeCells('A5:I5');
-        $sheet->mergeCells('A' . $footerRow . ':I' . $footerRow);
+        $sheet->mergeCells('A3:L3');
+        $sheet->mergeCells('A4:L4');
+        $sheet->mergeCells('A5:L5');
+        $sheet->mergeCells('A' . $footerRow . ':L' . $footerRow);
 
         // Border untuk header dan data
-        $sheet->getStyle('A7:I' . ($footerRow - 3))->applyFromArray([
+        $sheet->getStyle('A7:L' . ($footerRow - 3))->applyFromArray([
             'borders' => [
                 'allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'DEE2E6']],
             ],

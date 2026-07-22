@@ -213,7 +213,10 @@ class TransaksiController extends Controller
                 'Metode',
                 'KodeBayar',
                 'UserCreate',
-                'Pendapatan'
+                'Pendapatan',
+                'Diskon',
+                'PendapatanBersih',
+                'Keterangan',
             ])
             ->orderBy('created_at', 'desc');
 
@@ -239,13 +242,16 @@ class TransaksiController extends Controller
 
         $data = $query->get();
         $totalPendapatan = $data->sum('Pendapatan');
+        $totalDiskon = $data->sum('Diskon');
+        $totalPendapatanBersih = $data->sum('PendapatanBersih');
+
 
         // 2. Generate filename dengan timestamp
         $filename = "Laporan_Transaksi_" . Carbon::now()->format('Y-m-d_His') . ".xlsx";
 
         // 3. Kirim ke Export Class
         return Excel::download(
-            new TransaksiExport($data, $totalPendapatan, $filterInfo, $params),
+            new TransaksiExport($data, $totalPendapatan, $filterInfo, $params,$totalDiskon, $totalPendapatanBersih),
             $filename
         );
     }
