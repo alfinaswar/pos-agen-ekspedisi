@@ -195,7 +195,7 @@ class TransaksiController extends Controller
     public function export(Request $request)
     {
         // 1. Ambil data dengan filter yang sama seperti DataTable
-        $query = Transaksi::with('ekspedisi')
+        $query = Transaksi::with('ekspedisi','userCreate')
             ->select([
                 'id',
                 'KodeTransaksi',
@@ -203,6 +203,8 @@ class TransaksiController extends Controller
                 'Ekspedisi',
                 'NoResi',
                 'Metode',
+                'KodeBayar',
+                'UserCreate',
                 'Pendapatan'
             ])
             ->orderBy('created_at', 'desc');
