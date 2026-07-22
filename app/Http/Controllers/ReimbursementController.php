@@ -20,6 +20,11 @@ class ReimbursementController extends Controller
             // Mulai query dasar
             $query = Reimbursement::with('getUser')->latest()->select(['id', 'Tanggal', 'Nama', 'Item', 'Nominal', 'Status', 'BuktiUpload']);
 
+            // Kalau bukan admin, tampilkan hanya data reimbursement yang dibuat oleh user login saat ini
+            if (!auth()->user() || auth()->user()->role !== 'Admin') {
+                // Asumsikan 'Nama' adalah user_id yang create reimbursement
+                $query->where('Nama', auth()->user()->id);
+            }
 
             // FILTER: Berdasarkan tanggal_awal dan tanggal_akhir
             if ($request->filled('tanggal_awal')) {
@@ -53,8 +58,6 @@ class ReimbursementController extends Controller
                     $btn .= '</div>';
                     return $btn;
                 })
-
-
                 ->editColumn('Nama', function ($row) {
                     return optional($row->getUser)->name ?: $row->Nama;
                 })
@@ -114,7 +117,7 @@ class ReimbursementController extends Controller
 
         $data = $request->except(['BuktiUpload']);
         $data['Status'] = 'Menunggu'; // Default status saat user input
-        $data['UserCreate'] = auth()->user()->name ?? 'System';
+        $data['UserCreate'] = auth()->user()->id ?? null;
 
         // Handle Upload File
         if ($request->hasFile('BuktiUpload')) {
