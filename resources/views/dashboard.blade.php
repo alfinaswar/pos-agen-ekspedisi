@@ -285,16 +285,18 @@
                             <tbody>
                                 @forelse($reimbursementTerbaru ?? [] as $reimb)
                                 <tr>
-                                    <td class="ps-4 fw-semibold">{{ $reimb->getUser->name }}</td>
-                                    <td><small class="text-muted">{{ Str::limit($reimb->Item, 30) }}</small></td>
-                                    <td class="text-end fw-bold">Rp {{ number_format($reimb->Nominal, 0, ',', '.') }}</td>
+                                    <td class="ps-4 fw-semibold">{{ optional($reimb->getUser)->name ?? '-' }}</td>
+                                    <td><small class="text-muted">{{ Str::limit($reimb->Item ?? '', 30) }}</small></td>
+                                    <td class="text-end fw-bold">Rp {{ number_format($reimb->Nominal ?? 0, 0, ',', '.') }}</td>
                                     <td class="text-center">
                                         @php
-                                            $badgeClass = $reimb->Status === 'Dibayar' ? 'bg-success' : ($reimb->Status === 'Ditolak' ? 'bg-danger' : 'bg-warning text-dark');
+                                            $status = $reimb->Status ?? '';
+                                            $badgeClass = $status === 'Dibayar' ? 'bg-success' : ($status === 'Ditolak' ? 'bg-danger' : 'bg-warning text-dark');
                                         @endphp
-                                        <span class="badge {{ $badgeClass }}">{{ $reimb->Status }}</span>
+                                        <span class="badge {{ $badgeClass }}">{{ $status ?: '-' }}</span>
                                     </td>
                                 </tr>
+
                                 @empty
                                 <tr>
                                     <td colspan="4" class="text-center text-muted py-4">
