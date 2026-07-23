@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Ekspedisi;
+use App\Models\Transaksi;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Log;
@@ -107,6 +108,17 @@ class EkspedisiController extends Controller
         try {
             // Cari dulu datanya
             $ekspedisi = Ekspedisi::findOrFail($id);
+
+            // Cek apakah ekspedisi dipakai di tabel transaksi
+            $adaTransaksi = Transaksi::where('Ekspedisi', $ekspedisi->id)->exists();
+
+            if ($adaTransaksi) {
+                return response()->json([
+                    'success' => false,
+                    'status' => 400,
+                    'message' => 'Ekspedisi tidak dapat dihapus karena masih digunakan pada transaksi.'
+                ], 400);
+            }
 
             $ekspedisi->delete();
 
