@@ -102,9 +102,12 @@ class EkspedisiController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Ekspedisi $ekspedisi)
+    public function destroy($id)
     {
         try {
+            // Cari dulu datanya
+            $ekspedisi = Ekspedisi::findOrFail($id);
+
             $ekspedisi->delete();
 
             // Response JSON ini dirancang agar cocok dengan logika JS:
