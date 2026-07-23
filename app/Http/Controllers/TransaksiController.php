@@ -110,7 +110,7 @@ class TransaksiController extends Controller
                     'total_diskon' => number_format($totalDiskon, 0, ',', '.'),
                     'total_pendapatan_bersih' => number_format($totalPendapatanBersih, 0, ',', '.'),
                 ])
-                ->rawColumns(['action', 'Ekspedisi'])
+                ->rawColumns(['action', 'Ekspedisi','Bayar'])
                 ->make(true);
         }
 
