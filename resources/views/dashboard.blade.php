@@ -285,7 +285,7 @@
                             <tbody>
                                 @forelse($reimbursementTerbaru ?? [] as $reimb)
                                 <tr>
-                                    <td class="ps-4 fw-semibold">{{ $reimb->Nama }}</td>
+                                    <td class="ps-4 fw-semibold">{{ $reimb->getUser->name }}</td>
                                     <td><small class="text-muted">{{ Str::limit($reimb->Item, 30) }}</small></td>
                                     <td class="text-end fw-bold">Rp {{ number_format($reimb->Nominal, 0, ',', '.') }}</td>
                                     <td class="text-center">
