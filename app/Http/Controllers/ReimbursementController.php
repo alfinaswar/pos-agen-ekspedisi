@@ -65,10 +65,10 @@ class ReimbursementController extends Controller
                     return $btn;
                 })
 
-                ->editColumn('Nama', function ($row) {
+                ->addColumn('Nama', function ($row) {
                     return optional($row->getUser)->name ?: $row->Nama;
                 })
-                ->rawColumns(['action'])
+                ->rawColumns(['action','Nama'])
                 ->make(true);
         }
 
