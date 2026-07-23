@@ -141,7 +141,7 @@ class TransaksiController extends Controller
             'Metode'        => 'required|in:Tunai,Non-Tunai,COD',
             'Pendapatan'    => 'required|numeric|min:0',
             'KodeBayar'     => 'required_if:Metode,Non-Tunai|nullable|string|max:255',
-            'BuktiBayar'    => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048', // Maks 2MB
+            'BuktiBayar'    => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048', // Maks 2MB
             'Keterangan'    => 'nullable|string',
         ]);
 
