@@ -25,8 +25,8 @@ Route::get('/', function () {
 
 Auth::routes();
 
-Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
 Route::middleware(['auth'])->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
     Route::get('/', [DashboardController::class, 'index'])->name('home');
     Route::get('/ekspedisi', [App\Http\Controllers\EkspedisiController::class, 'index'])->name('ekspedisi.index');
     Route::get('/ekspedisi/data', [App\Http\Controllers\EkspedisiController::class, 'data'])->name('ekspedisi.data');
