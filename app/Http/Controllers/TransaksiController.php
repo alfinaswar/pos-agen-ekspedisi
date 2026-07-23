@@ -55,9 +55,14 @@ class TransaksiController extends Controller
                 $query->where('Ekspedisi', $request->input('ekspedisi'));
             }
             // Filter user hanya boleh dilakukan admin, selebihnya ignored (filter already forced above)
-            if ($request->filled('user') && auth()->user() && auth()->user()->role === 'Admin') {
+            if (
+                $request->filled('user')
+                && auth()->user()
+                && in_array(auth()->user()->role, ['Admin', 'Leader'])
+            ) {
                 $query->where('UserCreate', $request->input('user'));
             }
+
 
             // 3. Hitung total pendapatan, diskon, & pendapatan bersih (gunakan clone agar tidak mengganggu query utama DataTables)
             $totalPendapatan = (clone $query)->sum('Pendapatan') ?? 0;
