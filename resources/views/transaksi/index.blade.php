@@ -260,7 +260,8 @@
                             return `<span class="badge ${badgeClass}"><i class="${icon} me-1"></i>${data}</span>`;
                         }
                     },
-                    { data: 'KodeBayar', name: 'KodeBayar', render: (data) => data ? `<span class="font-monospace text-dark">${data}</span>` : '<span class="text-muted">-</span>' },
+                    { data: 'Bayar', name: 'Bayar', render: (data) => data ? data : '-' },
+
                     {
                         // Pendapatan NOW at index 7
                         data: 'Pendapatan', name: 'Pendapatan',

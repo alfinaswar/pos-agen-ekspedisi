@@ -91,6 +91,18 @@ class TransaksiController extends Controller
                         ? $row->userCreate->name
                         : '<span class="text-muted">-</span>';
                 })
+                // Kolom KodeBayar
+                ->addColumn('Bayar', function ($row) {
+                    $kodeBayar = $row->KodeBayar ? htmlspecialchars($row->KodeBayar) : '<span class="text-muted">-</span>';
+                    if ($row->BuktiBayar) {
+                        $url = asset('storage/' . $row->BuktiBayar);
+                        $buktiLink = '<a href="' . $url . '" target="_blank" class="btn btn-sm btn-outline-info ms-1" title="Lihat / Unduh Bukti Bayar"><i class="ti ti-download"></i></a>';
+                    } else {
+                        $buktiLink = '';
+                    }
+                    return $kodeBayar . ' ' . $buktiLink;
+                })
+
 
                 // Kirim total ke frontend (total_pendapatan, total_diskon, total_pendapatan_bersih)
                 ->with([
