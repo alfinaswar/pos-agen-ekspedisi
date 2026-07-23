@@ -94,8 +94,8 @@
                         </div>
 
                         <!-- DataTable -->
-                        <div class="table-responsive">
-                            <table class="table table-striped table-bordered dt-responsive nowrap align-middle mb-0" id="transaksiTable" style="width: 100%;">
+                        <div class="table-responsive" style="overflow-x: auto;">
+                            <table class="table table-striped table-bordered dt-responsive nowrap align-middle mb-0" id="transaksiTable" style="width: 1200px; min-width: 100%;">
                                 <thead class="table-light">
                                     <tr>
                                         <th style="width: 50px;" class="text-center">#</th>
@@ -114,6 +114,7 @@
                                 <tbody></tbody>
                             </table>
                         </div>
+
 
                         <!-- Total Pendapatan, Diskon, dan Pendapatan Bersih Accumulator -->
                         <div class="mt-3 d-flex justify-content-end gap-3 flex-wrap">
