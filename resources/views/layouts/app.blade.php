@@ -382,12 +382,19 @@
                     <span>Laporan</span>
                 </a>
             </li>
+            @php
+                $sidebarUser = auth()->user();
+            @endphp
+            @if($sidebarUser && $sidebarUser->role == 'Admin')
             <li>
                 <a href="{{ route('ekspedisi.index') }}">
                     <i class="bi bi-truck"></i>
                     <span>Ekspedisi</span>
                 </a>
             </li>
+            @endif
+
+
             <!-- Tambahan Menu Reimbursement -->
             <li>
                 <a href="{{ route('reimbursement.index') }}">
@@ -402,15 +409,13 @@
                     <span>Absensi</span>
                 </a>
             </li>
-            @php
-                $user = auth()->user();
-                // dd($user);
-            @endphp
-
             {{-- ini level akses nya --}}
-            @if($user && ($user->role == 'Admin' || $user->role == 'Leader'))
+            @php
+                $sidebarUser = auth()->user();
+            @endphp
+            @if($sidebarUser && ($sidebarUser->role == 'Admin' || $sidebarUser->role == 'Leader'))
                 {{-- Menu User hanya untuk Admin --}}
-                @if($user->role == 'Admin')
+                @if($sidebarUser->role == 'Admin')
                 <li>
                     <a href="{{ route('users.index') }}">
                         <i class="bi bi-people"></i>
@@ -419,6 +424,7 @@
                 </li>
                 @endif
             @endif
+
             <!-- Menu Pengaturan dihapus -->
             <li class="logout">
                 <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
