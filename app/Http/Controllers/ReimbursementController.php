@@ -119,7 +119,7 @@ class ReimbursementController extends Controller
             'Nama' => 'required|string|max:100',
             'Item' => 'required|string',
             'Nominal' => 'required|numeric|min:0',
-            'BuktiUpload' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'BuktiUpload' => 'required|file|mimes:jpg,jpeg,png,pdf|max:3048',
         ]);
 
         $data = $request->except(['BuktiUpload']);
