@@ -40,10 +40,18 @@ class UserController extends Controller
                 ->editColumn('no_hp', function ($row) {
                     return $row->no_hp ?? '<span class="text-muted">-</span>';
                 })
+                ->editColumn('divisi', function ($row) {
+                    if (!$row->divisi) {
+                        return '<span class="text-muted">-</span>';
+                    }
+                    $divisi = Divisi::find($row->divisi);
+                    return $divisi ? $divisi->Nama : '<span class="text-muted">Tidak Diketahui</span>';
+                })
+
                 ->rawColumns(['email_verified_at', 'role', 'divisi', 'no_hp', 'action'])
                 ->make(true);
         }
-
+        // $user = Divisi::get();
         return view('users.index');
     }
 

@@ -49,18 +49,19 @@ class LaporanController extends Controller
             // Kemungkinan "Tanpa Divisi" sering muncul karena ada transaksi dengan users.divisi NULL/tidak sesuai dengan divisis.id.
             // Perbaikan: groupBy harus ikut groupBy NULL, dan label dibedakan dengan jelas berdasarkan hasil join.
 
+            // Join ke users dulu berdasarkan UserCreate, lalu join divisis berdasarkan users.divisi
             $data = Transaksi::select(
                 DB::raw('COALESCE(divisis.Nama, "Tanpa Divisi") as NamaDivisi'),
                 DB::raw('COUNT(transaksis.id) as jumlah_transaksi'),
                 DB::raw('SUM(transaksis.PendapatanBersih) as total_pendapatan')
             )
-                ->leftJoin('users', 'transaksis.UserCreate', '=', 'users.name')
-                ->leftJoin('divisis', 'users.divisi', '=', 'divisis.id')
+                ->leftJoin('users', 'transaksis.UserCreate', '=', 'users.name') // Join UserCreate ke users
+                ->leftJoin('divisis', 'users.divisi', '=', 'divisis.id') // Dapatkan Divisi dari users.divisi
                 ->whereBetween('transaksis.Tanggal', [$startDate, $endDate])
-                // COALESCE agar NULL digroup sebagai "Tanpa Divisi"
                 ->groupBy(DB::raw('COALESCE(divisis.Nama, "Tanpa Divisi")'))
                 ->orderBy('total_pendapatan', 'desc')
                 ->get();
+
 
             // chartLabels otomatis sudah jadi text, tidak perlu pengecekan lagi
             $chartLabels = $data->pluck('NamaDivisi')->toArray();

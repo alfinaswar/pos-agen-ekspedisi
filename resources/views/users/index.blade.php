@@ -37,6 +37,7 @@
                                         <th>Nama</th>
                                         <th>Email</th>
                                         {{-- <th class="text-center">Status Email</th> --}}
+                                        <th class="text-center">Divisi</th>
                                         <th class="text-center">Role</th>
                                         <th class="text-center">Dibuat</th>
                                         <th style="width: 100px;" class="text-center">Aksi</th>
@@ -104,21 +105,22 @@
                 responsive: true, serverSide: true, processing: true, destroy: true, autoWidth: false,
                 ajax: { url: "{{ route('users.index') }}", type: 'GET' },
                 // Ubah default order ke kolom 'created_at' yang sekarang indexnya berubah
-                order: [[4, 'desc']], // Default sort by created_at descending (kolom ke-5)
+                order: [[5, 'desc']], // Default sort by created_at descending (kolom ke-6, setelah ditambah kolom Divisi)
                 language: {
                     processing: '<div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div> Memuat data...',
                     paginate: { next: '<i class="ti ti-chevron-right"></i>', previous: '<i class="ti ti-chevron-left"></i>' },
                     url: "//cdn.datatables.net/plug-ins/1.13.7/i18n/id.json"
                 },
                 columnDefs: [
-                    { className: 'text-center', targets: [0, 3, 4, 5] },
-                    { orderable: false, targets: [0, 5] }
+                    { className: 'text-center', targets: [0, 3, 4, 5, 6] },
+                    { orderable: false, targets: [0, 6] }
                 ],
                 columns: [
                     { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false },
                     { data: 'name', name: 'name', render: (data) => `<span class="fw-semibold text-dark"><i class="ti ti-user me-1 text-muted"></i>${data}</span>` },
                     { data: 'email', name: 'email', render: (data) => `<span class="text-muted"><i class="ti ti-mail me-1"></i>${data}</span>` },
                     // { data: 'email_verified_at', name: 'email_verified_at' }, // Dihilangkan kolom status email
+                    { data: 'divisi', name: 'divisi', render: (data) => data ? `<span class="badge bg-info-subtle text-dark">${data}</span>` : '<span class="text-muted">-</span>' },
                     { data: 'role', name: 'role' },
                     {
                         data: 'created_at', name: 'created_at',
