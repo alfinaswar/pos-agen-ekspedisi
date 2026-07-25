@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AbsensiController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DivisiController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\ReimbursementController;
 use App\Http\Controllers\TransaksiController;
@@ -46,6 +47,8 @@ Route::middleware(['auth'])->group(function () {
     // route rembes
     Route::get('/reimbursement/export', [ReimbursementController::class, 'export'])->name('reimbursement.export');
     Route::resource('reimbursement', ReimbursementController::class);
+
+    Route::resource('divisi', DivisiController::class);
     Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
     Route::resource('users', UserController::class);
     Route::get('/laporan/export', [LaporanController::class, 'exportExcel'])->name('laporan.export');

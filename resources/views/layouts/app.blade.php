@@ -7,13 +7,10 @@
     <title>@yield('title', 'POS Agen Ekspedisi')</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <!-- Font Awesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-RXf+QSDCUQs6QW1h0I1QnAty8gq6JWqo2KDh8Xc6pPvFM0E10Zo2Q01uJToz5r9lEX67rUf6x8IOk6fIRiVZlw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <!-- Tabler Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
     @stack('styles')
     <style>
-        /* ... Keep all the existing styles exactly as before ... */
         :root {
             --sidebar-bg: #1e293b;
             --sidebar-active: #3b82f6;
@@ -24,17 +21,14 @@
             --warning-color: #f59e0b;
             --danger-color: #ef4444;
         }
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f1f5f9;
             overflow-x: hidden;
         }
-        /* Sidebar Styles */
+
+        /* --- SIDEBAR STYLES --- */
         .sidebar {
             position: fixed;
             top: 0;
@@ -54,57 +48,98 @@
             align-items: center;
             gap: 10px;
         }
-        .sidebar-header i {
-            font-size: 28px;
-            color: var(--sidebar-active);
-        }
-        .sidebar-header h4 {
-            margin: 0;
-            font-size: 18px;
-            font-weight: 700;
-        }
-        .sidebar-menu {
-            list-style: none;
-            padding: 20px 0;
-            margin: 0;
-        }
-        .sidebar-menu li {
-            margin: 5px 15px;
-        }
-        .sidebar-menu a {
+        .sidebar-header i { font-size: 28px; color: var(--sidebar-active); }
+        .sidebar-header h4 { margin: 0; font-size: 18px; font-weight: 700; }
+
+        .sidebar-menu { list-style: none; padding: 20px 0; margin: 0; }
+        .sidebar-menu li { margin: 4px 10px; }
+
+        .sidebar-menu a, .sidebar-menu .dropdown-toggle {
             display: flex;
             align-items: center;
-            padding: 12px 20px;
+            padding: 12px 15px;
             color: #cbd5e1;
             text-decoration: none;
             border-radius: 8px;
-            transition: all 0.3s;
+            transition: all 0.2s ease;
             gap: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
         }
-        .sidebar-menu a:hover {
+        .sidebar-menu a:hover, .sidebar-menu .dropdown-toggle:hover {
             background: var(--sidebar-hover);
             color: white;
         }
-        .sidebar-menu a.active {
+
+        /* Active State: Termasuk saat dropdown induknya sedang terbuka (.show) */
+        .sidebar-menu a.active,
+        .sidebar-menu .dropdown-toggle.active,
+        .sidebar-menu .dropdown.show > .dropdown-toggle {
             background: var(--sidebar-active);
             color: white;
         }
-        .sidebar-menu a i {
-            font-size: 20px;
+        .sidebar-menu a i, .sidebar-menu .dropdown-toggle > i:first-child {
+            font-size: 18px;
             width: 24px;
+            text-align: center;
         }
+
+        /* --- DROPDOWN FIXES (Mencegah "Rembes" & Konflik Popper) --- */
+        .sidebar-menu .dropdown-toggle::after { display: none; } /* Sembunyikan panah default Bootstrap */
+
+        /* PENTING: paksa dropdown-menu jadi static, jangan biarkan Popper.js
+           menghitung posisinya sebagai absolute — itu yang bikin menu
+           ke-clip / gak muncul di dalam sidebar yang overflow-y: auto */
+        .sidebar-menu .dropdown-menu {
+            position: static !important;
+            inset: auto !important;
+            transform: none !important;
+            float: none;
+            width: 100%;
+            background: transparent; /* Menyatu dengan sidebar */
+            border: none;
+            padding: 5px 0;
+            margin-top: 5px;
+            box-shadow: none;
+        }
+        .sidebar-menu .dropdown-item {
+            color: #94a3b8;
+            padding: 10px 15px 10px 52px !important; /* Indentasi sub-menu */
+            border-radius: 0 8px 8px 0;
+            font-size: 13px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            background: transparent;
+        }
+        .sidebar-menu .dropdown-item i {
+            font-size: 16px;
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        .sidebar-menu .dropdown-item:hover,
+        .sidebar-menu .dropdown-item.active {
+            background: rgba(255, 255, 255, 0.1); /* Highlight halus */
+            color: white;
+        }
+        /* Animasi putar panah saat dropdown terbuka */
+        .sidebar-menu .dropdown.show .dropdown-toggle .bi-chevron-down {
+            transform: rotate(180deg);
+        }
+        .sidebar-menu .dropdown-toggle .bi-chevron-down {
+            transition: transform 0.3s ease;
+        }
+
         .sidebar-menu .logout {
             margin-top: 20px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             padding-top: 20px;
         }
-        /* Main Content */
-        .main-content {
-            margin-left: 260px;
-            transition: all 0.3s ease;
-            min-height: 100vh;
-        }
-        /* Header */
+
+        /* --- MAIN CONTENT & HEADER --- */
+        .main-content { margin-left: 260px; transition: all 0.3s ease; min-height: 100vh; }
         .top-header {
             background: var(--header-bg);
             padding: 15px 30px;
@@ -116,239 +151,41 @@
             top: 0;
             z-index: 100;
         }
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
+        .header-left { display: flex; align-items: center; gap: 15px; }
         .btn-toggle-sidebar {
-            display: none;
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: #333;
+            display: none; background: none; border: none; font-size: 24px; cursor: pointer; color: #333;
         }
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-        .header-date {
-            color: #64748b;
-            font-size: 14px;
-        }
+        .header-right { display: flex; align-items: center; gap: 20px; }
+        .header-date { color: #64748b; font-size: 14px; }
         .user-dropdown {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-            padding: 8px 15px;
-            border-radius: 8px;
-            transition: background 0.3s;
+            display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 8px 15px;
+            border-radius: 8px; transition: background 0.3s;
         }
-        .user-dropdown:hover {
-            background: #f1f5f9;
-        }
+        .user-dropdown:hover { background: #f1f5f9; }
         .user-avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: var(--primary-color);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
+            width: 36px; height: 36px; border-radius: 50%; background: var(--primary-color);
+            color: white; display: flex; align-items: center; justify-content: center; font-weight: 600;
         }
-        /* Content Area */
-        .content-area {
-            padding: 30px;
-        }
-        /* Stats Cards */
-        .stat-card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s;
-        }
-        .stat-card:hover {
-            transform: translateY(-5px);
-        }
-        .stat-label {
-            font-size: 12px;
-            color: #64748b;
-            text-transform: uppercase;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-        .stat-value {
-            font-size: 24px;
-            font-weight: 700;
-            color: #1e293b;
-        }
-        .stat-value.success {
-            color: var(--success-color);
-        }
-        .stat-value.warning {
-            color: var(--warning-color);
-        }
-        .stat-value.primary {
-            color: var(--primary-color);
-        }
-        /* Chart Cards */
-        .chart-card {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-            height: 100%;
-        }
-        .chart-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #1e293b;
-            margin-bottom: 20px;
-        }
-        /* Table Card */
-        .table-card {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
-        .table-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .table-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #1e293b;
-        }
-        .btn-primary-custom {
-            background: var(--primary-color);
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            color: white;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-        .btn-primary-custom:hover {
-            background: #1d4ed8;
-            transform: translateY(-2px);
-        }
-        .custom-table {
-            margin: 0;
-        }
-        .custom-table thead {
-            background: #f8fafc;
-        }
-        .custom-table th {
-            border: none;
-            padding: 12px;
-            font-weight: 600;
-            color: #64748b;
-            font-size: 13px;
-            text-transform: uppercase;
-        }
-        .custom-table td {
-            padding: 15px 12px;
-            vertical-align: middle;
-            border-color: #f1f5f9;
-        }
-        .badge-ekspedisi {
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 500;
-        }
-        .btn-action {
-            background: none;
-            border: none;
-            color: var(--primary-color);
-            font-size: 18px;
-            cursor: pointer;
-            padding: 5px;
-        }
-        /* Responsive */
-        @media (max-width: 1200px) {
-            .stat-value {
-                font-size: 20px;
-            }
-        }
+        .content-area { padding: 30px; }
+
+        /* --- RESPONSIVE --- */
         @media (max-width: 992px) {
-            .sidebar {
-                transform: translateX(-100%);
-            }
-            .sidebar.show {
-                transform: translateX(0);
-            }
-            .main-content {
-                margin-left: 0;
-            }
-            .btn-toggle-sidebar {
-                display: block;
-            }
-            .content-area {
-                padding: 20px;
-            }
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.show { transform: translateX(0); }
+            .main-content { margin-left: 0; }
+            .btn-toggle-sidebar { display: block; }
+            .content-area { padding: 20px; }
         }
         @media (max-width: 768px) {
-            .top-header {
-                padding: 15px;
-            }
-            .header-date {
-                display: none;
-            }
-            .stat-card {
-                margin-bottom: 15px;
-            }
-            .chart-card {
-                margin-bottom: 20px;
-            }
-            .table-header {
-                flex-direction: column;
-                gap: 15px;
-                align-items: flex-start;
-            }
-            .custom-table {
-                font-size: 13px;
-            }
-            .custom-table th,
-            .custom-table td {
-                padding: 10px 8px;
-            }
+            .top-header { padding: 15px; }
+            .header-date { display: none; }
+            .user-dropdown span { display: none; }
         }
-        @media (max-width: 576px) {
-            .content-area {
-                padding: 15px;
-            }
-            .stat-value {
-                font-size: 18px;
-            }
-            .user-dropdown span {
-                display: none;
-            }
-        }
-        /* Overlay for mobile */
         .sidebar-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5); z-index: 999;
         }
-        .sidebar-overlay.show {
-            display: block;
-        }
+        .sidebar-overlay.show { display: block; }
     </style>
 </head>
 <body>
@@ -358,74 +195,91 @@
     <!-- Sidebar -->
     <nav class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <i class="bi bi-box-seam"></i>
+            <i class="bi bi-box-seam-fill"></i>
             <h4>POS EKSPEDISI</h4>
         </div>
 
         <ul class="sidebar-menu">
+            <!-- Dashboard -->
             <li>
-                <a href="{{ route('dashboard.index') }}">
-                    <i class="bi bi-house-door"></i>
+                <a href="{{ route('dashboard.index') }}" class="{{ request()->routeIs('dashboard.*') ? 'active' : '' }}">
+                    <i class="bi bi-speedometer2"></i>
                     <span>Dashboard</span>
                 </a>
             </li>
+
+            <!-- Transaksi -->
             <li>
-                <a href="{{ route('transaksi.index') }}">
+                <a href="{{ route('transaksi.index') }}" class="{{ request()->routeIs('transaksi.*') ? 'active' : '' }}">
                     <i class="bi bi-receipt"></i>
                     <span>Transaksi</span>
                 </a>
             </li>
-            <!-- Menu Pendapatan dihapus -->
+
+            <!-- Laporan -->
             <li>
-                <a href="{{ route('laporan.index') }}">
+                <a href="{{ route('laporan.index') }}" class="{{ request()->routeIs('laporan.*') ? 'active' : '' }}">
                     <i class="bi bi-file-earmark-bar-graph"></i>
                     <span>Laporan</span>
                 </a>
             </li>
+
             @php
                 $sidebarUser = auth()->user();
             @endphp
-            @if($sidebarUser && $sidebarUser->role == 'Admin')
-            <li>
-                <a href="{{ route('ekspedisi.index') }}">
-                    <i class="bi bi-truck"></i>
-                    <span>Ekspedisi</span>
-                </a>
-            </li>
-            @endif
 
 
-            <!-- Tambahan Menu Reimbursement -->
+
+            <!-- Absensi -->
             <li>
-                <a href="{{ route('reimbursement.index') }}">
-                    <i class="bi bi-receipt-cutoff"></i>
-                    <span>Reimbursement</span>
-                </a>
-            </li>
-            <!-- Tambahan Menu Absensi -->
-            <li>
-                <a href="{{ route('absensi.index') }}">
+                <a href="{{ route('absensi.index') }}" class="{{ request()->routeIs('absensi.*') ? 'active' : '' }}">
                     <i class="bi bi-calendar-check"></i>
                     <span>Absensi</span>
                 </a>
             </li>
-            {{-- ini level akses nya --}}
+
+            <!-- Reimbursement -->
+            <li>
+                <a href="{{ route('reimbursement.index') }}" class="{{ request()->routeIs('reimbursement.*') ? 'active' : '' }}">
+                    <i class="bi bi-receipt-cutoff"></i>
+                    <span>Reimbursement</span>
+                </a>
+            </li>
+            <!-- DATA MASTER DROPDOWN (Khusus Admin) -->
+            @if($sidebarUser && $sidebarUser->role == 'Admin')
             @php
-                $sidebarUser = auth()->user();
+                // Agar dropdown parent "Data Master" juga active jika childnya active
+                $isDataMasterActive = in_array(request()->segment(1), ['ekspedisi', 'divisi', 'users']);
             @endphp
-            @if($sidebarUser && ($sidebarUser->role == 'Admin' || $sidebarUser->role == 'Leader'))
-                {{-- Menu User hanya untuk Admin --}}
-                @if($sidebarUser->role == 'Admin')
-                <li>
-                    <a href="{{ route('users.index') }}">
-                        <i class="bi bi-people"></i>
-                        <span>User</span>
-                    </a>
-                </li>
-                @endif
+            <li class="dropdown {{ $isDataMasterActive ? 'show' : '' }}">
+                <a class="dropdown-toggle {{ $isDataMasterActive ? 'active' : '' }}"
+                   href="#" role="button" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="{{ $isDataMasterActive ? 'true' : 'false' }}">
+                    <i class="bi bi-database"></i>
+                    <span>Data Master</span>
+                    <i class="bi bi-chevron-down ms-auto" style="font-size: 12px;"></i>
+                </a>
+                <ul class="dropdown-menu{{ $isDataMasterActive ? ' show' : '' }}">
+                    <li>
+                        <a class="dropdown-item {{ request()->segment(1) == 'ekspedisi' ? 'active' : '' }}" href="{{ route('ekspedisi.index') }}">
+                            <i class="bi bi-truck"></i> Ekspedisi
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item {{ request()->segment(1) == 'divisi' ? 'active' : '' }}" href="{{ route('divisi.index') }}">
+                            <i class="bi bi-diagram-3"></i> Divisi
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item {{ request()->segment(1) == 'users' ? 'active' : '' }}" href="{{ route('users.index') }}">
+                            <i class="bi bi-people"></i> User
+                        </a>
+                    </li>
+                </ul>
+            </li>
             @endif
 
-            <!-- Menu Pengaturan dihapus -->
+
+            <!-- Logout -->
             <li class="logout">
                 <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                     <i class="bi bi-box-arrow-right"></i>
@@ -454,7 +308,6 @@
                     <span>{{ optional(auth()->user())->name ?? 'Guest' }}</span>
                     <i class="bi bi-chevron-down"></i>
                 </div>
-
             </div>
         </header>
 
@@ -473,7 +326,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script>
-        // Toggle Sidebar
+        // Toggle Sidebar Mobile
         const toggleBtn = document.getElementById('toggleSidebar');
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('sidebarOverlay');
@@ -488,7 +341,6 @@
             overlay.classList.remove('show');
         });
 
-        // Close sidebar on window resize if desktop
         window.addEventListener('resize', () => {
             if (window.innerWidth > 992) {
                 sidebar.classList.remove('show');

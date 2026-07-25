@@ -101,12 +101,18 @@
                                         <label for="divisi" class="form-label fw-semibold">
                                             <i class="ti ti-building me-1 text-primary"></i> Divisi
                                         </label>
-                                        <input type="text"
-                                               class="form-control @error('divisi') is-invalid @enderror"
-                                               id="divisi"
-                                               name="divisi"
-                                               value="{{ old('divisi', $user->divisi) }}"
-                                               placeholder="Misal: Keuangan, Operasional, HRD">
+                                        <select class="form-select @error('divisi') is-invalid @enderror"
+                                                id="divisi"
+                                                name="divisi">
+                                            <option value="">-- Pilih Divisi --</option>
+                                            @foreach ($divisi as $d)
+                                                <option value="{{ $d->id }}"
+                                                    {{ old('divisi', $user->divisi) == $d->id ? 'selected' : '' }}>
+                                                    {{ $d->Nama }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+
                                         <div class="form-text text-muted mt-1">
                                             <i class="ti ti-info-circle me-1"></i>Optional. Diisi bila ingin mengelompokkan user berdasarkan divisi.
                                         </div>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Divisi;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
@@ -48,7 +49,8 @@ class UserController extends Controller
 
     public function create()
     {
-        return view('users.create');
+        $divisi = Divisi::get();
+        return view('users.create',compact('divisi'));
     }
 
     public function store(Request $request)
@@ -73,7 +75,8 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
-        return view('users.edit', compact('user'));
+        $divisi = Divisi::get();
+        return view('users.edit', compact('user','divisi'));
     }
 
     public function update(Request $request, User $user)

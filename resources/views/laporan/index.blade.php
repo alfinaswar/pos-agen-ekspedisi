@@ -1,7 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-    <!-- Chart.js CSS (optional, mostly not needed unless custom style) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.css">
 
     <div class="container-fluid">
@@ -14,38 +13,42 @@
             </div>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb m-0 py-0">
-                    <li class="breadcrumb-item">
-                        <a href="{{ route('home') }}" class="text-decoration-none text-reset">Dashboard</a>
-                    </li>
+                    <li class="breadcrumb-item"><a href="{{ route('home') }}" class="text-decoration-none text-reset">Dashboard</a></li>
                     <li class="breadcrumb-item active" aria-current="page">Laporan</li>
                 </ol>
             </nav>
         </div>
 
-        <!-- Tabs: Pertegas gaya tab dengan border, background, dan icon  -->
+        <!-- Tabs -->
         <ul class="nav nav-tabs mb-4 fw-semibold border border-primary-subtle rounded overflow-hidden" id="reportTabs" style="background: #f8f9fa;">
             <li class="nav-item flex-fill text-center">
                 <a class="nav-link py-2 px-3 {{ $type === 'harian' ? 'active text-primary border-primary bg-white shadow-sm' : 'text-secondary' }}"
-                   style="font-weight:600; letter-spacing: .5px;"
-                   href="{{ route('laporan.index', ['type' => 'harian', 'tanggal' => $tanggal]) }}">
-                    <i class="ti ti-calendar-stats me-1"></i>
-                    Harian
+                   href="{{ route('laporan.index', ['type' => 'harian', 'tanggal' => date('Y-m-d')]) }}">
+                    <i class="ti ti-calendar-stats me-1"></i> Harian
                 </a>
             </li>
             <li class="nav-item flex-fill text-center">
                 <a class="nav-link py-2 px-3 {{ $type === 'bulanan' ? 'active text-primary border-primary bg-white shadow-sm' : 'text-secondary' }}"
-                   style="font-weight:600; letter-spacing: .5px;"
-                   href="{{ route('laporan.index', ['type' => 'bulanan', 'tanggal' => $tanggal]) }}">
-                    <i class="ti ti-calendar-month me-1"></i>
-                    Bulanan
+                   href="{{ route('laporan.index', ['type' => 'bulanan', 'tanggal' => date('Y-m')]) }}">
+                    <i class="ti ti-calendar-month me-1"></i> Bulanan
                 </a>
             </li>
             <li class="nav-item flex-fill text-center">
                 <a class="nav-link py-2 px-3 {{ $type === 'per_ekspedisi' ? 'active text-primary border-primary bg-white shadow-sm' : 'text-secondary' }}"
-                   style="font-weight:600; letter-spacing: .5px;"
-                   href="{{ route('laporan.index', ['type' => 'per_ekspedisi', 'tanggal' => $tanggal]) }}">
-                    <i class="ti ti-truck me-1"></i>
-                    Per Ekspedisi
+                   href="{{ route('laporan.index', ['type' => 'per_ekspedisi', 'tanggal' => date('Y-m-d')]) }}">
+                    <i class="ti ti-truck me-1"></i> Per Ekspedisi
+                </a>
+            </li>
+            <li class="nav-item flex-fill text-center">
+                <a class="nav-link py-2 px-3 {{ $type === 'per_user' ? 'active text-primary border-primary bg-white shadow-sm' : 'text-secondary' }}"
+                   href="{{ route('laporan.index', ['type' => 'per_user', 'tanggal' => date('Y-m')]) }}">
+                    <i class="ti ti-users me-1"></i> Per User
+                </a>
+            </li>
+            <li class="nav-item flex-fill text-center">
+                <a class="nav-link py-2 px-3 {{ $type === 'per_divisi' ? 'active text-primary border-primary bg-white shadow-sm' : 'text-secondary' }}"
+                   href="{{ route('laporan.index', ['type' => 'per_divisi', 'tanggal' => date('Y-m')]) }}">
+                    <i class="ti ti-building me-1"></i> Per Divisi
                 </a>
             </li>
         </ul>
@@ -57,8 +60,11 @@
                     <input type="hidden" name="type" value="{{ $type }}">
                     <div class="row g-3 align-items-end">
                         <div class="col-md-3">
-                            <label class="form-label fw-semibold">Tanggal</label>
-                            <input type="date"
+                            <label class="form-label fw-semibold">
+                                {{ in_array($type, ['bulanan', 'per_user', 'per_divisi']) ? 'Pilih Bulan' : 'Pilih Tanggal' }}
+                            </label>
+                            <!-- Input dinamis: month atau date -->
+                            <input type="{{ in_array($type, ['bulanan', 'per_user', 'per_divisi']) ? 'month' : 'date' }}"
                                 class="form-control"
                                 name="tanggal"
                                 value="{{ $tanggal }}"
@@ -92,21 +98,32 @@
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table class="table table-striped table-bordered align-middle mb-0" id="laporanTable" style="width: 100%;">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Ekspedisi</th>
-                                        <th class="text-center">Jumlah Transaksi</th>
-                                        <th class="text-end">Total Pendapatan</th>
-                                        <th class="text-end">Persentase</th>
-                                    </tr>
-                                </thead>
+                            <table class="table table-striped table-bordered align-middle mb-0" style="width: 100%;">
+                               <thead class="table-light">
+    <tr>
+        <th>
+            @if($type === 'per_user') Nama User
+            @elseif($type === 'per_divisi') Nama Divisi
+            @else Ekspedisi @endif
+        </th>
+        <th class="text-center">Jumlah Transaksi</th>
+        <th class="text-end">Total Pendapatan Bersih</th> <!-- <-- DIUBAH -->
+        <th class="text-end">Persentase</th>
+    </tr>
+</thead>
                                 <tbody>
                                     @forelse($dataWithPercentage as $row)
                                     <tr>
                                         <td>
                                             <span class="fw-semibold text-dark">
-                                                {{ $expeditionNames[$row->Ekspedisi] ?? 'Ekspedisi ' . $row->Ekspedisi }}
+                                                @if($type === 'per_user')
+                                                    {{ $row->userCreate->name ?? 'Tidak Diketahui' }}
+                                                @elseif($type === 'per_divisi')
+                                                    {{ $row->NamaDivisi ?? 'Tanpa Divisi' }}
+                                                @else
+                                                    {{-- LOGIKA EKSPEDISI ASLI YANG SUDAH BENAR --}}
+                                                    {{ $expeditionNames[$row->Ekspedisi] ?? 'Ekspedisi ' . $row->Ekspedisi }}
+                                                @endif
                                             </span>
                                         </td>
                                         <td class="text-center">
@@ -148,7 +165,8 @@
                 <div class="card shadow-sm border-0 h-100">
                     <div class="card-header bg-white py-3">
                         <h5 class="mb-0 fw-semibold">
-                            <i class="ti ti-chart-bar me-2"></i>Grafik Pendapatan
+                            <i class="ti ti-chart-{{ $chartType === 'line' ? 'line' : 'bar' }} me-2"></i>
+                            {{ $chartType === 'line' ? 'Tren 7 Hari Terakhir' : 'Grafik Pendapatan' }}
                         </h5>
                     </div>
                     <div class="card-body">
@@ -165,61 +183,35 @@
         document.addEventListener('DOMContentLoaded', function() {
             const ctx = document.getElementById('incomeChart').getContext('2d');
 
-            // Dapatkan daftar ekspedisi & chartLabels/id ekspedisi
-            const expeditionNames = @json($expeditionNames);
-            const chartLabels = @json($chartLabels);
-
-            // Labels: nama ekspedisi sesuai id
-            const labels = chartLabels.map(id => {
-                return expeditionNames[id] || 'Ekspedisi ' + id;
-            });
-
-            const data = @json($chartData);
-
-            // Warna: generate warna unik per ekspedisi berdasarkan id, memastikan konsistensi, variasi, dan berbeda
-            function stringToColor(str) {
-                // Hash kode sederhana ke RGB, dibuat agar output konsisten
-                let hash = 0;
-                for (let i = 0; i < str.length; i++) {
-                    hash = str.charCodeAt(i) + ((hash << 5) - hash);
-                }
-                // Hasilkan warna terang dan cukup kontras
-                const h = Math.abs(hash) % 360; // Hue
-                const s = 60 + (Math.abs(hash) % 20); // Saturation 60-80%
-                const l = 60; // Lightness = 60%
-                return `hsl(${h},${s}%,${l}%)`;
-            }
-
-            // Urutkan warna agar warna konsisten terhadap urutan chartLabels/nama
-            const colors = chartLabels.map(id => {
-                // Gunakan NamaEkspedisi jika ada, else pakai id (output tetap konsisten & unik)
-                return stringToColor(expeditionNames[id] ? expeditionNames[id] : String(id));
-            });
+            // Data dari backend
+            const labels = @json($finalChartLabels);
+            const datasets = @json($chartDatasets);
+            const chartType = @json($chartType);
 
             new Chart(ctx, {
-                type: 'bar',
+                type: chartType,
                 data: {
                     labels: labels,
-                    datasets: [{
-                        label: 'Pendapatan (Rp)',
-                        data: data,
-                        backgroundColor: colors,
-                        borderRadius: 8,
-                        borderSkipped: false,
-                    }]
+                    datasets: datasets
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
                     plugins: {
                         legend: {
-                            display: false
+                            display: chartType === 'line', // Tampilkan legend hanya untuk line chart (multi dataset)
+                            position: 'bottom',
+                            labels: { usePointStyle: true, padding: 15, font: { size: 12 } }
                         },
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
                                     const value = context.parsed.y;
-                                    return 'Rp ' + new Intl.NumberFormat('id-ID').format(value);
+                                    return context.dataset.label + ': Rp ' + new Intl.NumberFormat('id-ID').format(value);
                                 }
                             }
                         }
@@ -229,15 +221,14 @@
                             beginAtZero: true,
                             ticks: {
                                 callback: function(value) {
-                                    if (value >= 1000000) {
-                                        return (value / 1000000).toFixed(1) + ' jt';
-                                    } else if (value >= 1000) {
-                                        return (value / 1000).toFixed(0) + ' rb';
-                                    }
+                                    if (value >= 1000000) return (value / 1000000).toFixed(1) + ' jt';
+                                    if (value >= 1000) return (value / 1000).toFixed(0) + ' rb';
                                     return value;
                                 }
-                            }
-                        }
+                            },
+                            grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                        },
+                        x: { grid: { display: false } }
                     }
                 }
             });

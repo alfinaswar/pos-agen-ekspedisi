@@ -100,12 +100,17 @@
                                         <label for="divisi" class="form-label fw-semibold">
                                             <i class="ti ti-building me-1 text-primary"></i> Divisi
                                         </label>
-                                        <input type="text"
-                                               class="form-control @error('divisi') is-invalid @enderror"
-                                               id="divisi"
-                                               name="divisi"
-                                               value="{{ old('divisi') }}"
-                                               placeholder="Misal: Keuangan, Operasional, HRD">
+                                        <select class="form-select @error('divisi') is-invalid @enderror"
+                                                id="divisi"
+                                                name="divisi">
+                                            <option value="">- Pilih Divisi -</option>
+                                            @foreach($divisi as $d)
+                                                <option value="{{ $d->id }}" {{ old('divisi') == $d->id ? 'selected' : '' }}>
+                                                    {{ $d->Nama }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+
                                         <div class="form-text text-muted mt-1">
                                             <i class="ti ti-info-circle me-1"></i>Optional. Diisi bila ingin mengelompokkan user berdasarkan divisi.
                                         </div>
@@ -187,8 +192,10 @@
                                             <option value="Admin" {{ old('role') == 'Admin' ? 'selected' : '' }}>Admin - Akses penuh semua menu</option>
                                             <option value="Leader" {{ old('role') == 'Leader' ? 'selected' : '' }}>Leader - Lihat laporan & rekap</option>
                                             <option value="Kasir" {{ old('role') == 'Kasir' ? 'selected' : '' }}>Kasir - Hanya input transaksi & lihat laporan</option>
+                                            <option value="Finance" {{ old('role') == 'Finance' ? 'selected' : '' }}>Finance - Cek Transaksi</option>
                                             <option value="Viewer" {{ old('role') == 'Viewer' ? 'selected' : '' }}>Viewer - Hanya lihat laporan</option>
                                         </select>
+
 
                                         <div class="form-text text-muted mt-1">
                                             <i class="ti ti-info-circle me-1"></i>Tentukan tingkat akses pengguna di sistem.
