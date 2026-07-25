@@ -78,4 +78,8 @@ class Transaksi extends Model
     {
         return $this->belongsTo(User::class, 'UserCreate');
     }
+public function getDivisi()
+{
+    return $this->belongsTo(Divisi::class, 'Divisi');
+}
 }

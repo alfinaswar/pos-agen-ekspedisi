@@ -147,7 +147,7 @@ class TransaksiController extends Controller
 
 
         $data = $request->except(['BuktiBayar']);
-
+        $data['Divisi'] = auth()->user()->divisi ?? '-';
 
         if (empty($data['KodeTransaksi'])) {
             unset($data['KodeTransaksi']);

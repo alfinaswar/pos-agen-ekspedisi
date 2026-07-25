@@ -46,21 +46,19 @@ class LaporanController extends Controller
 
             $chartLabels = $data->pluck('userCreate.name')->map(fn($n) => $n ?: 'Tidak Diketahui')->toArray();
 
-
         } elseif ($type === 'per_divisi') {
-            $data = Transaksi::select(
-                'divisis.Nama as NamaDivisi',
-                DB::raw('COUNT(transaksis.id) as jumlah_transaksi'),
-                DB::raw('SUM(transaksis.PendapatanBersih) as total_pendapatan')
-            )
-                ->leftJoin('users', 'transaksis.UserCreate', '=', 'users.name')
-                ->leftJoin('divisis', 'users.divisi', '=', 'divisis.id')
-                ->whereBetween('transaksis.Tanggal', [$startDate, $endDate])
-                ->groupBy('divisis.Nama')
+            // ✅ PERBAIKAN: Ambil langsung dari field Divisi di tabel transaksis
+            $data = Transaksi::whereBetween('Tanggal', [$startDate, $endDate])
+                ->select(
+                    'Divisi', // Field Divisi di tabel transaksis
+                    DB::raw('COUNT(*) as jumlah_transaksi'),
+                    DB::raw('SUM(PendapatanBersih) as total_pendapatan')
+                )
+                ->groupBy('Divisi')
                 ->orderBy('total_pendapatan', 'desc')
                 ->get();
 
-            $chartLabels = $data->pluck('NamaDivisi')->map(fn($n) => $n ?: 'Tanpa Divisi')->toArray();
+            $chartLabels = $data->pluck('Divisi')->map(fn($n) => $n ?: 'Tanpa Divisi')->toArray();
 
         } else {
             // Harian & Bulanan (Default: Group by Ekspedisi)
@@ -132,11 +130,16 @@ class LaporanController extends Controller
                 ->groupBy('UserCreate')->orderBy('total_pendapatan', 'desc')->get();
             $expeditionNames = [];
         } elseif ($type === 'per_divisi') {
-            $data = Transaksi::select('divisis.Nama as Ekspedisi', DB::raw('COUNT(transaksis.id) as jumlah_transaksi'), DB::raw('SUM(transaksis.PendapatanBersih) as total_pendapatan'))
-                ->leftJoin('users', 'transaksis.UserCreate', '=', 'users.name')
-                ->leftJoin('divisis', 'users.divisi', '=', 'divisis.id')
-                ->whereBetween('transaksis.Tanggal', [$startDate, $endDate])
-                ->groupBy('divisis.Nama')->orderBy('total_pendapatan', 'desc')->get();
+            // ✅ PERBAIKAN: Ambil langsung dari field Divisi di tabel transaksis
+            $data = Transaksi::whereBetween('Tanggal', [$startDate, $endDate])
+                ->select(
+                    'Divisi', // Field Divisi di tabel transaksis
+                    DB::raw('COUNT(*) as jumlah_transaksi'),
+                    DB::raw('SUM(PendapatanBersih) as total_pendapatan')
+                )
+                ->groupBy('Divisi')
+                ->orderBy('total_pendapatan', 'desc')
+                ->get();
             $expeditionNames = [];
         } else {
             $data = Transaksi::whereBetween('Tanggal', [$startDate, $endDate])

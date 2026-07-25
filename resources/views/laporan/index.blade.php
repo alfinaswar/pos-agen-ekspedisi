@@ -106,19 +106,19 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @forelse($dataWithPercentage as $row)
-                                    <tr>
-                                        <td>
-                                            <span class="fw-semibold text-dark">
-                                                @if($type === 'per_user')
-                                                    {{ $row->userCreate->name ?? 'Tidak Diketahui' }}
-                                                @elseif($type === 'per_divisi')
-                                                    {{ $row->NamaDivisi ?? 'Tanpa Divisi' }}
-                                                @else
-                                                    {{ $expeditionNames[$row->Ekspedisi] ?? 'Ekspedisi ' . $row->Ekspedisi }}
-                                                @endif
-                                            </span>
-                                        </td>
+                                   @forelse($dataWithPercentage as $row)
+<tr>
+    <td>
+        <span class="fw-semibold text-dark">
+            @if($type === 'per_user')
+                {{ $row->userCreate->name ?? 'Tidak Diketahui' }}
+            @elseif($type === 'per_divisi')
+                {{ $row->getDivisi->Nama ?? 'Tanpa Divisi' }}
+            @else
+                {{ $expeditionNames[$row->Ekspedisi] ?? 'Ekspedisi ' . $row->Ekspedisi }}
+            @endif
+        </span>
+    </td>
                                         <td class="text-center">
                                             <span class="badge bg-primary rounded-pill">{{ $row->jumlah_transaksi }}</span>
                                         </td>
