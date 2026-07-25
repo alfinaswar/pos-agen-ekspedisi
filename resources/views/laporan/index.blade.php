@@ -19,7 +19,7 @@
             </nav>
         </div>
 
-        <!-- Tabs -->
+        <!-- Tabs (Per Ekspedisi dihapus) -->
         <ul class="nav nav-tabs mb-4 fw-semibold border border-primary-subtle rounded overflow-hidden" id="reportTabs" style="background: #f8f9fa;">
             <li class="nav-item flex-fill text-center">
                 <a class="nav-link py-2 px-3 {{ $type === 'harian' ? 'active text-primary border-primary bg-white shadow-sm' : 'text-secondary' }}"
@@ -31,12 +31,6 @@
                 <a class="nav-link py-2 px-3 {{ $type === 'bulanan' ? 'active text-primary border-primary bg-white shadow-sm' : 'text-secondary' }}"
                    href="{{ route('laporan.index', ['type' => 'bulanan', 'tanggal' => date('Y-m')]) }}">
                     <i class="ti ti-calendar-month me-1"></i> Bulanan
-                </a>
-            </li>
-            <li class="nav-item flex-fill text-center">
-                <a class="nav-link py-2 px-3 {{ $type === 'per_ekspedisi' ? 'active text-primary border-primary bg-white shadow-sm' : 'text-secondary' }}"
-                   href="{{ route('laporan.index', ['type' => 'per_ekspedisi', 'tanggal' => date('Y-m-d')]) }}">
-                    <i class="ti ti-truck me-1"></i> Per Ekspedisi
                 </a>
             </li>
             <li class="nav-item flex-fill text-center">
@@ -61,10 +55,10 @@
                     <div class="row g-3 align-items-end">
                         <div class="col-md-3">
                             <label class="form-label fw-semibold">
-                                {{ in_array($type, ['bulanan', 'per_user', 'per_divisi']) ? 'Pilih Bulan' : 'Pilih Tanggal' }}
+                                {{ $type === 'harian' ? 'Pilih Tanggal' : 'Pilih Bulan' }}
                             </label>
-                            <!-- Input dinamis: month atau date -->
-                            <input type="{{ in_array($type, ['bulanan', 'per_user', 'per_divisi']) ? 'month' : 'date' }}"
+                            <!-- Input dinamis: date untuk harian, month untuk lainnya -->
+                            <input type="{{ $type === 'harian' ? 'date' : 'month' }}"
                                 class="form-control"
                                 name="tanggal"
                                 value="{{ $tanggal }}"
@@ -99,18 +93,18 @@
                     <div class="card-body">
                         <div class="table-responsive">
                             <table class="table table-striped table-bordered align-middle mb-0" style="width: 100%;">
-                               <thead class="table-light">
-    <tr>
-        <th>
-            @if($type === 'per_user') Nama User
-            @elseif($type === 'per_divisi') Nama Divisi
-            @else Ekspedisi @endif
-        </th>
-        <th class="text-center">Jumlah Transaksi</th>
-        <th class="text-end">Total Pendapatan Bersih</th> <!-- <-- DIUBAH -->
-        <th class="text-end">Persentase</th>
-    </tr>
-</thead>
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>
+                                            @if($type === 'per_user') Nama User
+                                            @elseif($type === 'per_divisi') Nama Divisi
+                                            @else Nama Ekspedisi @endif
+                                        </th>
+                                        <th class="text-center">Jumlah Transaksi</th>
+                                        <th class="text-end">Total Pendapatan Bersih</th>
+                                        <th class="text-end">Persentase</th>
+                                    </tr>
+                                </thead>
                                 <tbody>
                                     @forelse($dataWithPercentage as $row)
                                     <tr>
@@ -121,7 +115,6 @@
                                                 @elseif($type === 'per_divisi')
                                                     {{ $row->NamaDivisi ?? 'Tanpa Divisi' }}
                                                 @else
-                                                    {{-- LOGIKA EKSPEDISI ASLI YANG SUDAH BENAR --}}
                                                     {{ $expeditionNames[$row->Ekspedisi] ?? 'Ekspedisi ' . $row->Ekspedisi }}
                                                 @endif
                                             </span>
@@ -165,8 +158,7 @@
                 <div class="card shadow-sm border-0 h-100">
                     <div class="card-header bg-white py-3">
                         <h5 class="mb-0 fw-semibold">
-                            <i class="ti ti-chart-{{ $chartType === 'line' ? 'line' : 'bar' }} me-2"></i>
-                            {{ $chartType === 'line' ? 'Tren 7 Hari Terakhir' : 'Grafik Pendapatan' }}
+                            <i class="ti ti-chart-bar me-2"></i>Grafik Pendapatan Bersih
                         </h5>
                     </div>
                     <div class="card-body">
@@ -184,34 +176,45 @@
             const ctx = document.getElementById('incomeChart').getContext('2d');
 
             // Data dari backend
-            const labels = @json($finalChartLabels);
-            const datasets = @json($chartDatasets);
-            const chartType = @json($chartType);
+            const labels = @json($chartLabels);
+            const data = @json($chartData);
+
+            // Generate warna konsisten
+            function stringToColor(str) {
+                let hash = 0;
+                for (let i = 0; i < str.length; i++) {
+                    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+                }
+                const h = Math.abs(hash) % 360;
+                const s = 60 + (Math.abs(hash) % 20);
+                const l = 60;
+                return `hsl(${h},${s}%,${l}%)`;
+            }
+
+            const colors = labels.map(label => stringToColor(label));
 
             new Chart(ctx, {
-                type: chartType,
+                type: 'bar',
                 data: {
                     labels: labels,
-                    datasets: datasets
+                    datasets: [{
+                        label: 'Pendapatan Bersih (Rp)',
+                        data: data,
+                        backgroundColor: colors,
+                        borderRadius: 8,
+                        borderSkipped: false,
+                    }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    interaction: {
-                        mode: 'index',
-                        intersect: false,
-                    },
                     plugins: {
-                        legend: {
-                            display: chartType === 'line', // Tampilkan legend hanya untuk line chart (multi dataset)
-                            position: 'bottom',
-                            labels: { usePointStyle: true, padding: 15, font: { size: 12 } }
-                        },
+                        legend: { display: false },
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
                                     const value = context.parsed.y;
-                                    return context.dataset.label + ': Rp ' + new Intl.NumberFormat('id-ID').format(value);
+                                    return 'Rp ' + new Intl.NumberFormat('id-ID').format(value);
                                 }
                             }
                         }
@@ -225,10 +228,8 @@
                                     if (value >= 1000) return (value / 1000).toFixed(0) + ' rb';
                                     return value;
                                 }
-                            },
-                            grid: { color: 'rgba(0, 0, 0, 0.05)' }
-                        },
-                        x: { grid: { display: false } }
+                            }
+                        }
                     }
                 }
             });
