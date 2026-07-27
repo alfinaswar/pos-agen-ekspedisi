@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Exports\LaporanPendapatanExport;
+use App\Exports\LaporanPerDivisiExport;
+use App\Exports\LaporanPerUserExport;
 use App\Models\Transaksi;
 use App\Models\Ekspedisi;
 use Illuminate\Http\Request;
@@ -34,7 +36,8 @@ class LaporanController extends Controller
 
         // 2. Query Data Berdasarkan Tipe
         if ($type === 'per_user') {
-            $data = Transaksi::with('userCreate')->whereBetween('Tanggal', [$startDate, $endDate])
+            // Ambil langsung string dari kolom UserCreate
+            $data = Transaksi::whereBetween('Tanggal', [$startDate, $endDate])
                 ->select(
                     'UserCreate',
                     DB::raw('COUNT(*) as jumlah_transaksi'),
@@ -44,13 +47,13 @@ class LaporanController extends Controller
                 ->orderBy('total_pendapatan', 'desc')
                 ->get();
 
-            $chartLabels = $data->pluck('userCreate.name')->map(fn($n) => $n ?: 'Tidak Diketahui')->toArray();
+            $chartLabels = $data->pluck('UserCreate')->map(fn($n) => $n ?: 'Tidak Diketahui')->toArray();
 
         } elseif ($type === 'per_divisi') {
-            // ✅ PERBAIKAN: Ambil langsung dari field Divisi di tabel transaksis
+            // Ambil langsung string dari kolom Divisi
             $data = Transaksi::whereBetween('Tanggal', [$startDate, $endDate])
                 ->select(
-                    'Divisi', // Field Divisi di tabel transaksis
+                    'Divisi',
                     DB::raw('COUNT(*) as jumlah_transaksi'),
                     DB::raw('SUM(PendapatanBersih) as total_pendapatan')
                 )
@@ -89,7 +92,7 @@ class LaporanController extends Controller
             return $item;
         });
 
-        // 4. Siapkan Data Grafik (Bar Chart Sederhana untuk SEMUA tipe)
+        // 4. Siapkan Data Grafik
         $chartData = $data->pluck('total_pendapatan')->toArray();
         $expeditionNames = isset($expeditionNames) ? $expeditionNames : [];
 
@@ -112,48 +115,51 @@ class LaporanController extends Controller
         $tanggal = $request->get('tanggal', date('Y-m-d'));
         $date = Carbon::parse($tanggal);
 
-        // Tentukan range & nama file
+        // 1. Tentukan range & nama file
         if ($type === 'harian') {
             $startDate = $date->copy()->startOfDay();
             $endDate = $date->copy()->endOfDay();
-            $filename = "Laporan_Harian_{$date->format('Y-m-d')}.xlsx";
+            $filename = "Laporan_Pendapatan_Harian_{$date->format('Y-m-d')}.xlsx";
         } else {
             $startDate = $date->copy()->startOfMonth();
             $endDate = $date->copy()->endOfMonth();
-            $filename = "Laporan_" . ucfirst($type) . "_{$date->format('Y_m')}.xlsx";
+            $typeLabel = ucfirst(str_replace('_', ' ', $type)); // e.g., "Per User", "Per Divisi", "Bulanan"
+            $filename = "Laporan_Pendapatan_{$typeLabel}_{$date->format('Y_m')}.xlsx";
         }
 
-        // Query Export (Sama dengan logic index)
+        // 2. Panggil Export Class yang SPESIFIK berdasarkan tipe
         if ($type === 'per_user') {
             $data = Transaksi::whereBetween('Tanggal', [$startDate, $endDate])
                 ->select('UserCreate', DB::raw('COUNT(*) as jumlah_transaksi'), DB::raw('SUM(PendapatanBersih) as total_pendapatan'))
                 ->groupBy('UserCreate')->orderBy('total_pendapatan', 'desc')->get();
-            $expeditionNames = [];
+
+            return Excel::download(
+                new LaporanPerUserExport($data, $data->sum('jumlah_transaksi'), $data->sum('total_pendapatan'), $tanggal),
+                $filename
+            );
+
         } elseif ($type === 'per_divisi') {
-            // ✅ PERBAIKAN: Ambil langsung dari field Divisi di tabel transaksis
             $data = Transaksi::whereBetween('Tanggal', [$startDate, $endDate])
-                ->select(
-                    'Divisi', // Field Divisi di tabel transaksis
-                    DB::raw('COUNT(*) as jumlah_transaksi'),
-                    DB::raw('SUM(PendapatanBersih) as total_pendapatan')
-                )
-                ->groupBy('Divisi')
-                ->orderBy('total_pendapatan', 'desc')
-                ->get();
-            $expeditionNames = [];
+                ->select('Divisi', DB::raw('COUNT(*) as jumlah_transaksi'), DB::raw('SUM(PendapatanBersih) as total_pendapatan'))
+                ->groupBy('Divisi')->orderBy('total_pendapatan', 'desc')->get();
+
+            return Excel::download(
+                new LaporanPerDivisiExport($data, $data->sum('jumlah_transaksi'), $data->sum('total_pendapatan'), $tanggal),
+                $filename
+            );
+
         } else {
+            // Harian & Bulanan (Ekspedisi)
             $data = Transaksi::whereBetween('Tanggal', [$startDate, $endDate])
                 ->select('Ekspedisi', DB::raw('COUNT(*) as jumlah_transaksi'), DB::raw('SUM(PendapatanBersih) as total_pendapatan'))
                 ->groupBy('Ekspedisi')->orderBy('total_pendapatan', 'desc')->get();
+
             $expeditionNames = Ekspedisi::pluck('NamaEkspedisi', 'id')->toArray();
+
+            return Excel::download(
+                new LaporanPendapatanExport($data, $data->sum('jumlah_transaksi'), $data->sum('total_pendapatan'), $type, $tanggal, $expeditionNames),
+                $filename
+            );
         }
-
-        $totalTransaksi = $data->sum('jumlah_transaksi');
-        $totalPendapatan = $data->sum('total_pendapatan');
-
-        return Excel::download(
-            new LaporanPendapatanExport($data, $totalTransaksi, $totalPendapatan, $type, $tanggal, $expeditionNames),
-            $filename
-        );
     }
 }
