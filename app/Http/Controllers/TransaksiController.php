@@ -86,27 +86,34 @@ class TransaksiController extends Controller
                     $role = $user ? $user->role : null;
                     $btn = '<div class="d-flex gap-1 justify-content-center">';
 
-                    // Semua yang boleh melihat (Admin, Finance, Kasir, Leader)
+                    // Hanya Admin & Finance boleh melihat (lihat tombol)
                     if (in_array($role, ['Admin', 'Finance'])) {
                         $btn .= '<a href="' . route('transaksi.show', $row->id) . '" class="btn btn-info btn-sm text-white" title="Lihat">';
                         $btn .= '<i class="ti ti-eye"></i></a> ';
                     }
 
                     $editAllowed = false;
+                    $deleteAllowed = false;
 
                     // Admin: Bisa edit & hapus kapanpun
                     if ($role === 'Admin') {
                         $editAllowed = true;
+                        $deleteAllowed = true;
                     }
+                    // Kasir/Leader: Bisa edit jika belum valid, tapi TIDAK BOLEH HAPUS
                     else if (in_array($role, ['Kasir', 'Leader'])) {
                         if ($row->Status !== 'Y') {
                             $editAllowed = true;
                         }
+                        // Tidak mengizinkan hapus untuk Kasir/Leader (deleteAllowed tetap false)
                     }
+
                     if ($editAllowed) {
                         $btn .= '<a href="' . route('transaksi.edit', $row->id) . '" class="btn btn-warning btn-sm text-white" title="Edit">';
                         $btn .= '<i class="ti ti-edit"></i></a> ';
+                    }
 
+                    if ($deleteAllowed) {
                         $btn .= '<button type="button" class="btn btn-danger btn-sm btn-delete" data-id="' . $row->id . '" data-kode="' . htmlspecialchars($row->KodeTransaksi ?? 'Tanpa Kode') . '" title="Hapus">';
                         $btn .= '<i class="ti ti-trash"></i></button>';
                     }
