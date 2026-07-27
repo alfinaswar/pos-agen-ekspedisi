@@ -55,7 +55,7 @@ class DashboardController extends Controller
         // 6b. Pendapatan per User per bulan (SEMUA User, tanpa limit)
         $userPerBulanData = [];
         for ($bln = 1; $bln <= 12; $bln++) {
-            $userData = Transaksi::select('UserCreate', DB::raw('SUM(PendapatanBersih) as total'))
+            $userData = Transaksi::with('userCreate')->select('UserCreate', DB::raw('SUM(PendapatanBersih) as total'))
                 ->whereMonth('Tanggal', $bln)
                 ->whereYear('Tanggal', $selectedYear)
                 ->whereNotNull('UserCreate') // Hindari group by null
@@ -64,7 +64,7 @@ class DashboardController extends Controller
                 ->get(); // <-- limit(5) DIHAPUS
 
             $userPerBulanData[$bln] = [
-                'labels' => $userData->pluck('UserCreate')->map(fn($n) => $n ?: 'Tidak Diketahui')->toArray(),
+                'labels' => $userData->pluck('userCreate.name')->map(fn($n) => $n ?: 'Tidak Diketahui')->toArray(),
                 'values' => $userData->pluck('total')->toArray()
             ];
         }
@@ -72,7 +72,7 @@ class DashboardController extends Controller
         // 6c. Pendapatan per Divisi per bulan (SEMUA Divisi, tanpa limit)
         $divisiPerBulanData = [];
         for ($bln = 1; $bln <= 12; $bln++) {
-            $divisiData = Transaksi::select('Divisi', DB::raw('SUM(PendapatanBersih) as total'))
+            $divisiData = Transaksi::with('getDivisi')->select('Divisi', DB::raw('SUM(PendapatanBersih) as total'))
                 ->whereMonth('Tanggal', $bln)
                 ->whereYear('Tanggal', $selectedYear)
                 ->whereNotNull('Divisi') // Hindari group by null
@@ -81,7 +81,7 @@ class DashboardController extends Controller
                 ->get(); // <-- limit(5) DIHAPUS
 
             $divisiPerBulanData[$bln] = [
-                'labels' => $divisiData->pluck('Divisi')->map(fn($n) => $n ?: 'Tanpa Divisi')->toArray(),
+                'labels' => $divisiData->pluck('getDivisi.Nama')->map(fn($n) => $n ?: 'Tanpa Divisi')->toArray(),
                 'values' => $divisiData->pluck('total')->toArray()
             ];
         }
