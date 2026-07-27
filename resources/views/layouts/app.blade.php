@@ -305,10 +305,20 @@
                     <div class="user-avatar">
                         {{ optional(auth()->user())->name ? substr(auth()->user()->name, 0, 1) : '?' }}
                     </div>
-                    <span>{{ optional(auth()->user())->name ?? 'Guest' }}</span>
+                    <div class="d-flex flex-column">
+                        <span>{{ optional(auth()->user())->name ?? 'Guest' }}</span>
+                        <small class="text-muted" style="font-size: 12px;">
+                            @if(auth()->check())
+                                {{ auth()->user()->role }}
+                            @else
+                                -
+                            @endif
+                        </small>
+                    </div>
                     <i class="bi bi-chevron-down"></i>
                 </div>
             </div>
+
         </header>
 
         <!-- Content -->
