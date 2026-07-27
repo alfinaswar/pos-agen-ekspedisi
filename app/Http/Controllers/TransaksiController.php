@@ -81,19 +81,32 @@ class TransaksiController extends Controller
                         : '<span class="text-muted">-</span>';
                 })
                 ->addColumn('action', function ($row) {
+                    $user = auth()->user();
+                    $role = $user ? $user->role : null;
                     $btn = '<div class="d-flex gap-1 justify-content-center">';
-                    // Show button
-                    $btn .= '<a href="' . route('transaksi.show', $row->id) . '" class="btn btn-info btn-sm text-white" title="Lihat">';
-                    $btn .= '<i class="ti ti-eye"></i></a> ';
-                    // Edit button
-                    $btn .= '<a href="' . route('transaksi.edit', $row->id) . '" class="btn btn-warning btn-sm text-white" title="Edit">';
-                    $btn .= '<i class="ti ti-edit"></i></a> ';
-                    // Delete button
-                    $btn .= '<button type="button" class="btn btn-danger btn-sm btn-delete" data-id="' . $row->id . '" data-kode="' . htmlspecialchars($row->KodeTransaksi ?? 'Tanpa Kode') . '" title="Hapus">';
-                    $btn .= '<i class="ti ti-trash"></i></button>';
+
+                    // Show button - only for Admin & Finance
+                    if (in_array($role, ['Admin', 'Finance'])) {
+                        $btn .= '<a href="' . route('transaksi.show', $row->id) . '" class="btn btn-info btn-sm text-white" title="Lihat">';
+                        $btn .= '<i class="ti ti-eye"></i></a> ';
+                    }
+
+                    // Edit button - only for Admin & Finance
+                    if (in_array($role, ['Admin', 'Finance'])) {
+                        $btn .= '<a href="' . route('transaksi.edit', $row->id) . '" class="btn btn-warning btn-sm text-white" title="Edit">';
+                        $btn .= '<i class="ti ti-edit"></i></a> ';
+                    }
+
+                    // Delete button - only for Admin & Finance
+                    if (in_array($role, ['Admin', 'Finance'])) {
+                        $btn .= '<button type="button" class="btn btn-danger btn-sm btn-delete" data-id="' . $row->id . '" data-kode="' . htmlspecialchars($row->KodeTransaksi ?? 'Tanpa Kode') . '" title="Hapus">';
+                        $btn .= '<i class="ti ti-trash"></i></button>';
+                    }
+
                     $btn .= '</div>';
                     return $btn;
                 })
+
 
                 ->editColumn('UserCreate', function($row) {
                     return $row->userCreate && $row->userCreate->name
