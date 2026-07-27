@@ -86,20 +86,17 @@ class TransaksiController extends Controller
                     $role = $user ? $user->role : null;
                     $btn = '<div class="d-flex gap-1 justify-content-center">';
 
-                    // Show button - only for Admin & Finance
+                    // Show button - Admin & Finance dapat lihat, Admin dapat edit/hapus, Finance hanya lihat
                     if (in_array($role, ['Admin', 'Finance'])) {
                         $btn .= '<a href="' . route('transaksi.show', $row->id) . '" class="btn btn-info btn-sm text-white" title="Lihat">';
                         $btn .= '<i class="ti ti-eye"></i></a> ';
                     }
 
-                    // Edit button - only for Admin & Finance
-                    if (in_array($role, ['Admin', 'Finance'])) {
+                    // Edit dan Delete hanya Admin
+                    if ($role === 'Admin') {
                         $btn .= '<a href="' . route('transaksi.edit', $row->id) . '" class="btn btn-warning btn-sm text-white" title="Edit">';
                         $btn .= '<i class="ti ti-edit"></i></a> ';
-                    }
 
-                    // Delete button - only for Admin & Finance
-                    if (in_array($role, ['Admin', 'Finance'])) {
                         $btn .= '<button type="button" class="btn btn-danger btn-sm btn-delete" data-id="' . $row->id . '" data-kode="' . htmlspecialchars($row->KodeTransaksi ?? 'Tanpa Kode') . '" title="Hapus">';
                         $btn .= '<i class="ti ti-trash"></i></button>';
                     }
@@ -109,11 +106,13 @@ class TransaksiController extends Controller
                 })
 
 
+
                 ->editColumn('UserCreate', function($row) {
                     return $row->userCreate && $row->userCreate->name
-                        ? $row->userCreate->name
+                        ? \Illuminate\Support\Str::limit($row->userCreate->name, 15)
                         : '<span class="text-muted">-</span>';
                 })
+
                 ->editColumn('UserFinance', function($row) {
                     return $row->userFinance && $row->userFinance->name
                         ? $row->userFinance->name
