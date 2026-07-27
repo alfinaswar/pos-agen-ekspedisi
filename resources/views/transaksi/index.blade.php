@@ -258,11 +258,24 @@
                         data: 'Metode', name: 'Metode',
                         render: (data) => {
                             if (!data) return '<span class="badge bg-secondary">-</span>';
-                            const badgeClass = data === 'Tunai' ? 'bg-success' : 'bg-info text-dark';
-                            const icon = data === 'Tunai' ? 'ti ti-cash' : 'ti ti-credit-card';
-                            return `<span class="badge ${badgeClass}"><i class="${icon} me-1"></i>${data}</span>`;
+                            let badgeClass, icon;
+                            if (data === 'Tunai') {
+                                badgeClass = 'bg-success';
+                                icon = 'ti ti-cash';
+                            } else if (data === 'Non-Tunai') {
+                                badgeClass = 'bg-info text-dark';
+                                icon = 'ti ti-credit-card';
+                            } else if (data === 'COD') {
+                                badgeClass = 'bg-warning text-dark';
+                                icon = 'ti ti-truck';
+                            } else {
+                                badgeClass = 'bg-secondary';
+                                icon = '';
+                            }
+                            return `<span class="badge ${badgeClass}">${icon ? `<i class="${icon} me-1"></i>` : ''}${data}</span>`;
                         }
                     },
+
                     { data: 'Bayar', name: 'Bayar', render: (data) => data ? data : '-' },
                     {
                         // Pendapatan
