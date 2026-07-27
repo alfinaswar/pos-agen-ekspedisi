@@ -47,7 +47,7 @@ class LaporanController extends Controller
                 ->orderBy('total_pendapatan', 'desc')
                 ->get();
 
-            $chartLabels = $data->pluck('UserCreate')->map(fn($n) => $n ?: 'Tidak Diketahui')->toArray();
+            $chartLabels = $data->pluck('userCreate.name')->map(fn($n) => $n ?: 'Tidak Diketahui')->toArray();
 
         } elseif ($type === 'per_divisi') {
             // Ambil langsung string dari kolom Divisi
@@ -61,7 +61,7 @@ class LaporanController extends Controller
                 ->orderBy('total_pendapatan', 'desc')
                 ->get();
 
-            $chartLabels = $data->pluck('Divisi')->map(fn($n) => $n ?: 'Tanpa Divisi')->toArray();
+            $chartLabels = $data->pluck('getDivisi.Nama')->map(fn($n) => $n ?: 'Tanpa Divisi')->toArray();
 
         } else {
             // Harian & Bulanan (Default: Group by Ekspedisi)
