@@ -54,9 +54,9 @@
                         <div>
                             <p class="text-muted mb-1 small text-uppercase fw-semibold">Total Pendapatan</p>
                             <h3 class="mb-0 fw-bold text-primary">Rp {{ number_format($totalPendapatan ?? 0, 0, ',', '.') }}</h3>
-                            <small class="text-success">
+                            {{-- <small class="text-success">
                                 <i class="ti ti-trending-up me-1"></i>+12.5% dari bulan lalu
-                            </small>
+                            </small> --}}
                         </div>
                         <div class="stat-icon bg-primary bg-opacity-10 text-primary">
                             <i class="ti ti-cash"></i>
