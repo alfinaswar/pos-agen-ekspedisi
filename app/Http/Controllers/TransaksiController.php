@@ -86,14 +86,24 @@ class TransaksiController extends Controller
                     $role = $user ? $user->role : null;
                     $btn = '<div class="d-flex gap-1 justify-content-center">';
 
-                    // Show button - Admin & Finance dapat lihat, Admin dapat edit/hapus, Finance hanya lihat
+                    // Semua yang boleh melihat (Admin, Finance, Kasir, Leader)
                     if (in_array($role, ['Admin', 'Finance'])) {
                         $btn .= '<a href="' . route('transaksi.show', $row->id) . '" class="btn btn-info btn-sm text-white" title="Lihat">';
                         $btn .= '<i class="ti ti-eye"></i></a> ';
                     }
 
-                    // Edit dan Delete hanya Admin
+                    $editAllowed = false;
+
+                    // Admin: Bisa edit & hapus kapanpun
                     if ($role === 'Admin') {
+                        $editAllowed = true;
+                    }
+                    else if (in_array($role, ['Kasir', 'Leader'])) {
+                        if ($row->Status !== 'Y') {
+                            $editAllowed = true;
+                        }
+                    }
+                    if ($editAllowed) {
                         $btn .= '<a href="' . route('transaksi.edit', $row->id) . '" class="btn btn-warning btn-sm text-white" title="Edit">';
                         $btn .= '<i class="ti ti-edit"></i></a> ';
 
