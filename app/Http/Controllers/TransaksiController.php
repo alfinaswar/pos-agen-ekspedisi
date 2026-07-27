@@ -40,9 +40,10 @@ class TransaksiController extends Controller
                 ->orderBy('Tanggal', 'desc');
 
             // Kalau bukan admin, hanya tampilkan data milik user itu sendiri
-            if (!auth()->user() || !in_array(auth()->user()->role, ['Admin', 'Leader'])) {
+            if (!auth()->user() || !in_array(auth()->user()->role, ['Admin', 'Leader', 'Finance'])) {
                 $query->where('UserCreate', auth()->id());
             }
+
 
             // 2. Terapkan filter (khusus admin, filter user juga ditampilkan; kalau bukan admin user di-force ke dirinya)
             if ($request->filled('tanggal_awal')) {
