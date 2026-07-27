@@ -67,7 +67,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'role' => 'required|in:Admin,Kasir,Leader,Viewer',
+            'role' => 'required|in:Admin,Kasir,Leader,Viewer,Finance',
             'divisi' => 'nullable|string|max:255',
             'no_hp' => 'nullable|string|max:50',
         ]);
@@ -93,7 +93,8 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'password' => 'nullable|string|min:8|confirmed',
-            'role' => 'required|in:Admin,Kasir,Leader,Viewer',
+            'role' => 'required|in:Admin,Kasir,Leader,Viewer,Finance',
+
             'divisi' => 'nullable|string|max:255',
             'no_hp' => 'nullable|string|max:50',
         ]);
