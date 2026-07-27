@@ -95,7 +95,7 @@
 
                         <!-- DataTable -->
                         <div class="table-responsive" style="overflow-x: auto;">
-                            <table class="table table-striped table-bordered dt-responsive nowrap align-middle mb-0" id="transaksiTable" style="width: 1200px; min-width: 100%;">
+                            <table class="table table-striped table-bordered dt-responsive nowrap align-middle mb-0" id="transaksiTable" style="width: 1400px; min-width: 100%;">
                                 <thead class="table-light">
                                     <tr>
                                         <th style="width: 50px;" class="text-center">#</th>
@@ -108,6 +108,8 @@
                                         <th class="text-end">Pendapatan</th>
                                         <th class="text-end">Diskon</th>
                                         <th class="text-end">Pendapatan Bersih</th>
+                                        <th>User Finance</th>
+                                        <th>Status Info</th>
                                         <th style="width: 100px;" class="text-center">Aksi</th>
                                     </tr>
                                 </thead>
@@ -239,9 +241,9 @@
                     }
                 },
                 columnDefs: [
-                    { className: 'text-center', targets: [0, 10] },
-                    { className: 'text-end', targets: [7, 8, 9] },
-                    { orderable: false, targets: [0, 10] }
+                    { className: 'text-center', targets: [0, 12] },
+                    { className: 'text-end', targets: [7, 8, 9] }, // Update targets index for currency columns
+                    { orderable: false, targets: [0, 12] }
                 ],
                 columns: [
                     { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false },
@@ -262,20 +264,26 @@
                         }
                     },
                     { data: 'Bayar', name: 'Bayar', render: (data) => data ? data : '-' },
-
                     {
-                        // Pendapatan NOW at index 7
+                        // Pendapatan
                         data: 'Pendapatan', name: 'Pendapatan',
                         render: (data) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(data || 0)
                     },
                     {
-                        // Diskon NOW at index 8
+                        // Diskon
                         data: 'Diskon', name: 'Diskon',
                         render: (data) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(data || 0)
                     },
                     {
                         data: 'PendapatanBersih', name: 'PendapatanBersih',
                         render: (data) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(data || 0)
+                    },
+                    {
+                        data: 'UserFinance', name: 'UserFinance',
+                        render: (data) => data ? `<span class="fw-bold text-info">${data}</span>` : '<span class="text-muted">-</span>'
+                    },
+                    {
+                        data: 'StatusInfo', name: 'StatusInfo',
                     },
                     { data: 'action', name: 'action', searchable: false },
                 ]

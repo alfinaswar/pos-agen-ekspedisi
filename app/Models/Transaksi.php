@@ -73,13 +73,17 @@ class Transaksi extends Model
     {
         return $this->belongsTo(Ekspedisi::class, 'Ekspedisi');
     }
+    public function userFinance()
+    {
+        return $this->belongsTo(User::class, 'UserFinance');
+    }
 
     public function userCreate()
     {
         return $this->belongsTo(User::class, 'UserCreate');
     }
-public function getDivisi()
-{
-    return $this->belongsTo(Divisi::class, 'Divisi');
-}
+    public function getDivisi()
+    {
+        return $this->belongsTo(Divisi::class, 'Divisi');
+    }
 }

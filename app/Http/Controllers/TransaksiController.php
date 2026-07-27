@@ -32,7 +32,10 @@ class TransaksiController extends Controller
                     'Diskon',
                     'PendapatanBersih',
                     'Pendapatan',
-                    'UserCreate'
+                    'UserCreate',
+                    'UserFinance',
+                    'DicekPada',
+                    'Status'
                 ])
                 ->orderBy('Tanggal', 'desc');
 
@@ -79,18 +82,51 @@ class TransaksiController extends Controller
                 })
                 ->addColumn('action', function ($row) {
                     $btn = '<div class="d-flex gap-1 justify-content-center">';
+                    // Show button
+                    $btn .= '<a href="' . route('transaksi.show', $row->id) . '" class="btn btn-info btn-sm text-white" title="Lihat">';
+                    $btn .= '<i class="ti ti-eye"></i></a> ';
+                    // Edit button
                     $btn .= '<a href="' . route('transaksi.edit', $row->id) . '" class="btn btn-warning btn-sm text-white" title="Edit">';
                     $btn .= '<i class="ti ti-edit"></i></a> ';
+                    // Delete button
                     $btn .= '<button type="button" class="btn btn-danger btn-sm btn-delete" data-id="' . $row->id . '" data-kode="' . htmlspecialchars($row->KodeTransaksi ?? 'Tanpa Kode') . '" title="Hapus">';
                     $btn .= '<i class="ti ti-trash"></i></button>';
                     $btn .= '</div>';
                     return $btn;
                 })
+
                 ->editColumn('UserCreate', function($row) {
                     return $row->userCreate && $row->userCreate->name
                         ? $row->userCreate->name
                         : '<span class="text-muted">-</span>';
                 })
+                ->editColumn('UserFinance', function($row) {
+                    return $row->userFinance && $row->userFinance->name
+                        ? $row->userFinance->name
+                        : '<span class="text-muted">-</span>';
+                })
+                ->addColumn('StatusInfo', function($row) {
+                    $statusText = '';
+                    switch ($row->Status) {
+                        case 'Y':
+                            $statusText = '<span class="badge bg-success">Valid</span>';
+                            break;
+                        case 'N':
+                            $statusText = '<span class="badge bg-danger">Tidak Valid</span>';
+                            break;
+                        default:
+                            $statusText = '<span class="badge bg-light text-dark">Belum Verif</span>';
+                            break;
+                    }
+
+                    $dicekPada = $row->DicekPada
+                        ? '<br><small class="text-muted"><i class="ti ti-clock"></i> ' . \Carbon\Carbon::parse($row->DicekPada)->format('d-m-Y H:i') . '</small>'
+                        : '';
+
+                    return $statusText . $dicekPada;
+                })
+
+
                 // Kolom KodeBayar
                 ->addColumn('Bayar', function ($row) {
                     $kodeBayar = $row->KodeBayar ? htmlspecialchars($row->KodeBayar) : '<span class="text-muted">-</span>';
@@ -110,7 +146,7 @@ class TransaksiController extends Controller
                     'total_diskon' => number_format($totalDiskon, 0, ',', '.'),
                     'total_pendapatan_bersih' => number_format($totalPendapatanBersih, 0, ',', '.'),
                 ])
-                ->rawColumns(['action', 'Ekspedisi','Bayar'])
+                ->rawColumns(['action', 'Ekspedisi','Bayar','StatusInfo','UserFinance'])
                 ->make(true);
         }
 
@@ -174,7 +210,8 @@ class TransaksiController extends Controller
     }
     public function show(Transaksi $transaksi)
     {
-        // kosong
+        $transaksi->load('ekspedisi');
+        return view('transaksi.show', compact('transaksi'));
     }
 
     public function update(Request $request, Transaksi $transaksi)
@@ -271,6 +308,18 @@ class TransaksiController extends Controller
             new TransaksiExport($data, $totalPendapatan, $filterInfo, $params,$totalDiskon, $totalPendapatanBersih),
             $filename
         );
+    }
+    public function updateStatus(Request $request, Transaksi $transaksi)
+    {
+        $request->validate([
+            'Status' => 'required|string|max:50'
+        ]);
+        $transaksi->Status = $request->input('Status');
+        $transaksi->Catatan = $request->input('Catatan');
+        $transaksi->UserFinance = auth()->id();
+        $transaksi->DicekPada = now();
+        $transaksi->save();
+        return redirect()->back()->with('success', 'Status transaksi berhasil diperbarui.');
     }
     public function destroy(Transaksi $transaksi)
     {
