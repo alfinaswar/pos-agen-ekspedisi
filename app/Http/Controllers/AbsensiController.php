@@ -19,7 +19,8 @@ class AbsensiController extends Controller
             $query = Absensi::with('getUser')->select([
                 'id', 'Nama', 'Divisi', 'NoHp', 'Tanggal',
                 'JamHadir', 'JamPulang', 'Status', 'Lembur', 'MulaiLembur', 'SelesaiLembur'
-            ]);
+            ])->latest('created_at');
+
 
             // Jika bukan Admin, filter data agar hanya menampilkan absensi user ini saja
             if (!auth()->user() || auth()->user()->role !== 'Admin') {
