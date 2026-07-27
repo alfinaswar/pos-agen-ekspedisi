@@ -209,7 +209,40 @@
             </div>
         </div>
     </div>
+<!-- Charts Row 3: BARU - User & Divisi -->
+    <div class="row g-4 mb-4">
+        <!-- Pendapatan per User -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-semibold">
+                        <i class="ti ti-users me-2 text-primary"></i>Pendapatan Bersih per User
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="userChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
 
+        <!-- Pendapatan per Divisi -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-semibold">
+                        <i class="ti ti-building me-2 text-primary"></i>Pendapatan Bersih per Divisi
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="divisiChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- Recent Activities -->
     <div class="row g-4">
         <!-- Transaksi Terbaru -->
@@ -313,62 +346,79 @@
     </div>
 </div>
 
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         Chart.defaults.font.family = "'Inter', sans-serif";
         Chart.defaults.color = '#6c757d';
 
-        // Data map for per-expedisi chart by bulan (from backend)
+        // Data dari backend
         let ekspedisiDataPerBulan = @json($ekspedisiPerBulanData);
-
-        // Get initial data and labels for the selected month
+        let userPerBulanData = @json($userPerBulanData);         // <-- BARU
+        let divisiPerBulanData = @json($divisiPerBulanData);     // <-- BARU
         let selectedBulan = "{{ $selectedBulan }}";
-        let ekspedisiLabels = ekspedisiDataPerBulan[selectedBulan]?.labels ?? [];
-        let ekspedisiValues = ekspedisiDataPerBulan[selectedBulan]?.values ?? [];
 
         // 1. Pendapatan per Ekspedisi
         let ekspedisiChartCtx = document.getElementById('ekspedisiChart').getContext('2d');
         let ekspedisiChart = new Chart(ekspedisiChartCtx, {
             type: 'bar',
             data: {
-                labels: ekspedisiLabels,
+                labels: ekspedisiDataPerBulan[selectedBulan]?.labels ?? [],
                 datasets: [{
                     label: 'Pendapatan',
-                    data: ekspedisiValues,
+                    data: ekspedisiDataPerBulan[selectedBulan]?.values ?? [],
                     backgroundColor: ['#0d6efd', '#198754', '#ffc107', '#6f42c1', '#dc3545'],
-                    borderRadius: 8,
-                    borderSkipped: false,
+                    borderRadius: 8, borderSkipped: false,
                 }]
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
+                responsive: true, maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { callback: (val) => 'Rp ' + (val / 1000000).toFixed(1) + 'jt' }
-                    }
-                }
+                scales: { y: { beginAtZero: true, ticks: { callback: (val) => 'Rp ' + (val / 1000000).toFixed(1) + 'jt' } } }
             }
         });
 
-        // Handle bulan (month) selector for Pendapatan per Ekspedisi
-        document.getElementById('bulanSelect').addEventListener('change', function() {
-            let bulanValue = this.value;
-            if(ekspedisiDataPerBulan[bulanValue]) {
-                let labels = ekspedisiDataPerBulan[bulanValue].labels;
-                let values = ekspedisiDataPerBulan[bulanValue].values;
-                ekspedisiChart.data.labels = labels;
-                ekspedisiChart.data.datasets[0].data = values;
-                ekspedisiChart.update();
+        // 2. Pendapatan per User (BARU)
+        let userChartCtx = document.getElementById('userChart').getContext('2d');
+        let userChart = new Chart(userChartCtx, {
+            type: 'bar',
+            data: {
+                labels: userPerBulanData[selectedBulan]?.labels ?? [],
+                datasets: [{
+                    label: 'Pendapatan Bersih',
+                    data: userPerBulanData[selectedBulan]?.values ?? [],
+                    backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'],
+                    borderRadius: 8, borderSkipped: false,
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, ticks: { callback: (val) => 'Rp ' + (val / 1000000).toFixed(1) + 'jt' } } }
             }
         });
 
-        // 2. Status Reimbursement
+        // 3. Pendapatan per Divisi (BARU)
+        let divisiChartCtx = document.getElementById('divisiChart').getContext('2d');
+        let divisiChart = new Chart(divisiChartCtx, {
+            type: 'bar',
+            data: {
+                labels: divisiPerBulanData[selectedBulan]?.labels ?? [],
+                datasets: [{
+                    label: 'Pendapatan Bersih',
+                    data: divisiPerBulanData[selectedBulan]?.values ?? [],
+                    backgroundColor: ['#06b6d4', '#f97316', '#64748b', '#ec4899', '#14b8a6'],
+                    borderRadius: 8, borderSkipped: false,
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, ticks: { callback: (val) => 'Rp ' + (val / 1000000).toFixed(1) + 'jt' } } }
+            }
+        });
+
+        // 4. Status Reimbursement
         new Chart(document.getElementById('reimbursementChart').getContext('2d'), {
             type: 'doughnut',
             data: {
@@ -386,7 +436,7 @@
             }
         });
 
-        // 3. Tren Pendapatan
+        // 5. Tren Pendapatan
         new Chart(document.getElementById('trendChart').getContext('2d'), {
             type: 'line',
             data: {
@@ -403,16 +453,11 @@
             options: {
                 responsive: true, maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { callback: (val) => 'Rp ' + (val / 1000000).toFixed(1) + 'jt' }
-                    }
-                }
+                scales: { y: { beginAtZero: true, ticks: { callback: (val) => 'Rp ' + (val / 1000000).toFixed(1) + 'jt' } } }
             }
         });
 
-        // 4. Statistik Kehadiran
+        // 6. Statistik Kehadiran
         new Chart(document.getElementById('attendanceChart').getContext('2d'), {
             type: 'bar',
             data: {
@@ -426,6 +471,32 @@
                 responsive: true, maintainAspectRatio: false,
                 plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 15 } } },
                 scales: { y: { beginAtZero: true } }
+            }
+        });
+
+        // === HANDLE DROPDOWN BULAN (Update semua chart sekaligus) ===
+        document.getElementById('bulanSelect').addEventListener('change', function() {
+            let bulanValue = this.value;
+
+            // Update Ekspedisi
+            if(ekspedisiDataPerBulan[bulanValue]) {
+                ekspedisiChart.data.labels = ekspedisiDataPerBulan[bulanValue].labels;
+                ekspedisiChart.data.datasets[0].data = ekspedisiDataPerBulan[bulanValue].values;
+                ekspedisiChart.update();
+            }
+
+            // Update User
+            if(userPerBulanData[bulanValue]) {
+                userChart.data.labels = userPerBulanData[bulanValue].labels;
+                userChart.data.datasets[0].data = userPerBulanData[bulanValue].values;
+                userChart.update();
+            }
+
+            // Update Divisi
+            if(divisiPerBulanData[bulanValue]) {
+                divisiChart.data.labels = divisiPerBulanData[bulanValue].labels;
+                divisiChart.data.datasets[0].data = divisiPerBulanData[bulanValue].values;
+                divisiChart.update();
             }
         });
     });
