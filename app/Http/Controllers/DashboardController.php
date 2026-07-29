@@ -39,12 +39,15 @@ class DashboardController extends Controller
 
         $expeditionNames = Ekspedisi::pluck('NamaEkspedisi', 'id')->toArray();
 
-        // 6. Pendapatan per Ekspedisi per bulan
+        // 6. Pendapatan per Ekspedisi per bulan (TAMPILKAN SEMUA)
         $ekspedisiPerBulanData = [];
         for ($bln = 1; $bln <= 12; $bln++) {
             $expData = Transaksi::select('Ekspedisi', DB::raw('SUM(PendapatanBersih) as total'))
-                ->whereMonth('Tanggal', $bln)->whereYear('Tanggal', $selectedYear)
-                ->groupBy('Ekspedisi')->orderBy('total', 'desc')->limit(5)->get();
+                ->whereMonth('Tanggal', $bln)
+                ->whereYear('Tanggal', $selectedYear)
+                ->groupBy('Ekspedisi')
+                ->orderBy('total', 'desc')
+                ->get(); // <-- limit(5) DIHAPUS, tampilkan semua ekspedisi
 
             $ekspedisiPerBulanData[$bln] = [
                 'labels' => $expData->pluck('Ekspedisi')->map(fn($exp) => $expeditionNames[$exp] ?? 'Ekspedisi ' . $exp)->toArray(),
