@@ -193,7 +193,7 @@
                                             <option value="Leader" {{ old('role') == 'Leader' ? 'selected' : '' }}>Leader - Lihat laporan & rekap</option>
                                             <option value="Kasir" {{ old('role') == 'Kasir' ? 'selected' : '' }}>Kasir - Hanya input transaksi & lihat laporan</option>
                                             <option value="Finance" {{ old('role') == 'Finance' ? 'selected' : '' }}>Finance - Cek Transaksi</option>
-                                            <option value="Viewer" {{ old('role') == 'Viewer' ? 'selected' : '' }}>Viewer - Hanya lihat laporan</option>
+                                            {{-- <option value="Viewer" {{ old('role') == 'Viewer' ? 'selected' : '' }}>Viewer - Hanya lihat laporan</option> --}}
                                         </select>
 
 
