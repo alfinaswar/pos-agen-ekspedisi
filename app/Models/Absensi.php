@@ -17,4 +17,8 @@ class Absensi extends Model
     {
         return $this->belongsTo(User::class, 'Nama');
     }
+public function getDivisi()
+{
+    return $this->belongsTo(Divisi::class, 'Divisi');
+}
 }

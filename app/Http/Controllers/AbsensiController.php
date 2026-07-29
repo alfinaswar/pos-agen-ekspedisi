@@ -16,7 +16,7 @@ class AbsensiController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $query = Absensi::with('getUser')->select([
+            $query = Absensi::with('getUser','getDivisi')->select([
                 'id', 'Nama', 'Divisi', 'NoHp', 'Tanggal',
                 'JamHadir', 'JamPulang', 'Status', 'Lembur', 'MulaiLembur', 'SelesaiLembur'
             ])->latest('created_at');
@@ -66,7 +66,11 @@ class AbsensiController extends Controller
                 ->editColumn('Nama', function($row) {
                     return htmlspecialchars($row->getUser->name);
                 })
-                ->rawColumns(['action'])
+                ->editColumn('Divisi', function($row) {
+                    return $row->getDivisi ? htmlspecialchars($row->getDivisi->nama) : '-';
+                })
+    
+                ->rawColumns(['action','Divisi'])
                 ->make(true);
         }
 
