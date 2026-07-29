@@ -197,7 +197,7 @@ class TransaksiController extends Controller
         $request->validate([
             'KodeTransaksi' => 'nullable|string|unique:transaksis,KodeTransaksi',
             'Tanggal'       => 'required|date',
-            'Ekspedisi'     => 'nullable|string|max:255',
+            'Ekspedisi'     => 'required|string|max:255',
             'NoResi'        => 'required|string|max:255',
             'Metode'        => 'required|in:Tunai,Non-Tunai,COD',
             'Pendapatan'    => 'required|numeric|min:0',
@@ -245,7 +245,7 @@ class TransaksiController extends Controller
         $request->validate([
             'KodeTransaksi' => 'nullable|string|unique:transaksis,KodeTransaksi,' . $transaksi->id,
             'Tanggal' => 'required|date',
-            'Ekspedisi' => 'nullable|string|max:255',
+            'Ekspedisi' => 'required|string|max:255',
             'NoResi' => 'required|string|max:255',
             'Metode' => 'required|in:Tunai,Non-Tunai,COD',
             'Pendapatan' => 'required|numeric|min:0',
