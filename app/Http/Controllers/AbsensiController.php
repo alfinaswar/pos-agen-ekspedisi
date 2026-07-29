@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exports\AbsensiExport;
 use App\Models\Absensi;
+use App\Models\Divisi;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -67,9 +68,9 @@ class AbsensiController extends Controller
                     return htmlspecialchars($row->getUser->name);
                 })
                 ->editColumn('Divisi', function($row) {
-                    return $row->getDivisi ? htmlspecialchars($row->getDivisi->nama) : '-';
+                    return $row->getDivisi ? htmlspecialchars($row->getDivisi->Nama) : '-';
                 })
-    
+
                 ->rawColumns(['action','Divisi'])
                 ->make(true);
         }
@@ -86,7 +87,8 @@ class AbsensiController extends Controller
     public function create()
     {
         $user = User::get();
-        return view('absensi.create',compact('user'));
+        $divisi = Divisi::get();
+        return view('absensi.create',compact('user','divisi'));
     }
 
     public function store(Request $request)
@@ -177,7 +179,8 @@ class AbsensiController extends Controller
     public function edit(Absensi $absensi)
     {
         $user = User::get();
-        return view('absensi.edit', compact('absensi','user'));
+        $divisi = Divisi::get();
+        return view('absensi.edit', compact('absensi','user','divisi'));
     }
 
     public function update(Request $request, Absensi $absensi)

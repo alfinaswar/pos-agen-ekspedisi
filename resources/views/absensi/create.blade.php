@@ -62,14 +62,15 @@
                                         <label for="Divisi" class="form-label fw-semibold">
                                             <i class="ti ti-building me-1 text-primary"></i> Divisi <span class="text-danger">*</span>
                                         </label>
-                                        <input type="text"
-                                            class="form-control @error('Divisi') is-invalid @enderror"
-                                            id="Divisi"
-                                            name="Divisi"
-                                            value="{{ old('Divisi', session('user_divisi', auth()->user()->divisi ?? '')) }}"
-                                            placeholder="Contoh: IT, HRD, Gudang"
-                                            readonly
-                                            required>
+                                        <select class="form-select @error('Divisi') is-invalid @enderror" id="Divisi" name="Divisi" required style="pointer-events: none; background-color: #e9ecef;">
+                                            @foreach($divisi as $item)
+                                                <option value="{{ $item->id }}" {{ (auth()->user()->divisi == $item->id) ? 'selected' : '' }}>
+                                                    {{ $item->Nama }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+
+
                                         @error('Divisi')
                                             <div class="invalid-feedback d-block error-fade-in">
                                                 <i class="ti ti-alert-circle me-1"></i>{{ $message }}
