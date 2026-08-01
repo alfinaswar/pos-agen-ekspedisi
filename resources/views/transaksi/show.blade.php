@@ -24,7 +24,7 @@
 @if(session('success'))
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <div class="position-fixed top-0 end-0 p-3" style="z-index: 9999; right: 1rem; top: 4.5rem;">
-        <div class="toast show align-items-center text-bg-success border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true">
+        <div id="success-toast" class="toast show align-items-center text-bg-success border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="3000">
             <div class="d-flex">
                 <div class="toast-body fw-bold">
                     <i class="ti ti-check-circle me-2"></i>
@@ -34,6 +34,7 @@
             </div>
         </div>
     </div>
+
 @endif
 
 <div class="content pb-5">
@@ -282,3 +283,23 @@
     </div>
 </div>
 @endsection
+@push('scripts')
+<script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var toastEl = document.getElementById('success-toast');
+            if (window.bootstrap && bootstrap.Toast) {
+                var toast = new bootstrap.Toast(toastEl, { autohide: true, delay: 3000 });
+                toast.show();
+            } else if (typeof $ !== 'undefined' && $('.toast').toast) {
+                $('#success-toast').toast({ delay: 3000, autohide: true });
+                $('#success-toast').toast('show');
+            } else {
+                // fallback if no bootstrap js found
+                setTimeout(function() {
+                    toastEl.classList.remove('show');
+                }, 3000);
+            }
+        });
+    </script>
+
+@endpush

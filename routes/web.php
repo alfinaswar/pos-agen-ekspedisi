@@ -41,6 +41,7 @@ Route::middleware(['auth'])->group(function () {
     //route transaksi
     Route::get('/transaksi/export', [TransaksiController::class, 'export'])->name('transaksi.export');
     Route::patch('/transaksi/{transaksi}/update-status', [TransaksiController::class, 'updateStatus'])->name('transaksi.updateStatus');
+    Route::post('/transaksi/bulk-update-status', [TransaksiController::class, 'bulkUpdateStatus'])->name('transaksi.bulkUpdateStatus');
     Route::resource('transaksi', TransaksiController::class);
     //route absensi
     Route::get('/absensi/export', [AbsensiController::class, 'export'])->name('absensi.export');

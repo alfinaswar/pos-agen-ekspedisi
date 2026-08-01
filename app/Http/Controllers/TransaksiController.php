@@ -84,37 +84,62 @@ class TransaksiController extends Controller
                 ->addColumn('action', function ($row) {
                     $user = auth()->user();
                     $role = $user ? $user->role : null;
+
+                    // Ambil status transaksi, default ke 'N/A' jika null/kosong
+                    $status = $row->Status ?? 'N/A';
+
+                    $canShow = false;
+                    $canEdit = false;
+                    $canDelete = false;
+
+                    // 1. RULE ADMIN: Full access terlepas dari status
+                    if ($role === 'Admin') {
+                        $canShow = true;
+                        $canEdit = true;
+                        $canDelete = true;
+                    }
+                    // 2. RULE FINANCE: Hanya bisa melihat (Show) terlepas dari status
+                    elseif ($role === 'Finance') {
+                        $canShow = true;
+                    }
+                    // 3. RULE KASIR / LEADER: TIDAK BOLEH SHOW. Edit/Hapus hanya jika N atau N/A
+                    elseif (in_array($role, ['Kasir', 'Leader'])) {
+                        $canShow = false; // STRICT: Tidak ada tombol show
+
+                        // Hanya boleh Edit & Hapus jika statusnya Ditolak (N) atau Belum Diverifikasi (N/A)
+                        if ($status === 'N' || $status === 'N/A') {
+                            $canEdit = true;
+                            $canDelete = true;
+                        }
+                        // Jika status === 'Y', maka $canEdit dan $canDelete otomatis tetap false (tidak ada tombol sama sekali)
+                    }
+
+                    // Mulai bangun HTML tombol
                     $btn = '<div class="d-flex gap-1 justify-content-center">';
 
-                    if ($row->Status === 'N/A') {
-                        // Tombol Show hanya untuk Admin & Finance
-                        if (in_array($role, ['Admin', 'Finance'])) {
-                            $btn .= '<a href="' . route('transaksi.show', $row->id) . '" class="btn btn-info btn-sm text-white" title="Show">';
-                            $btn .= '<i class="ti ti-eye"></i></a> ';
-                        }
+                    // Tombol Show (Hanya Admin & Finance)
+                    if ($canShow) {
+                        $btn .= '<a href="' . route('transaksi.show', $row->id) . '" class="btn btn-info btn-sm text-white" title="Lihat Detail">';
+                        $btn .= '<i class="ti ti-eye"></i></a> ';
+                    }
+
+                    // Tombol Edit (Admin, atau Kasir/Leader jika status N/N/A)
+                    if ($canEdit) {
                         $btn .= '<a href="' . route('transaksi.edit', $row->id) . '" class="btn btn-warning btn-sm text-white" title="Edit">';
                         $btn .= '<i class="ti ti-edit"></i></a> ';
-                        $btn .= '<button type="button" class="btn btn-danger btn-sm btn-delete" data-id="' . $row->id . '" data-nama="' . htmlspecialchars($row->userCreate ? $row->userCreate->name : '') . '" title="Hapus">';
+                    }
+
+                    // Tombol Delete (Admin, atau Kasir/Leader jika status N/N/A)
+                    if ($canDelete) {
+                        $identifier = $row->KodeTransaksi ?? 'Transaksi ini';
+                        $btn .= '<button type="button" class="btn btn-danger btn-sm btn-delete" data-id="' . $row->id . '" data-kode="' . htmlspecialchars($identifier) . '" title="Hapus">';
                         $btn .= '<i class="ti ti-trash"></i></button>';
-
-
-                    }else{
-                        if ($role === 'Admin') {
-                            $btn .= '<a href="' . route('transaksi.edit', $row->id) . '" class="btn btn-warning btn-sm text-white" title="Edit">';
-                            $btn .= '<i class="ti ti-edit"></i></a> ';
-                            $btn .= '<button type="button" class="btn btn-danger btn-sm btn-delete" data-id="' . $row->id . '" data-nama="' . htmlspecialchars($row->userCreate ? $row->userCreate->name : '') . '" title="Hapus">';
-                            $btn .= '<i class="ti ti-trash"></i></button>';
-                        }
-                        elseif ($role === 'Finance') {
-                            $btn .= '<a href="' . route('transaksi.show', $row->id) . '" class="btn btn-info btn-sm text-white" title="Show">';
-                            $btn .= '<i class="ti ti-eye"></i></a> ';
-                        }
-
                     }
 
                     $btn .= '</div>';
                     return $btn;
                 })
+
 
 
 
@@ -346,6 +371,37 @@ class TransaksiController extends Controller
         $transaksi->save();
         return redirect()->back()->with('success', 'Status transaksi berhasil diperbarui.');
     }
+    public function bulkUpdateStatus(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'exists:transaksis,id',
+            'Status' => 'required|in:Y,N,N/A',
+            'Catatan' => 'nullable|string|max:1000',
+        ]);
+
+        $updatedCount = 0;
+        $userName = auth()->user()->id ?? '1';
+        $now = now();
+        foreach ($request->ids as $id) {
+            $transaksi = Transaksi::find($id);
+            if ($transaksi) {
+                $transaksi->update([
+                    'Status' => $request->Status,
+                    'Catatan' => $request->Catatan,
+                    'UserFinance' => $userName,
+                    'DicekPada' => $now,
+                ]);
+                $updatedCount++;
+
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Berhasil memverifikasi {$updatedCount} transaksi."
+        ]);
+    }
     public function destroy(Transaksi $transaksi)
     {
         try {
@@ -354,9 +410,9 @@ class TransaksiController extends Controller
             }
 
             $transaksi->update(['UserDelete' => auth()->id()]);
-            $transaksi->delete(); // Soft delete
+            $transaksi->delete();
 
-            return response()->json([
+            return response()->json([  
                 'success' => true,
                 'status' => 200,
                 'message' => 'Data transaksi berhasil dihapus.'
