@@ -182,12 +182,9 @@
 
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-     <script>
+    <script>
         let transaksiTable;
         let selectedIds = new Set();
-
-        // Key untuk localStorage (unik per halaman)
-        const STORAGE_KEY = 'transaksi_index_filters';
 
         $(document).ready(function() {
             const Toast = Swal.mixin({
@@ -205,55 +202,30 @@
                 });
             @endif
 
-            // 1. Load Filter dari localStorage (jika ada)
-            let savedFilters = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-
-            // 2. Init Date Range Picker dengan nilai tersimpan
-            let savedRange = savedFilters.tanggal_range || '';
-            $('#filter_tanggal_range').val(savedRange);
-
+            // 1. Init Date Range Picker (tetap sama)
             $('#filter_tanggal_range').daterangepicker({
                 autoUpdateInput: false,
-                startDate: savedFilters.tanggal_awal ? moment(savedFilters.tanggal_awal) : moment(),
-                endDate: savedFilters.tanggal_akhir ? moment(savedFilters.tanggal_akhir) : moment(),
                 locale: {
                     cancelLabel: 'Reset',
                     applyLabel: 'Terapkan',
                     format: 'YYYY-MM-DD'
                 }
             });
-
             $('#filter_tanggal_range').on('apply.daterangepicker', function(ev, picker) {
-                $(this).val(picker.startDate.format('YYYY-MM-DD') + ' s/d ' + picker.endDate.format('YYYY-MM-DD'));
+                $(this).val(picker.startDate.format('YYYY-MM-DD') + ' s/d ' + picker.endDate.format(
+                    'YYYY-MM-DD'));
             });
-
             $('#filter_tanggal_range').on('cancel.daterangepicker', function(ev, picker) {
                 $(this).val('');
             });
 
-            // 3. Set nilai filter lainnya dari localStorage
-            $('#filter_metode').val(savedFilters.metode || '');
-            $('#filter_ekspedisi').val(savedFilters.ekspedisi || '');
-            $('#filter_user').val(savedFilters.user || '');
-
-            // 4. DataTables Init dengan stateSave
+            // 2. DataTables Init
             transaksiTable = $('#transaksiTable').DataTable({
                 responsive: true,
                 serverSide: true,
                 processing: true,
                 destroy: true,
                 autoWidth: false,
-                // ✅ FITUR STATE SAVE
-                stateSave: true,
-                stateDuration: 86400, // Simpan state selama 24 jam (dalam detik). 0 = selamanya.
-                stateSaveCallback: function(settings, data) {
-                    // Simpan state DataTables (halaman, sorting, dll) ke localStorage
-                    localStorage.setItem('DataTables_' + STORAGE_KEY, JSON.stringify(data));
-                },
-                stateLoadCallback: function(settings) {
-                    // Muat state DataTables dari localStorage
-                    return JSON.parse(localStorage.getItem('DataTables_' + STORAGE_KEY));
-                },
                 ajax: {
                     url: "{{ route('transaksi.index') }}",
                     type: 'GET',
@@ -276,78 +248,151 @@
                     if (json) {
                         $('#total_pendapatan_display').text('Rp ' + (json.total_pendapatan || 0));
                         $('#total_diskon_display').text('Rp ' + (json.total_diskon || 0));
-                        $('#total_pendapatan_bersih_display').text('Rp ' + (json.total_pendapatan_bersih || 0));
+                        $('#total_pendapatan_bersih_display').text('Rp ' + (json
+                            .total_pendapatan_bersih || 0));
                     }
                     @if ($canBulkVerify)
                         $('#select_all').prop('checked', false);
                         updateSelectedCount();
                     @endif
                 },
+
+                // 3. Column Definitions (Dinamis berdasarkan role)
                 columnDefs: [
                     @if ($canBulkVerify)
-                        { className: 'text-center', targets: [0, 1, 12] },
-                        { className: 'text-end', targets: [8, 9, 10] },
-                        { orderable: false, targets: [0, 12] }
+                        {
+                            className: 'text-center',
+                            targets: [0, 1, 12]
+                        }, // Checkbox(0), #(1), Aksi(12)
+                        {
+                            className: 'text-end',
+                            targets: [8, 9, 10]
+                        }, // Pendapatan(8), Diskon(9), Bersih(10)
+                        {
+                            orderable: false,
+                            targets: [0, 12]
+                        } // Non-sortable: Checkbox, Aksi
                     @else
-                        { className: 'text-center', targets: [0, 11] },
-                        { className: 'text-end', targets: [7, 8, 9] },
-                        { orderable: false, targets: [0, 11] }
+                        {
+                            className: 'text-center',
+                            targets: [0, 11]
+                        }, // #(0), Aksi(11)
+                        {
+                            className: 'text-end',
+                            targets: [7, 8, 9]
+                        }, // Pendapatan(7), Diskon(8), Bersih(9)
+                        {
+                            orderable: false,
+                            targets: [0, 11]
+                        } // Non-sortable: #, Aksi
                     @endif
                 ],
+
+                // 4. Columns (Dinamis berdasarkan role)
                 columns: [
                     @if ($canBulkVerify)
                         {
-                            data: 'id', name: 'id', orderable: false, searchable: false,
+                            data: 'id',
+                            name: 'id',
+                            orderable: false,
+                            searchable: false,
                             render: function(data, type, row) {
                                 const isChecked = selectedIds.has(data) ? 'checked' : '';
                                 return `<input type="checkbox" class="form-check-input row-checkbox" value="${data}" ${isChecked}>`;
                             }
                         },
-                    @endif
-                    { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false },
-                    { data: 'UserCreate', name: 'UserCreate', render: (data) => data ? `<span class="fw-bold text-primary">${data}</span>` : '<span class="text-muted">-</span>' },
-                    { data: 'Tanggal', name: 'Tanggal', render: (data) => data ? new Date(data).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-' },
-                    { data: 'Ekspedisi', name: 'Ekspedisi', render: (data) => data ? `<span class="fw-semibold">${data}</span>` : '<span class="text-muted">-</span>' },
-                    { data: 'NoResi', name: 'NoResi', render: (data) => data ? `<span class="font-monospace small">${data}</span>` : '<span class="text-muted">-</span>' },
+                    @endif {
+                        data: 'DT_RowIndex',
+                        name: 'DT_RowIndex',
+                        searchable: false
+                    },
                     {
-                        data: 'Metode', name: 'Metode', render: (data) => {
+                        data: 'UserCreate',
+                        name: 'UserCreate',
+                        render: (data) => data ? `<span class="fw-bold text-primary">${data}</span>` :
+                            '<span class="text-muted">-</span>'
+                    },
+                    {
+                        data: 'Tanggal',
+                        name: 'Tanggal',
+                        render: (data) => data ? new Date(data).toLocaleDateString('id-ID', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        }) : '-'
+                    },
+                    {
+                        data: 'Ekspedisi',
+                        name: 'Ekspedisi',
+                        render: (data) => data ? `<span class="fw-semibold">${data}</span>` :
+                            '<span class="text-muted">-</span>'
+                    },
+                    {
+                        data: 'NoResi',
+                        name: 'NoResi',
+                        render: (data) => data ? `<span class="font-monospace small">${data}</span>` :
+                            '<span class="text-muted">-</span>'
+                    },
+                    {
+                        data: 'Metode',
+                        name: 'Metode',
+                        render: (data) => {
                             if (!data) return '<span class="badge bg-secondary">-</span>';
-                            let badgeClass = data === 'Tunai' ? 'bg-success' : (data === 'Non-Tunai' ? 'bg-info text-dark' : (data === 'COD' ? 'bg-warning text-dark' : 'bg-secondary'));
-                            let icon = data === 'Tunai' ? 'ti ti-cash' : (data === 'Non-Tunai' ? 'ti ti-credit-card' : (data === 'COD' ? 'ti ti-truck' : ''));
+                            let badgeClass = data === 'Tunai' ? 'bg-success' : (data ===
+                                'Non-Tunai' ? 'bg-info text-dark' : (data === 'COD' ?
+                                    'bg-warning text-dark' : 'bg-secondary'));
+                            let icon = data === 'Tunai' ? 'ti ti-cash' : (data === 'Non-Tunai' ?
+                                'ti ti-credit-card' : (data === 'COD' ? 'ti ti-truck' : ''));
                             return `<span class="badge ${badgeClass}">${icon ? `<i class="${icon} me-1"></i>` : ''}${data}</span>`;
                         }
                     },
-                    { data: 'KodeBayar', name: 'KodeBayar', render: (data) => data ? data : '-' },
-                    { data: 'Pendapatan', name: 'Pendapatan', render: (data) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(data || 0) },
-                    { data: 'Diskon', name: 'Diskon', render: (data) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(data || 0) },
-                    { data: 'PendapatanBersih', name: 'PendapatanBersih', render: (data) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(data || 0) },
-                    { data: 'StatusInfo', name: 'StatusInfo' },
-                    { data: 'action', name: 'action', searchable: false },
+                    {
+                        data: 'KodeBayar',
+                        name: 'KodeBayar',
+                        render: (data) => data ? data : '-'
+                    },
+                    {
+                        data: 'Pendapatan',
+                        name: 'Pendapatan',
+                        render: (data) => new Intl.NumberFormat('id-ID', {
+                            style: 'currency',
+                            currency: 'IDR',
+                            minimumFractionDigits: 0
+                        }).format(data || 0)
+                    },
+                    {
+                        data: 'Diskon',
+                        name: 'Diskon',
+                        render: (data) => new Intl.NumberFormat('id-ID', {
+                            style: 'currency',
+                            currency: 'IDR',
+                            minimumFractionDigits: 0
+                        }).format(data || 0)
+                    },
+                    {
+                        data: 'PendapatanBersih',
+                        name: 'PendapatanBersih',
+                        render: (data) => new Intl.NumberFormat('id-ID', {
+                            style: 'currency',
+                            currency: 'IDR',
+                            minimumFractionDigits: 0
+                        }).format(data || 0)
+                    },
+                    {
+                        data: 'StatusInfo',
+                        name: 'StatusInfo'
+                    },
+                    {
+                        data: 'action',
+                        name: 'action',
+                        searchable: false
+                    },
                 ]
             });
 
-            // 5. Fungsi untuk menyimpan filter custom ke localStorage
-            function saveFilters() {
-                let filters = {
-                    tanggal_range: $('#filter_tanggal_range').val(),
-                    tanggal_awal: '',
-                    tanggal_akhir: '',
-                    metode: $('#filter_metode').val(),
-                    ekspedisi: $('#filter_ekspedisi').val(),
-                    user: $('#filter_user').val()
-                };
-
-                let tanggalVal = filters.tanggal_range;
-                if (tanggalVal && tanggalVal.includes(' s/d ')) {
-                    let arr = tanggalVal.split(' s/d ');
-                    filters.tanggal_awal = arr[0];
-                    filters.tanggal_akhir = arr[1];
-                }
-
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(filters));
-            }
-
-            // 6. Logic Checkbox & Bulk Action
+            // 5. Logic Checkbox & Bulk Action (Hanya dijalankan jika user berwenang)
             @if ($canBulkVerify)
                 $('#transaksiTable tbody').on('change', '.row-checkbox', function() {
                     const id = $(this).val();
@@ -395,7 +440,8 @@
                         return;
                     }
 
-                    let statusText = statusValue === 'Y' ? 'Disetujui / Valid' : (statusValue === 'N' ? 'Ditolak / Tidak Valid' : 'Belum Diverifikasi');
+                    let statusText = statusValue === 'Y' ? 'Disetujui / Valid' : (statusValue === 'N' ?
+                        'Ditolak / Tidak Valid' : 'Belum Diverifikasi');
 
                     Swal.fire({
                         title: 'Konfirmasi Verifikasi Massal',
@@ -411,7 +457,12 @@
                         reverseButtons: true
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            Swal.fire({ title: 'Memproses...', text: 'Mohon tunggu sebentar', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                            Swal.fire({
+                                title: 'Memproses...',
+                                text: 'Mohon tunggu sebentar',
+                                allowOutsideClick: false,
+                                didOpen: () => Swal.showLoading()
+                            });
 
                             $.ajax({
                                 url: "{{ route('transaksi.bulkUpdateStatus') }}",
@@ -423,14 +474,23 @@
                                     Catatan: catatan
                                 },
                                 success: function(response) {
-                                    Swal.fire({ icon: 'success', title: 'Berhasil!', text: response.message, timer: 2000, showConfirmButton: false });
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Berhasil!',
+                                        text: response.message,
+                                        timer: 2000,
+                                        showConfirmButton: false
+                                    });
                                     selectedIds.clear();
                                     $('#bulkVerifyForm')[0].reset();
-                                    bootstrap.Modal.getInstance(document.getElementById('bulkVerifyModal')).hide();
+                                    bootstrap.Modal.getInstance(document.getElementById(
+                                        'bulkVerifyModal')).hide();
                                     transaksiTable.ajax.reload(null, false);
                                 },
                                 error: function(xhr) {
-                                    Swal.fire('Gagal!', xhr.responseJSON?.message || 'Terjadi kesalahan saat memverifikasi.', 'error');
+                                    Swal.fire('Gagal!', xhr.responseJSON?.message ||
+                                        'Terjadi kesalahan saat memverifikasi.',
+                                        'error');
                                 }
                             });
                         }
@@ -438,13 +498,10 @@
                 });
             @endif
 
-            // 7. Filter Actions - Simpan filter saat tombol Tampilkan diklik
+            // 6. Filter Actions & Delete Handler (Tetap sama seperti sebelumnya)
             $('#filter_submit').on('click', function() {
-                saveFilters(); // ✅ Simpan filter ke localStorage
                 transaksiTable.ajax.reload();
             });
-
-            // 8. Reset Filter - Hapus dari localStorage
             $('#filter_reset').on('click', function() {
                 $('#filter_tanggal_range').val('');
                 $('#filter_tanggal_range').data('daterangepicker').setStartDate(moment());
@@ -453,17 +510,12 @@
                 $('#filter_metode').val('');
                 $('#filter_ekspedisi').val('');
                 $('#filter_user').val('');
-
-                localStorage.removeItem(STORAGE_KEY); // ✅ Hapus filter dari localStorage
-
                 @if ($canBulkVerify)
                     selectedIds.clear();
                 @endif
-
                 transaksiTable.ajax.reload();
             });
 
-            // 9. Delete Handler
             $('body').on('click', '.btn-delete', function() {
                 const id = $(this).data('id');
                 const kode = $(this).data('kode');
@@ -480,32 +532,49 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $.ajax({
-                            url: "{{ route('transaksi.destroy', ':id') }}".replace(':id', id),
+                            url: "{{ route('transaksi.destroy', ':id') }}".replace(':id',
+                                id),
                             type: 'DELETE',
-                            data: { _token: '{{ csrf_token() }}' },
+                            data: {
+                                _token: '{{ csrf_token() }}'
+                            },
                             beforeSend: function() {
-                                Swal.fire({ title: 'Menghapus...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                                Swal.fire({
+                                    title: 'Menghapus...',
+                                    allowOutsideClick: false,
+                                    didOpen: () => Swal.showLoading()
+                                });
                             },
                             success: function(response) {
                                 if (response.status === 200 || response.success) {
-                                    Swal.fire({ icon: 'success', title: 'Berhasil!', text: response.message, timer: 2000, showConfirmButton: false });
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Berhasil!',
+                                        text: response.message,
+                                        timer: 2000,
+                                        showConfirmButton: false
+                                    });
                                     transaksiTable.ajax.reload(null, false);
                                 } else {
-                                    Swal.fire('Gagal!', response.message || 'Terjadi kesalahan', 'error');
+                                    Swal.fire('Gagal!', response.message ||
+                                        'Terjadi kesalahan', 'error');
                                 }
                             },
                             error: function(xhr) {
-                                Swal.fire('Gagal!', xhr.responseJSON?.message || 'Terjadi kesalahan saat menghapus data.', 'error');
+                                Swal.fire('Gagal!', xhr.responseJSON?.message ||
+                                    'Terjadi kesalahan saat menghapus data.',
+                                    'error');
                             }
                         });
                     }
                 });
             });
 
-            // 10. Export Excel Handler
+            // 7. Export Excel Handler (Tetap sama)
             $('#btn-export-excel').on('click', function() {
                 let tanggalVal = $('#filter_tanggal_range').val();
-                let tanggal_awal = '', tanggal_akhir = '';
+                let tanggal_awal = '',
+                    tanggal_akhir = '';
                 if (tanggalVal && tanggalVal.includes(' s/d ')) {
                     let arr = tanggalVal.split(' s/d ');
                     tanggal_awal = arr[0];
