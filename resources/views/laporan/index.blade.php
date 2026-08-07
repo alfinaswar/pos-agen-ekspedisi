@@ -179,12 +179,12 @@
         </div>
     </div>
 
-    <!-- Chart.js Script (Consolidated) -->
+       <!-- Chart.js Script (Consolidated & Sorted) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const ctx = document.getElementById('incomeChart').getContext('2d');
-            let mainChart = null; // Variable global untuk instance chart
+            let mainChart = null;
 
             // Data awal dari Backend
             const originalLabels = @json($chartLabels);
@@ -202,19 +202,39 @@
                 return `hsl(${h},${s}%,${l}%)`;
             }
 
+            // Helper: Sort data label & value secara descending (terbesar ke terkecil)
+            function sortDataDescending(labels, values) {
+                // Gabungkan jadi array of objects agar bisa di-sort bersamaan
+                const combined = labels.map((label, index) => ({
+                    label: label,
+                    value: values[index]
+                }));
+
+                // Sort berdasarkan value descending
+                combined.sort((a, b) => b.value - a.value);
+
+                // Pisahkan kembali jadi arrays
+                return {
+                    labels: combined.map(item => item.label),
+                    values: combined.map(item => item.value)
+                };
+            }
+
             // 1. Fungsi Render Chart Utama (Pendapatan Bersih)
             function renderMainChart() {
-                const colors = originalLabels.map(label => stringToColor(label));
+                // ✅ SORT DATA UTAMA DULU
+                const sorted = sortDataDescending(originalLabels, originalData);
+                const colors = sorted.labels.map(label => stringToColor(label));
 
                 if (mainChart) mainChart.destroy();
 
                 mainChart = new Chart(ctx, {
                     type: 'bar',
                     data: {
-                        labels: originalLabels,
+                        labels: sorted.labels, // Gunakan labels yang sudah di-sort
                         datasets: [{
                             label: 'Pendapatan Bersih (Rp)',
-                            data: originalData,
+                            data: sorted.values, // Gunakan values yang sudah di-sort
                             backgroundColor: colors,
                             borderRadius: 8,
                             borderSkipped: false,
@@ -258,27 +278,31 @@
                 document.getElementById('btnResetChart').classList.remove('d-none');
 
                 // Siapkan Data Breakdown
-                const labels = breakdownData.map(item => item.name);
-                const data = breakdownData.map(item => item.jumlah);
+                let labels = breakdownData.map(item => item.name);
+                let data = breakdownData.map(item => item.jumlah);
+
+                // ✅ SORT DATA BREAKDOWN DULU (Descending by Jumlah Transaksi)
+                const sortedBreakdown = sortDataDescending(labels, data);
+
                 const colors = ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#6f42c1', '#fd7e14', '#20c997', '#6610f2'];
 
-                // Hancurkan chart lama & Buat chart baru (Instant Update)
+                // Hancurkan chart lama & Buat chart baru
                 if (mainChart) mainChart.destroy();
 
                 mainChart = new Chart(ctx, {
                     type: 'bar',
                     data: {
-                        labels: labels,
+                        labels: sortedBreakdown.labels, // Gunakan labels yang sudah di-sort
                         datasets: [{
                             label: 'Jumlah Transaksi',
-                            data: data,
-                            backgroundColor: colors.slice(0, labels.length),
+                            data: sortedBreakdown.values, // Gunakan values yang sudah di-sort
+                            backgroundColor: colors.slice(0, sortedBreakdown.labels.length),
                             borderRadius: 8,
                             borderSkipped: false,
                         }]
                     },
                     options: {
-                        animation: { duration: 400 }, // Animasi halus saat transisi
+                        animation: { duration: 400 },
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: {
