@@ -19,7 +19,7 @@
             </nav>
         </div>
 
-        <!-- Tabs (Per Ekspedisi dihapus) -->
+        <!-- Tabs -->
         <ul class="nav nav-tabs mb-4 fw-semibold border border-primary-subtle rounded overflow-hidden" id="reportTabs" style="background: #f8f9fa;">
             <li class="nav-item flex-fill text-center">
                 <a class="nav-link py-2 px-3 {{ $type === 'harian' ? 'active text-primary border-primary bg-white shadow-sm' : 'text-secondary' }}"
@@ -57,7 +57,6 @@
                             <label class="form-label fw-semibold">
                                 {{ $type === 'harian' ? 'Pilih Tanggal' : 'Pilih Bulan' }}
                             </label>
-                            <!-- Input dinamis: date untuk harian, month untuk lainnya -->
                             <input type="{{ $type === 'harian' ? 'date' : 'month' }}"
                                 class="form-control"
                                 name="tanggal"
@@ -106,19 +105,26 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                   @forelse($dataWithPercentage as $row)
-<tr>
-    <td>
-        <span class="fw-semibold text-dark">
-            @if($type === 'per_user')
-                {{ $row->userCreate->name ?? 'Tidak Diketahui' }}
-            @elseif($type === 'per_divisi')
-                {{ $row->getDivisi->Nama ?? 'Tanpa Divisi' }}
-            @else
-                {{ $expeditionNames[$row->Ekspedisi] ?? 'Ekspedisi ' . $row->Ekspedisi }}
-            @endif
-        </span>
-    </td>
+                                    @forelse($dataWithPercentage as $row)
+                                    <tr>
+                                        <td>
+                                            <span class="fw-semibold text-dark">
+                                                @if($type === 'per_user')
+                                                    {{ $row->UserCreate ?? 'Tidak Diketahui' }}
+                                                @elseif($type === 'per_divisi')
+                                                    {{-- ✅ Tombol Klik untuk Drill-down Ekspedisi --}}
+                                                    <button type="button"
+                                                            class="btn btn-sm btn-link text-dark fw-semibold text-decoration-none p-0 d-flex align-items-center hover-primary"
+                                                            onclick="showEkspedisiBreakdown('{{ addslashes($row->getDivisi->Nama ?? 'Tanpa Divisi') }}', {{ json_encode($row->ekspedisi_breakdown) }})"
+                                                            title="Klik untuk lihat detail ekspedisi">
+                                                        <i class="ti ti-chart-pie me-1 text-primary"></i>
+                                                        {{ $row->getDivisi->Nama ?? 'Tanpa Divisi' }}
+                                                    </button>
+                                                @else
+                                                    {{ $expeditionNames[$row->Ekspedisi] ?? 'Ekspedisi ' . $row->Ekspedisi }}
+                                                @endif
+                                            </span>
+                                        </td>
                                         <td class="text-center">
                                             <span class="badge bg-primary rounded-pill">{{ $row->jumlah_transaksi }}</span>
                                         </td>
@@ -153,13 +159,17 @@
                 </div>
             </div>
 
-            <!-- Chart -->
+            <!-- Chart (Single Canvas) -->
             <div class="col-lg-5 mb-4">
                 <div class="card shadow-sm border-0 h-100">
-                    <div class="card-header bg-white py-3">
-                        <h5 class="mb-0 fw-semibold">
+                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-semibold" id="chartTitle">
                             <i class="ti ti-chart-bar me-2"></i>Grafik Pendapatan Bersih
                         </h5>
+                        {{-- Tombol Kembali (Hidden by default) --}}
+                        <button type="button" id="btnResetChart" class="btn btn-sm btn-outline-secondary d-none" onclick="resetChart()">
+                            <i class="ti ti-arrow-left me-1"></i>Kembali
+                        </button>
                     </div>
                     <div class="card-body">
                         <canvas id="incomeChart" style="height: 320px;"></canvas>
@@ -169,17 +179,18 @@
         </div>
     </div>
 
-    <!-- Chart.js -->
+    <!-- Chart.js Script (Consolidated) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const ctx = document.getElementById('incomeChart').getContext('2d');
+            let mainChart = null; // Variable global untuk instance chart
 
-            // Data dari backend
-            const labels = @json($chartLabels);
-            const data = @json($chartData);
+            // Data awal dari Backend
+            const originalLabels = @json($chartLabels);
+            const originalData = @json($chartData);
 
-            // Generate warna konsisten
+            // Helper: Generate warna konsisten berdasarkan string
             function stringToColor(str) {
                 let hash = 0;
                 for (let i = 0; i < str.length; i++) {
@@ -191,48 +202,115 @@
                 return `hsl(${h},${s}%,${l}%)`;
             }
 
-            const colors = labels.map(label => stringToColor(label));
+            // 1. Fungsi Render Chart Utama (Pendapatan Bersih)
+            function renderMainChart() {
+                const colors = originalLabels.map(label => stringToColor(label));
 
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Pendapatan Bersih (Rp)',
-                        data: data,
-                        backgroundColor: colors,
-                        borderRadius: 8,
-                        borderSkipped: false,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const value = context.parsed.y;
-                                    return 'Rp ' + new Intl.NumberFormat('id-ID').format(value);
-                                }
-                            }
-                        }
+                if (mainChart) mainChart.destroy();
+
+                mainChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: originalLabels,
+                        datasets: [{
+                            label: 'Pendapatan Bersih (Rp)',
+                            data: originalData,
+                            backgroundColor: colors,
+                            borderRadius: 8,
+                            borderSkipped: false,
+                        }]
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    if (value >= 1000000) return (value / 1000000).toFixed(1) + ' jt';
-                                    if (value >= 1000) return (value / 1000).toFixed(0) + ' rb';
-                                    return value;
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const value = context.parsed.y;
+                                        return 'Rp ' + new Intl.NumberFormat('id-ID').format(value);
+                                    }
                                 }
                             }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        if (value >= 1000000) return (value / 1000000).toFixed(1) + ' jt';
+                                        if (value >= 1000) return (value / 1000).toFixed(0) + ' rb';
+                                        return value;
+                                    }
+                                }
+                            },
+                            x: { grid: { display: false } }
                         }
                     }
-                }
-            });
+                });
+            }
+
+            // 2. Fungsi Tampilkan Breakdown Ekspedisi (Drill-down)
+            window.showEkspedisiBreakdown = function(divisiName, breakdownData) {
+                // Update UI Header
+                document.getElementById('chartTitle').innerHTML = `<i class="ti ti-chart-pie me-2"></i>Transaksi: ${divisiName}`;
+                document.getElementById('btnResetChart').classList.remove('d-none');
+
+                // Siapkan Data Breakdown
+                const labels = breakdownData.map(item => item.name);
+                const data = breakdownData.map(item => item.jumlah);
+                const colors = ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#6f42c1', '#fd7e14', '#20c997', '#6610f2'];
+
+                // Hancurkan chart lama & Buat chart baru (Instant Update)
+                if (mainChart) mainChart.destroy();
+
+                mainChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Jumlah Transaksi',
+                            data: data,
+                            backgroundColor: colors.slice(0, labels.length),
+                            borderRadius: 8,
+                            borderSkipped: false,
+                        }]
+                    },
+                    options: {
+                        animation: { duration: 400 }, // Animasi halus saat transisi
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.parsed.y + ' Transaksi';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: { display: true, text: 'Jumlah Transaksi' }
+                            },
+                            x: { grid: { display: false } }
+                        }
+                    }
+                });
+            };
+
+            // 3. Fungsi Reset ke Chart Utama
+            window.resetChart = function() {
+                document.getElementById('chartTitle').innerHTML = `<i class="ti ti-chart-bar me-2"></i>Grafik Pendapatan Bersih`;
+                document.getElementById('btnResetChart').classList.add('d-none');
+                renderMainChart();
+            };
+
+            // Inisialisasi awal
+            renderMainChart();
         });
     </script>
 @endsection

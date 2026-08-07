@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Exports\LaporanPendapatanExport;
 use App\Exports\LaporanPerDivisiExport;
 use App\Exports\LaporanPerUserExport;
+use App\Models\Divisi;
 use App\Models\Transaksi;
 use App\Models\Ekspedisi;
 use Illuminate\Http\Request;
@@ -61,9 +62,36 @@ class LaporanController extends Controller
                 ->orderBy('total_pendapatan', 'desc')
                 ->get();
 
-            $chartLabels = $data->pluck('getDivisi.Nama')->map(fn($n) => $n ?: 'Tanpa Divisi')->toArray();
+            // Join ke tabel divisi untuk mendapatkan nama divisi (misal field 'nama_divisi')
+            $divisiNames = Divisi::pluck('Nama', 'id')->toArray();
+            $chartLabels = $data->pluck('Divisi')->map(function($divisiId) use ($divisiNames) {
+                return $divisiNames[$divisiId] ?? 'Tanpa Divisi';
+            })->toArray();
 
-        } else {
+
+            // ✅ TAMBAHAN: Ambil breakdown ekspedisi untuk setiap divisi (untuk grafik drill-down)
+            $expeditionNames = Ekspedisi::pluck('NamaEkspedisi', 'id')->toArray();
+
+            foreach ($data as $row) {
+                // Query khusus untuk mendapatkan jumlah transaksi per ekspedisi di divisi ini
+                $ekspedisiData = Transaksi::whereBetween('Tanggal', [$startDate, $endDate])
+                    ->where('Divisi', $row->Divisi)
+                    ->select('Ekspedisi', DB::raw('COUNT(*) as jumlah'))
+                    ->groupBy('Ekspedisi')
+                    ->get();
+
+                $breakdown = [];
+                foreach ($ekspedisiData as $exp) {
+                    $expName = $expeditionNames[$exp->Ekspedisi] ?? 'Ekspedisi ' . $exp->Ekspedisi;
+                    $breakdown[] = [
+                        'name' => $expName,
+                        'jumlah' => $exp->jumlah
+                    ];
+                }
+                // Simpan ke dalam object row agar bisa diakses di view sebagai JSON
+                $row->ekspedisi_breakdown = $breakdown;
+            }
+        }else {
             // Harian & Bulanan (Default: Group by Ekspedisi)
             $data = Transaksi::whereBetween('Tanggal', [$startDate, $endDate])
                 ->select(
