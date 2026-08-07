@@ -119,7 +119,7 @@ class AbsensiController extends Controller
                     return htmlspecialchars($row->getUser->name ?? $row->Nama);
                 })
                 ->editColumn('Divisi', function ($row) {
-                    return htmlspecialchars($row->Divisi ?? ($row->getDivisi->Nama ?? '-'));
+                    return htmlspecialchars($row->getDivisi->Nama ?? ($row->Divisi ?? '-'));
                 })
                 ->editColumn('StatusVerif', function ($row) {
                     $statusText = '';
