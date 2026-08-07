@@ -17,80 +17,222 @@ class AbsensiController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $query = Absensi::with('getUser','getDivisi')->select([
-                'id', 'Nama', 'Divisi', 'NoHp', 'Tanggal',
-                'JamHadir', 'JamPulang', 'Status', 'Lembur', 'MulaiLembur', 'SelesaiLembur'
+            // Tambahkan Status dan Catatan ke select
+            // dd($request->status_verif);
+            $query = Absensi::with('getUser', 'getDivisi')->select([
+                'id',
+                'Nama',
+                'Divisi',
+                'NoHp',
+                'Tanggal',
+                'JamHadir',
+                'JamPulang',
+                'Status',
+                'Lembur',
+                'MulaiLembur',
+                'SelesaiLembur',
+                'Catatan',
+                'StatusVerif'
             ])->latest('created_at');
 
+            $isPrivileged = auth()->check() && in_array(auth()->user()->role, ['Admin', 'Leader']);
 
-            // Jika bukan Admin, filter data agar hanya menampilkan absensi user ini saja
-            if (!auth()->user() || auth()->user()->role !== 'Admin') {
+            if (!$isPrivileged) {
                 $query->where('Nama', auth()->user()->id);
-            }
-            // Kalau Admin, tampilkan semua dan izinkan filter
-            else {
-                // 1. Filter Bulan
-                if ($request->filled('bulan')) {
+                if ($request->filled('status_verif'))
+                    $query->where('StatusVerif', $request->status_verif);
+            } else {
+                if ($request->filled('bulan'))
                     $query->whereMonth('Tanggal', $request->bulan);
-                }
-
-                // 2. Filter Status
-                if ($request->filled('status')) {
+                if ($request->filled('status'))
                     $query->where('Status', $request->status);
-                }
-
-                // 3. Filter User (berdasarkan Nama)
-                if ($request->filled('user_name')) {
+                if ($request->filled('user_name'))
                     $query->where('Nama', $request->user_name);
-                }
+                if ($request->filled('divisi'))
+                    $query->where('Divisi', $request->divisi);
+                if ($request->filled('status_verif'))
+                    $query->where('StatusVerif', $request->status_verif);
             }
+
 
             return DataTables::of($query)
                 ->addIndexColumn()
                 ->addColumn('action', function ($row) {
+                    $user = auth()->user();
+                    $role = $user ? $user->role : null;
+                    $status = $row->StatusVerif ?? 'N/A';
+
+                    $canShow = false;
+                    $canEdit = false;
+                    $canDelete = false;
+
+                    // 1. Admin & Leader: Bisa Show, Edit, Hapus
+                    if (in_array($role, ['Admin', 'Leader'])) {
+                        $canShow = true;
+                        $canEdit = true;
+                        $canDelete = true;
+                    }
+                    // 2. Kasir: TIDAK Boleh Show. Edit/Hapus hanya jika N/A atau N
+                    elseif ($role === 'Kasir') {
+                        $canShow = false;
+                        if ($status === 'N/A' || $status === 'N') {
+                            $canEdit = true;
+                            $canDelete = true;
+                        }
+                    }
+
                     $btn = '<div class="d-flex gap-1 justify-content-center">';
-                    // Admin: Bisa edit & hapus
-                    if (auth()->user() && (auth()->user()->role === 'Admin' || auth()->user()->role === 'Leader')) {
+
+                    if ($canShow) {
+                        $btn .= '<a href="' . route('absensi.show', $row->id) . '" class="btn btn-info btn-sm text-white" title="Lihat Detail">';
+                        $btn .= '<i class="ti ti-eye"></i></a> ';
+                    }
+                    if ($canEdit) {
                         $btn .= '<a href="' . route('absensi.edit', $row->id) . '" class="btn btn-warning btn-sm text-white" title="Edit">';
                         $btn .= '<i class="ti ti-edit"></i></a> ';
-                        $btn .= '<button type="button" class="btn btn-danger btn-sm btn-delete" data-id="' . $row->id . '" data-nama="' . htmlspecialchars($row->getUser->name) . '" title="Hapus">';
-                        $btn .= '<i class="ti ti-trash"></i></button>';
                     }
-                    // User lain selain admin, hanya boleh hapus
-                    elseif (auth()->user()) {
-                        $btn .= '<button type="button" class="btn btn-danger btn-sm btn-delete" data-id="' . $row->id . '" data-nama="' . htmlspecialchars($row->getUser->name) . '" title="Hapus">';
+                    if ($canDelete) {
+                        $namaUser = htmlspecialchars($row->getUser->name ?? $row->Nama);
+                        $btn .= '<button type="button" class="btn btn-danger btn-sm btn-delete" data-id="' . $row->id . '" data-nama="' . $namaUser . '" title="Hapus">';
                         $btn .= '<i class="ti ti-trash"></i></button>';
                     }
                     $btn .= '</div>';
                     return $btn;
                 })
-                ->editColumn('Nama', function($row) {
-                    return htmlspecialchars($row->getUser->name);
+                // Tambahkan kolom Status Info agar terlihat di tabel
+                ->addColumn('StatusInfo', function ($row) {
+                    $statusText = '';
+                    switch ($row->Status) {
+                        case 'Y':
+                            $statusText = '<span class="badge bg-success">Disetujui</span>';
+                            break;
+                        case 'N':
+                            $statusText = '<span class="badge bg-danger">Ditolak</span>';
+                            break;
+                        default:
+                            $statusText = '<span class="badge bg-light text-dark">Belum Verif</span>';
+                            break;
+                    }
+                    return $statusText;
                 })
-                ->editColumn('Divisi', function($row) {
-                    return $row->getDivisi ? htmlspecialchars($row->getDivisi->Nama) : '-';
+                ->editColumn('Nama', function ($row) {
+                    return htmlspecialchars($row->getUser->name ?? $row->Nama);
                 })
+                ->editColumn('Divisi', function ($row) {
+                    return htmlspecialchars($row->Divisi ?? ($row->getDivisi->Nama ?? '-'));
+                })
+                ->editColumn('StatusVerif', function ($row) {
+                    $statusText = '';
+                    switch ($row->StatusVerif) {
+                        case 'Y':
+                            $statusText = '<span class="badge bg-success">Disetujui</span>';
+                            break;
+                        case 'N':
+                            $statusText = '<span class="badge bg-danger">Ditolak</span>';
+                            break;
+                        case 'N/A':
+                            $statusText = '<span class="badge bg-secondary">N/A</span>';
+                            break;
+                        default:
+                            $statusText = '<span class="badge bg-light text-dark">Belum Diverifikasi</span>';
+                            break;
+                    }
+                    if (
+                        !empty($row->Catatan) &&
+                        (
+                            (auth()->check() && in_array(auth()->user()->role, ['Admin', 'Leader']))
+                            ||
+                            (auth()->check() && $row->getUser && $row->getUser->id == auth()->id())
+                        )
+                    ) {
+                        $catatanEscaped = htmlspecialchars($row->Catatan, ENT_QUOTES, 'UTF-8');
+                        $statusText .= ' <button type="button" class="btn btn-sm btn-outline-secondary p-0 px-1 ms-1 btn-view-catatan-absensi"
+                                    data-catatan="' . $catatanEscaped . '" title="Lihat Catatan Verifikasi" style="vertical-align: middle;">
+                                    <i class="ti ti-message" style="font-size: 0.9rem;"></i>
+                                  </button>';
+                    }
 
-                ->rawColumns(['action','Divisi'])
+
+                    return $statusText;
+                })
+                ->rawColumns(['action', 'StatusInfo', 'Divisi', 'StatusVerif'])
                 ->make(true);
+
         }
 
-        // Admin bisa memilih user untuk filter di view, non-admin hanya dapat dirinya
-        if (auth()->user() && auth()->user()->role === 'Admin') {
-            $users = User::get();
-        } else {
-            $users = User::where('name', auth()->user()->name)->get();
-        }
-        return view('absensi.index',compact('users'));
+        $users = User::get();
+        $divisis = Divisi::orderBy('Nama', 'asc')->get();
+        return view('absensi.index', compact('users', 'divisis'));
     }
+    public function bulkApprove(Request $request)
+    {
+        // Hanya Admin dan Leader yang boleh
+        if (!in_array(auth()->user()->role, ['Admin', 'Leader'])) {
+            abort(403, 'Aksi tidak diizinkan.');
+        }
 
+        $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'exists:absensis,id',
+            'StatusVerif' => 'required|in:Y,N,N/A',
+            'Catatan' => 'nullable|string|max:1000',
+        ]);
+
+        $updatedCount = 0;
+        $userName = auth()->user()->name ?? 'System';
+        $now = now();
+
+        foreach ($request->ids as $id) {
+            $absensi = Absensi::find($id);
+            if ($absensi) {
+                $absensi->update([
+                    'StatusVerif' => $request->StatusVerif,
+                    'Catatan' => $request->Catatan,
+                    'UserLeader' => $userName,
+                    'DisetujuiPada' => $now,
+                ]);
+                $updatedCount++;
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Berhasil memverifikasi {$updatedCount} data absensi."
+        ]);
+    }
     public function create()
     {
         $user = User::get();
         $divisi = Divisi::get();
         return view('absensi.create',compact('user','divisi'));
     }
+    public function show(Absensi $absensi)
+    {
+        $absensi->load('getUser', 'getDivisi');
+        return view('absensi.show', compact('absensi'));
+    }
+    public function approve(Request $request, Absensi $absensi)
+    {
+        // Hanya Admin dan Leader yang boleh melakukan ini
+        if (!in_array(auth()->user()->role, ['Admin', 'Leader'])) {
+            abort(403, 'Aksi tidak diizinkan.');
+        }
 
+        $request->validate([
+            'Status' => 'required|in:Y,N,N/A',
+            'Catatan' => 'nullable|string|max:1000',
+        ]);
+
+        $absensi->update([
+            'StatusVerif' => $request->Status,
+            'Catatan' => $request->Catatan,
+            'UserLeader' => auth()->user()->name,
+            'DisetujuiPada' => now(),
+        ]);
+
+        return redirect()->route('absensi.show', $absensi->id)
+            ->with('success', 'Status persetujuan absensi berhasil diperbarui.');
+    }
     public function store(Request $request)
     {
         $request->validate([

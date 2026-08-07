@@ -126,6 +126,13 @@
                                                 @error('SelesaiLembur') <div class="invalid-feedback d-block error-fade-in"><i class="ti ti-alert-circle me-1"></i>{{ $message }}</div> @enderror
                                             </div>
                                         </div>
+                                        <div class="mb-4">
+                                            <label for="AlasanLembur" class="form-label fw-semibold">
+                                                <i class="ti ti-message-circle me-1 text-primary"></i> Alasan Lembur <span class="text-danger">*</span>
+                                            </label>
+                                            <textarea class="form-control @error('AlasanLembur') is-invalid @enderror" id="AlasanLembur" name="AlasanLembur" rows="2" placeholder="Masukkan alasan lembur">{{ old('AlasanLembur', $absensi->AlasanLembur) }}</textarea>
+                                            @error('AlasanLembur') <div class="invalid-feedback d-block error-fade-in"><i class="ti ti-alert-circle me-1"></i>{{ $message }}</div> @enderror
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -152,18 +159,22 @@
         const lemburDetails = document.getElementById('LemburDetails');
         const inputMulai = document.getElementById('MulaiLembur');
         const inputSelesai = document.getElementById('SelesaiLembur');
+        const alasanLembur = document.getElementById('AlasanLembur');
 
         function toggleLembur() {
             if (lemburSelect.value === 'Y') {
                 lemburDetails.style.display = 'block';
                 inputMulai.setAttribute('required', 'required');
                 inputSelesai.setAttribute('required', 'required');
+                alasanLembur.setAttribute('required', 'required');
             } else {
                 lemburDetails.style.display = 'none';
                 inputMulai.removeAttribute('required');
                 inputSelesai.removeAttribute('required');
+                alasanLembur.removeAttribute('required');
                 inputMulai.value = '';
                 inputSelesai.value = '';
+                alasanLembur.value = '';
             }
         }
 

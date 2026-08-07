@@ -18,7 +18,7 @@ class ReimbursementController extends Controller
     {
         if ($request->ajax()) {
             // Mulai query dasar
-            $query = Reimbursement::with('getUser')->latest()->select(['id', 'Tanggal', 'Nama', 'Item', 'Nominal', 'Status', 'BuktiUpload']);
+            $query = Reimbursement::with('getUser')->latest()->select(['id', 'Tanggal', 'Nama', 'Item', 'Nominal', 'Status', 'BuktiUpload','BuktiTransfer']);
 
             // Kalau bukan admin, tampilkan hanya data reimbursement yang dibuat oleh user login saat ini
             if (!auth()->user() || auth()->user()->role !== 'Admin') {
@@ -146,7 +146,6 @@ class ReimbursementController extends Controller
 
     public function update(Request $request, Reimbursement $reimbursement)
     {
-        // dd($request->all());
         $request->validate([
             'Tanggal' => 'required|date',
             'Nama' => 'required|string|max:100',
@@ -154,13 +153,14 @@ class ReimbursementController extends Controller
             'Nominal' => 'required|numeric|min:0',
             'Status' => 'required|in:Menunggu,Ditolak,Dibayar',
             'BuktiUpload' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'BuktiTransfer' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
 
-        $data = $request->except(['BuktiUpload']);
+        $data = $request->except(['BuktiUpload', 'BuktiTransfer']);
         // Catat siapa Owner yang mengubah status
         $data['OwnerUpdate'] = auth()->user()->name ?? 'Owner';
 
-        // Handle Upload File Baru
+        // Handle Upload File Baru untuk BuktiUpload
         if ($request->hasFile('BuktiUpload')) {
             if ($reimbursement->BuktiUpload && Storage::disk('public')->exists($reimbursement->BuktiUpload)) {
                 Storage::disk('public')->delete($reimbursement->BuktiUpload);
@@ -170,6 +170,18 @@ class ReimbursementController extends Controller
             $data['BuktiUpload'] = $file->storeAs('reimbursement', $fileName, 'public');
         } else {
             unset($data['BuktiUpload']);
+        }
+
+        // Handle Upload File Baru untuk BuktiTransfer
+        if ($request->hasFile('BuktiTransfer')) {
+            if ($reimbursement->BuktiTransfer && Storage::disk('public')->exists($reimbursement->BuktiTransfer)) {
+                Storage::disk('public')->delete($reimbursement->BuktiTransfer);
+            }
+            $fileTransfer = $request->file('BuktiTransfer');
+            $fileNameTransfer = time() . '_' . preg_replace('/[^A-Za-z0-9\-_\.]/', '', $fileTransfer->getClientOriginalName());
+            $data['BuktiTransfer'] = $fileTransfer->storeAs('reimbursement_transfer', $fileNameTransfer, 'public');
+        } else {
+            unset($data['BuktiTransfer']);
         }
 
         $reimbursement->update($data);

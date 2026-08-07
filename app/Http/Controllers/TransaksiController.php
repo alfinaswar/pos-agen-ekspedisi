@@ -19,7 +19,7 @@ class TransaksiController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            // 1. Buat base query
+            // 1. Buat base query (TAMBAHKAN 'Catatan' di sini)
             $query = Transaksi::with(['ekspedisi', 'userCreate'])
                 ->select([
                     'id',
@@ -35,17 +35,17 @@ class TransaksiController extends Controller
                     'UserCreate',
                     'UserFinance',
                     'DicekPada',
-                    'Status'
+                    'Status',
+                    'Catatan' // <-- TAMBAHKAN 'Catatan'
                 ])
                 ->orderBy('Tanggal', 'desc');
 
-            // Kalau bukan admin, hanya tampilkan data milik user itu sendiri
+            // Kalau bukan admin/leader/finance, hanya tampilkan data milik user itu sendiri
             if (!auth()->user() || !in_array(auth()->user()->role, ['Admin', 'Leader', 'Finance'])) {
                 $query->where('UserCreate', auth()->id());
             }
 
-
-            // 2. Terapkan filter (khusus admin, filter user juga ditampilkan; kalau bukan admin user di-force ke dirinya)
+            // 2. Terapkan filter
             if ($request->filled('tanggal_awal')) {
                 $query->whereDate('Tanggal', '>=', $request->input('tanggal_awal'));
             }
@@ -58,17 +58,18 @@ class TransaksiController extends Controller
             if ($request->filled('ekspedisi')) {
                 $query->where('Ekspedisi', $request->input('ekspedisi'));
             }
-            // Filter user hanya boleh dilakukan admin, selebihnya ignored (filter already forced above)
-            if (
-                $request->filled('user')
-                && auth()->user()
-                && in_array(auth()->user()->role, ['Admin', 'Leader'])
-            ) {
+
+            // ✅ FILTER BARU: Status Verifikasi (Tersedia untuk semua role)
+            if ($request->filled('status_verifikasi')) {
+                $query->where('Status', $request->input('status_verifikasi'));
+            }
+
+            // Filter user (hanya Admin/Leader)
+            if ($request->filled('user') && auth()->user() && in_array(auth()->user()->role, ['Admin', 'Leader'])) {
                 $query->where('UserCreate', $request->input('user'));
             }
 
-
-            // 3. Hitung total pendapatan, diskon, & pendapatan bersih (gunakan clone agar tidak mengganggu query utama DataTables)
+            // 3. Hitung total
             $totalPendapatan = (clone $query)->sum('Pendapatan') ?? 0;
             $totalDiskon = (clone $query)->sum('Diskon') ?? 0;
             $totalPendapatanBersih = (clone $query)->sum('PendapatanBersih') ?? 0;
@@ -82,102 +83,78 @@ class TransaksiController extends Controller
                         : '<span class="text-muted">-</span>';
                 })
                 ->addColumn('action', function ($row) {
+                    // ... (LOGIKA ACTION BUTTON TETAP SAMA SEPERTI SEBELUMNYA) ...
                     $user = auth()->user();
                     $role = $user ? $user->role : null;
-
-                    // Ambil status transaksi, default ke 'N/A' jika null/kosong
                     $status = $row->Status ?? 'N/A';
-
                     $canShow = false;
                     $canEdit = false;
                     $canDelete = false;
 
-                    // 1. RULE ADMIN: Full access terlepas dari status
                     if ($role === 'Admin') {
                         $canShow = true;
                         $canEdit = true;
                         $canDelete = true;
-                    }
-                    // 2. RULE FINANCE: Hanya bisa melihat (Show) terlepas dari status
-                    elseif ($role === 'Finance') {
+                    } elseif ($role === 'Finance') {
                         $canShow = true;
-                    }
-                    // 3. RULE KASIR / LEADER: TIDAK BOLEH SHOW. Edit/Hapus hanya jika N atau N/A
-                    elseif (in_array($role, ['Kasir', 'Leader'])) {
-                        $canShow = false; // STRICT: Tidak ada tombol show
-
-                        // Hanya boleh Edit & Hapus jika statusnya Ditolak (N) atau Belum Diverifikasi (N/A)
+                    } elseif (in_array($role, ['Kasir', 'Leader'])) {
+                        $canShow = false;
                         if ($status === 'N' || $status === 'N/A') {
                             $canEdit = true;
                             $canDelete = true;
                         }
-                        // Jika status === 'Y', maka $canEdit dan $canDelete otomatis tetap false (tidak ada tombol sama sekali)
                     }
 
-                    // Mulai bangun HTML tombol
                     $btn = '<div class="d-flex gap-1 justify-content-center">';
-
-                    // Tombol Show (Hanya Admin & Finance)
-                    if ($canShow) {
-                        $btn .= '<a href="' . route('transaksi.show', $row->id) . '" class="btn btn-info btn-sm text-white" title="Lihat Detail">';
-                        $btn .= '<i class="ti ti-eye"></i></a> ';
-                    }
-
-                    // Tombol Edit (Admin, atau Kasir/Leader jika status N/N/A)
-                    if ($canEdit) {
-                        $btn .= '<a href="' . route('transaksi.edit', $row->id) . '" class="btn btn-warning btn-sm text-white" title="Edit">';
-                        $btn .= '<i class="ti ti-edit"></i></a> ';
-                    }
-
-                    // Tombol Delete (Admin, atau Kasir/Leader jika status N/N/A)
+                    if ($canShow)
+                        $btn .= '<a href="' . route('transaksi.show', $row->id) . '" class="btn btn-info btn-sm text-white" title="Lihat Detail"><i class="ti ti-eye"></i></a> ';
+                    if ($canEdit)
+                        $btn .= '<a href="' . route('transaksi.edit', $row->id) . '" class="btn btn-warning btn-sm text-white" title="Edit"><i class="ti ti-edit"></i></a> ';
                     if ($canDelete) {
                         $identifier = $row->KodeTransaksi ?? 'Transaksi ini';
-                        $btn .= '<button type="button" class="btn btn-danger btn-sm btn-delete" data-id="' . $row->id . '" data-kode="' . htmlspecialchars($identifier) . '" title="Hapus">';
-                        $btn .= '<i class="ti ti-trash"></i></button>';
+                        $btn .= '<button type="button" class="btn btn-danger btn-sm btn-delete" data-id="' . $row->id . '" data-kode="' . htmlspecialchars($identifier) . '" title="Hapus"><i class="ti ti-trash"></i></button>';
                     }
-
                     $btn .= '</div>';
                     return $btn;
                 })
-
-
-
-
-
-                ->editColumn('UserCreate', function($row) {
+                ->editColumn('UserCreate', function ($row) {
                     return $row->userCreate && $row->userCreate->name
                         ? \Illuminate\Support\Str::limit($row->userCreate->name, 15)
                         : '<span class="text-muted">-</span>';
                 })
 
-                ->editColumn('UserFinance', function($row) {
-                    return $row->userFinance && $row->userFinance->name
-                        ? $row->userFinance->name
-                        : '<span class="text-muted">-</span>';
-                })
-                ->addColumn('StatusInfo', function($row) {
-                    $statusText = '';
-                    switch ($row->Status) {
-                        case 'Y':
-                            $statusText = '<span class="badge bg-success">Valid</span>';
-                            break;
-                        case 'N':
-                            $statusText = '<span class="badge bg-danger">Tidak Valid</span>';
-                            break;
-                        default:
-                            $statusText = '<span class="badge bg-light text-dark">Belum Verif</span>';
-                            break;
+                // ✅ MODIFIKASI KOLOM StatusInfo: Tambahkan ikon pesan jika ada Catatan
+                ->addColumn('StatusInfo', function ($row) {
+                    $badgeClass = 'bg-light text-dark';
+                    $label = 'Belum Verif';
+
+                    if ($row->Status === 'Y') {
+                        $badgeClass = 'bg-success';
+                        $label = 'Valid';
+                    } elseif ($row->Status === 'N') {
+                        $badgeClass = 'bg-danger';
+                        $label = 'Tidak Valid';
                     }
+
+                    $html = '<span class="badge ' . $badgeClass . '">' . $label . '</span>';
+
+                    // Jika ada catatan, tambahkan ikon kecil yang bisa diklik
+                    // hanya muncul kalau user create nya sesuai dengan user login id
+                    if (!empty($row->Catatan) && isset($row->UserCreate) && auth()->check() && $row->UserCreate == auth()->id()) {
+                        $catatanEscaped = htmlspecialchars($row->Catatan, ENT_QUOTES, 'UTF-8');
+                        $html .= ' <button type="button" class="btn btn-sm btn-outline-secondary p-0 px-1 ms-1 btn-view-catatan"
+                                    data-catatan="' . $catatanEscaped . '" title="Lihat Catatan Finance" style="vertical-align: middle;">
+                                    <i class="ti ti-message" style="font-size: 0.9rem;"></i>
+                                  </button>';
+                    }
+
 
                     $dicekPada = $row->DicekPada
                         ? '<br><small class="text-muted"><i class="ti ti-clock"></i> ' . \Carbon\Carbon::parse($row->DicekPada)->format('d-m-Y H:i') . '</small>'
                         : '';
 
-                    return $statusText . $dicekPada;
+                    return $html . $dicekPada;
                 })
-
-
-                // Kolom KodeBayar
                 ->addColumn('Bayar', function ($row) {
                     $kodeBayar = $row->KodeBayar ? htmlspecialchars($row->KodeBayar) : '<span class="text-muted">-</span>';
                     if ($row->BuktiBayar) {
@@ -188,20 +165,16 @@ class TransaksiController extends Controller
                     }
                     return $kodeBayar . ' ' . $buktiLink;
                 })
-
-
-                // Kirim total ke frontend (total_pendapatan, total_diskon, total_pendapatan_bersih)
                 ->with([
                     'total_pendapatan' => number_format($totalPendapatan, 0, ',', '.'),
                     'total_diskon' => number_format($totalDiskon, 0, ',', '.'),
                     'total_pendapatan_bersih' => number_format($totalPendapatanBersih, 0, ',', '.'),
                 ])
-                ->rawColumns(['action', 'Ekspedisi','Bayar','StatusInfo','UserFinance'])
+                ->rawColumns(['action', 'Ekspedisi', 'Bayar', 'StatusInfo'])
                 ->make(true);
         }
 
         $ekspedisi = Ekspedisi::get();
-        // Kalau bukan admin, hanya kirim data user itu saja ke view (untuk filter jika pakai blade select dsb)
         if (auth()->user() && !in_array(auth()->user()->role, ['Admin', 'Leader'])) {
             $users = User::where('id', auth()->id())->get();
         } else {
@@ -263,7 +236,28 @@ class TransaksiController extends Controller
         $transaksi->load('ekspedisi');
         return view('transaksi.show', compact('transaksi'));
     }
+    public function approve(Request $request, Absensi $absensi)
+    {
+        // Hanya Admin dan Leader yang boleh melakukan ini
+        if (!in_array(auth()->user()->role, ['Admin', 'Leader'])) {
+            abort(403, 'Aksi tidak diizinkan.');
+        }
 
+        $request->validate([
+            'Status' => 'required|in:Y,N,N/A',
+            'Catatan' => 'nullable|string|max:1000',
+        ]);
+
+        $absensi->update([
+            'StatusVerif' => $request->Status,
+            'Catatan' => $request->Catatan,
+            'UserLeader' => auth()->user()->name,
+            'DisetujuiPada' => now(),
+        ]);
+
+        return redirect()->route('absensi.show', $absensi->id)
+            ->with('success', 'Status persetujuan absensi berhasil diperbarui.');
+    }
     public function update(Request $request, Transaksi $transaksi)
     {
         // 1. Validasi (abaikan unique untuk ID saat ini)
@@ -412,7 +406,7 @@ class TransaksiController extends Controller
             $transaksi->update(['UserDelete' => auth()->id()]);
             $transaksi->delete();
 
-            return response()->json([  
+            return response()->json([
                 'success' => true,
                 'status' => 200,
                 'message' => 'Data transaksi berhasil dihapus.'

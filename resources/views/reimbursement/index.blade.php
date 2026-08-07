@@ -64,7 +64,8 @@
                                         <th>Item</th>
                                         <th class="text-end">Nominal</th>
                                         <th class="text-center">Status</th>
-                                        <th class="text-center">Bukti</th>
+                                        <th class="text-center">Bukti Pengajuan</th>
+                                        <th class="text-center">Bukti Transfer</th>
                                         <th style="width: 100px;" class="text-center">Aksi</th>
                                     </tr>
                                 </thead>
@@ -224,9 +225,9 @@
                     url: "//cdn.datatables.net/plug-ins/1.13.7/i18n/id.json"
                 },
                 columnDefs: [
-                    { className: 'text-center', targets: [0, 5, 6, 7] },
+                    { className: 'text-center', targets: [0, 5, 6, 7, 8] },
                     { className: 'text-end', targets: [4] },
-                    { orderable: false, targets: [0, 7] }
+                    { orderable: false, targets: [0, 8] }
                 ],
                 columns: [
                     { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false },
@@ -252,7 +253,11 @@
                     },
                     {
                         data: 'BuktiUpload', name: 'BuktiUpload', orderable: false, searchable: false,
-                        render: (data) => data ? `<a href="/storage/${data}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="ti ti-eye"></i></a>` : '<span class="text-muted">-</span>'
+                        render: (data) => data ? `<a href="/storage/${data}" target="_blank" class="btn btn-sm btn-outline-primary" title="Lihat Bukti Pengajuan"><i class="ti ti-eye"></i></a>` : '<span class="text-muted">-</span>'
+                    },
+                    {
+                        data: 'BuktiTransfer', name: 'BuktiTransfer', orderable: false, searchable: false,
+                        render: (data) => data ? `<a href="/storage/${data}" target="_blank" class="btn btn-sm btn-outline-success" title="Lihat Bukti Transfer"><i class="ti ti-eye"></i></a>` : '<span class="text-muted">-</span>'
                     },
                     { data: 'action', name: 'action', searchable: false }
                 ]

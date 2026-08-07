@@ -45,6 +45,8 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('transaksi', TransaksiController::class);
     //route absensi
     Route::get('/absensi/export', [AbsensiController::class, 'export'])->name('absensi.export');
+    Route::post('/absensi/{absensi}/approve', [AbsensiController::class, 'approve'])->name('absensi.approve');
+    Route::post('/absensi/bulk-approve', [AbsensiController::class, 'bulkApprove'])->name('absensi.bulkApprove');
     Route::resource('absensi', AbsensiController::class);
     // route rembes
     Route::get('/reimbursement/export', [ReimbursementController::class, 'export'])->name('reimbursement.export');

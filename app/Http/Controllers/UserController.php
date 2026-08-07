@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
@@ -67,14 +68,29 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'role' => 'required|in:Admin,Kasir,Leader,Viewer,Finance',
-            'divisi' => 'nullable|string|max:255',
-            'no_hp' => 'nullable|string|max:50',
+            'role' => 'required|in:Admin,Leader,Kasir,Finance',
+            'divisi' => 'nullable|exists:divisis,id',
+            'no_hp' => 'nullable|string|max:20',
+            'foto_profil' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'foto_ktp' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
-        $data = $request->all();
+        $data = $request->except(['password', 'foto_profil', 'foto_ktp']);
         $data['password'] = Hash::make($request->password);
-        $data['user_create'] = auth()->user()->name ?? 'System';
+
+        // ✅ Handle Upload Foto Profil dengan storeAs
+        if ($request->hasFile('foto_profil')) {
+            $file = $request->file('foto_profil');
+            $fileName = time() . '_' . preg_replace('/[^A-Za-z0-9\-_\.]/', '', $file->getClientOriginalName());
+            $data['foto_profil'] = $file->storeAs('users/foto_profil', $fileName, 'public');
+        }
+
+        // ✅ Handle Upload Foto KTP dengan storeAs
+        if ($request->hasFile('foto_ktp')) {
+            $file = $request->file('foto_ktp');
+            $fileName = time() . '_' . preg_replace('/[^A-Za-z0-9\-_\.]/', '', $file->getClientOriginalName());
+            $data['foto_ktp'] = $file->storeAs('users/foto_ktp', $fileName, 'public');
+        }
 
         User::create($data);
 
@@ -93,21 +109,42 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'password' => 'nullable|string|min:8|confirmed',
-            'role' => 'required|in:Admin,Kasir,Leader,Viewer,Finance',
-
-            'divisi' => 'nullable|string|max:255',
-            'no_hp' => 'nullable|string|max:50',
+            'role' => 'required|in:Admin,Leader,Kasir,Finance',
+            'divisi' => 'nullable|exists:divisis,id',
+            'no_hp' => 'nullable|string|max:20',
+            'foto_profil' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'foto_ktp' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
-        $data = $request->except(['password']);
+        $data = $request->except(['password', 'foto_profil', 'foto_ktp']);
 
         if ($request->filled('password')) {
             $data['password'] = Hash::make($request->password);
         }
 
+        // ✅ Handle Update Foto Profil dengan storeAs (Hapus file lama jika ada)
+        if ($request->hasFile('foto_profil')) {
+            if ($user->foto_profil && Storage::disk('public')->exists($user->foto_profil)) {
+                Storage::disk('public')->delete($user->foto_profil);
+            }
+            $file = $request->file('foto_profil');
+            $fileName = time() . '_' . preg_replace('/[^A-Za-z0-9\-_\.]/', '', $file->getClientOriginalName());
+            $data['foto_profil'] = $file->storeAs('users/foto_profil', $fileName, 'public');
+        }
+
+        // ✅ Handle Update Foto KTP dengan storeAs (Hapus file lama jika ada)
+        if ($request->hasFile('foto_ktp')) {
+            if ($user->foto_ktp && Storage::disk('public')->exists($user->foto_ktp)) {
+                Storage::disk('public')->delete($user->foto_ktp);
+            }
+            $file = $request->file('foto_ktp');
+            $fileName = time() . '_' . preg_replace('/[^A-Za-z0-9\-_\.]/', '', $file->getClientOriginalName());
+            $data['foto_ktp'] = $file->storeAs('users/foto_ktp', $fileName, 'public');
+        }
+
         $user->update($data);
 
-        return redirect()->route('users.index')->with('success', 'User berhasil diperbarui.');
+        return redirect()->route('users.index')->with('success', 'Data user berhasil diperbarui.');
     }
 
     public function destroy(User $user)

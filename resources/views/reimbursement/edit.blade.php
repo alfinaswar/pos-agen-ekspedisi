@@ -65,8 +65,6 @@
                                             @endforeach
                                         </select>
 
-
-
                                         @error('Nama') <div class="invalid-feedback d-block error-fade-in"><i class="ti ti-alert-circle me-1"></i>{{ $message }}</div> @enderror
                                     </div>
 
@@ -127,6 +125,33 @@
                                 <div class="form-text text-muted mt-1"><i class="ti ti-info-circle me-1"></i>Kosongkan jika tidak ingin mengganti file.</div>
                                 @error('BuktiUpload') <div class="invalid-feedback d-block error-fade-in"><i class="ti ti-alert-circle me-1"></i>{{ $message }}</div> @enderror
                             </div>
+
+                            {{-- Tambahkan field Bukti Transfer hanya jika user adalah Admin --}}
+                            @if(auth()->user() && auth()->user()->role === 'Admin')
+                            <div class="mb-4">
+                                <label for="BuktiTransfer" class="form-label fw-semibold"><i class="ti ti-credit-card me-1 text-success"></i> Bukti Transfer</label>
+                                @if($reimbursement->BuktiTransfer)
+                                    <div class="mb-2 p-2 bg-light rounded border">
+                                        <p class="mb-1 small text-muted fw-semibold">File Transfer Saat Ini:</p>
+                                        @php $extTf = pathinfo($reimbursement->BuktiTransfer, PATHINFO_EXTENSION); @endphp
+                                        @if(in_array(strtolower($extTf), ['jpg', 'jpeg', 'png', 'gif']))
+                                            <a href="{{ Storage::url($reimbursement->BuktiTransfer) }}" target="_blank">
+                                                <img src="{{ Storage::url($reimbursement->BuktiTransfer) }}" class="preview-bukti" alt="Bukti Transfer">
+                                            </a>
+                                        @else
+                                            <a href="{{ Storage::url($reimbursement->BuktiTransfer) }}" target="_blank" class="btn btn-sm btn-outline-secondary w-100 text-start">
+                                                <i class="ti ti-file-type-pdf me-2"></i> {{ basename($reimbursement->BuktiTransfer) }}
+                                            </a>
+                                        @endif
+                                    </div>
+                                @endif
+                                <input type="file" class="form-control @error('BuktiTransfer') is-invalid @enderror" id="BuktiTransfer" name="BuktiTransfer" accept="image/*,.pdf">
+                                <div class="form-text text-muted mt-1"><i class="ti ti-info-circle me-1"></i>Upload Bukti Bayar</div>
+
+
+                                @error('BuktiTransfer') <div class="invalid-feedback d-block error-fade-in"><i class="ti ti-alert-circle me-1"></i>{{ $message }}</div> @enderror
+                            </div>
+                            @endif
 
                             <div class="d-flex gap-3 pt-3 border-top mt-4">
                                 <button type="submit" class="btn btn-primary px-4 d-flex align-items-center fw-semibold">
