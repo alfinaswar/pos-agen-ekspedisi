@@ -272,16 +272,17 @@
             }
 
             // 2. Fungsi Tampilkan Breakdown Ekspedisi (Drill-down)
+            // 2. Fungsi Tampilkan Breakdown Ekspedisi (Drill-down)
             window.showEkspedisiBreakdown = function(divisiName, breakdownData) {
                 // Update UI Header
-                document.getElementById('chartTitle').innerHTML = `<i class="ti ti-chart-pie me-2"></i>Transaksi: ${divisiName}`;
+                document.getElementById('chartTitle').innerHTML = `<i class="ti ti-chart-pie me-2"></i>Pendapatan: ${divisiName}`;
                 document.getElementById('btnResetChart').classList.remove('d-none');
 
                 // Siapkan Data Breakdown
                 let labels = breakdownData.map(item => item.name);
-                let data = breakdownData.map(item => item.jumlah);
+                let data = breakdownData.map(item => item.total_pendapatan); // <-- UBAH KEY NYA
 
-                // ✅ SORT DATA BREAKDOWN DULU (Descending by Jumlah Transaksi)
+                // ✅ SORT DATA BREAKDOWN DULU (Descending by Total Pendapatan)
                 const sortedBreakdown = sortDataDescending(labels, data);
 
                 const colors = ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#6f42c1', '#fd7e14', '#20c997', '#6610f2'];
@@ -292,10 +293,10 @@
                 mainChart = new Chart(ctx, {
                     type: 'bar',
                     data: {
-                        labels: sortedBreakdown.labels, // Gunakan labels yang sudah di-sort
+                        labels: sortedBreakdown.labels,
                         datasets: [{
-                            label: 'Jumlah Transaksi',
-                            data: sortedBreakdown.values, // Gunakan values yang sudah di-sort
+                            label: 'Total Pendapatan Bersih (Rp)', // <-- UBAH LABEL
+                            data: sortedBreakdown.values,
                             backgroundColor: colors.slice(0, sortedBreakdown.labels.length),
                             borderRadius: 8,
                             borderSkipped: false,
@@ -310,7 +311,9 @@
                             tooltip: {
                                 callbacks: {
                                     label: function(context) {
-                                        return context.parsed.y + ' Transaksi';
+                                        const value = context.parsed.y;
+                                        // <-- UBAH TOOLTIP KE FORMAT RUPIAH
+                                        return 'Rp ' + new Intl.NumberFormat('id-ID').format(value);
                                     }
                                 }
                             }
@@ -318,7 +321,14 @@
                         scales: {
                             y: {
                                 beginAtZero: true,
-                                title: { display: true, text: 'Jumlah Transaksi' }
+                                title: { display: true, text: 'Total Pendapatan (Rp)' }, // <-- UBAH JUDUL SUMBU Y
+                                ticks: {
+                                    callback: function(value) {
+                                        if (value >= 1000000) return (value / 1000000).toFixed(1) + ' jt';
+                                        if (value >= 1000) return (value / 1000).toFixed(0) + ' rb';
+                                        return value;
+                                    }
+                                }
                             },
                             x: { grid: { display: false } }
                         }

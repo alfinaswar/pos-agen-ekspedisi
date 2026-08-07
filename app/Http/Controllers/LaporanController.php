@@ -70,14 +70,14 @@ class LaporanController extends Controller
                 return $divisiNames[$divisiId] ?? 'Tanpa Divisi';
             })->toArray();
 
-            // ✅ TAMBAHAN: Ambil breakdown ekspedisi untuk setiap divisi (untuk grafik drill-down)
+            // ✅ TAMBAHAN: Ambil breakdown ekspedisi untuk setiap divisi
             $expeditionNames = Ekspedisi::pluck('NamaEkspedisi', 'id')->toArray();
 
             foreach ($data as $row) {
-                // Query khusus untuk mendapatkan jumlah transaksi per ekspedisi di divisi ini
+                // Query khusus untuk mendapatkan TOTAL PENDAPATAN per ekspedisi di divisi ini
                 $ekspedisiData = Transaksi::whereBetween('Tanggal', [$startDate, $endDate])
                     ->where('Divisi', $row->Divisi)
-                    ->select('Ekspedisi', DB::raw('COUNT(*) as jumlah'))
+                    ->select('Ekspedisi', DB::raw('SUM(PendapatanBersih) as total_pendapatan')) // <-- UBAH KE SUM
                     ->groupBy('Ekspedisi')
                     ->get();
 
@@ -86,10 +86,10 @@ class LaporanController extends Controller
                     $expName = $expeditionNames[$exp->Ekspedisi] ?? 'Ekspedisi ' . $exp->Ekspedisi;
                     $breakdown[] = [
                         'name' => $expName,
-                        'jumlah' => $exp->jumlah
+                        'total_pendapatan' => $exp->total_pendapatan // <-- UBAH KEY NYA
                     ];
                 }
-                // Simpan ke dalam object row agar bisa diakses di view sebagai JSON
+                // Simpan ke dalam object row agar bisa diakses di view
                 $row->ekspedisi_breakdown = $breakdown;
             }
         }else {
