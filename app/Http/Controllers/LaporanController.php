@@ -59,15 +59,16 @@ class LaporanController extends Controller
                     DB::raw('SUM(PendapatanBersih) as total_pendapatan')
                 )
                 ->groupBy('Divisi')
-                ->orderBy('total_pendapatan', 'desc')
                 ->get();
+
+            // Urutkan data berdasar jumlah_transaksi dari terbanyak ke terkecil
+            $data = $data->sortByDesc('jumlah_transaksi')->values();
 
             // Join ke tabel divisi untuk mendapatkan nama divisi (misal field 'nama_divisi')
             $divisiNames = Divisi::pluck('Nama', 'id')->toArray();
             $chartLabels = $data->pluck('Divisi')->map(function($divisiId) use ($divisiNames) {
                 return $divisiNames[$divisiId] ?? 'Tanpa Divisi';
             })->toArray();
-
 
             // ✅ TAMBAHAN: Ambil breakdown ekspedisi untuk setiap divisi (untuk grafik drill-down)
             $expeditionNames = Ekspedisi::pluck('NamaEkspedisi', 'id')->toArray();

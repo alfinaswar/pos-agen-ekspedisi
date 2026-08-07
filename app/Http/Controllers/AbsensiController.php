@@ -41,6 +41,10 @@ class AbsensiController extends Controller
                 $query->where('Nama', auth()->user()->id);
                 if ($request->filled('status_verif'))
                     $query->where('StatusVerif', $request->status_verif);
+                if ($request->filled('bulan'))
+                    $query->whereMonth('Tanggal', $request->bulan);
+                if ($request->filled('status'))
+                    $query->where('Status', $request->status);
             } else {
                 if ($request->filled('bulan'))
                     $query->whereMonth('Tanggal', $request->bulan);

@@ -110,7 +110,7 @@
                                         <td>
                                             <span class="fw-semibold text-dark">
                                                 @if($type === 'per_user')
-                                                    {{ $row->UserCreate ?? 'Tidak Diketahui' }}
+                                                    {{ $row->userCreate->name ?? 'Tidak Diketahui' }}
                                                 @elseif($type === 'per_divisi')
                                                     {{-- ✅ Tombol Klik untuk Drill-down Ekspedisi --}}
                                                     <button type="button"
