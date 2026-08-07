@@ -110,6 +110,14 @@
                                         @if($absensi->Lembur === 'Y')
                                             <span class="badge bg-warning text-dark">Ya</span>
                                             <span class="ms-2 text-muted small">({{ $absensi->MulaiLembur ?: '-' }} s/d {{ $absensi->SelesaiLembur ?: '-' }})</span>
+                                            @if(!empty($absensi->AlasanLembur))
+                                                <div class="mt-2">
+                                                    <label class="text-muted small mb-1 d-block">Alasan Lembur</label>
+                                                    <div class="fw-normal text-dark fst-italic">
+                                                        "{{ $absensi->AlasanLembur }}"
+                                                    </div>
+                                                </div>
+                                            @endif
                                         @else
                                             <span class="badge bg-secondary">Tidak</span>
                                         @endif
