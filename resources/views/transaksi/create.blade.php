@@ -102,7 +102,46 @@
                                             </div>
                                         @enderror
                                     </div>
+ <div class="mb-4">
+                                        <label for="NamaPengirim" class="form-label fw-semibold">
+                                            <i class="ti ti-user me-1 text-primary"></i> Nama Pengirim
+                                        </label>
+                                        <input type="text"
+                                               class="form-control @error('NamaPengirim') is-invalid @enderror"
+                                               id="NamaPengirim"
+                                               name="NamaPengirim"
+                                               value="{{ old('NamaPengirim') }}"
+                                               placeholder="Contoh: Budi Santoso">
+                                        <div class="form-text text-muted mt-1">
+                                            <i class="ti ti-info-circle me-1"></i>Nama pelanggan/pengirim barang.
+                                        </div>
+                                        @error('NamaPengirim')
+                                            <div class="invalid-feedback d-block error-fade-in">
+                                                <i class="ti ti-alert-circle me-1"></i>{{ $message }}
+                                            </div>
+                                        @enderror
+                                    </div>
 
+                                    <!-- ✅ TAMBAHAN: Kontak Pengirim -->
+                                    <div class="mb-4">
+                                        <label for="KontakPengirim" class="form-label fw-semibold">
+                                            <i class="ti ti-phone me-1 text-primary"></i> Kontak Pengirim
+                                        </label>
+                                        <input type="text"
+                                               class="form-control @error('KontakPengirim') is-invalid @enderror"
+                                               id="KontakPengirim"
+                                               name="KontakPengirim"
+                                               value="{{ old('KontakPengirim') }}"
+                                               placeholder="Contoh: 0812-3456-7890">
+                                        <div class="form-text text-muted mt-1">
+                                            <i class="ti ti-info-circle me-1"></i>Nomor WhatsApp/Telepon pengirim.
+                                        </div>
+                                        @error('KontakPengirim')
+                                            <div class="invalid-feedback d-block error-fade-in">
+                                                <i class="ti ti-alert-circle me-1"></i>{{ $message }}
+                                            </div>
+                                        @enderror
+                                    </div>
                                     <!-- No. Resi -->
                                     <div class="mb-4">
                                         <label for="NoResi" class="form-label fw-semibold">

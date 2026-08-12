@@ -54,23 +54,14 @@
                     <input type="hidden" name="type" value="{{ $type }}">
                     <div class="row g-3 align-items-end">
                         <div class="col-md-3">
-                            <label class="form-label fw-semibold">
-                                {{ $type === 'harian' ? 'Pilih Tanggal' : 'Pilih Bulan' }}
-                            </label>
-                            <input type="{{ $type === 'harian' ? 'date' : 'month' }}"
-                                class="form-control"
-                                name="tanggal"
-                                value="{{ $tanggal }}"
-                                required>
+                            <label class="form-label fw-semibold">{{ $type === 'harian' ? 'Pilih Tanggal' : 'Pilih Bulan' }}</label>
+                            <input type="{{ $type === 'harian' ? 'date' : 'month' }}" class="form-control" name="tanggal" value="{{ $tanggal }}" required>
                         </div>
                         <div class="col-md-2">
-                            <button type="submit" class="btn btn-primary w-100">
-                                <i class="ti ti-search me-1"></i>Tampilkan
-                            </button>
+                            <button type="submit" class="btn btn-primary w-100"><i class="ti ti-search me-1"></i>Tampilkan</button>
                         </div>
                         <div class="col-md-2">
-                            <a href="{{ route('laporan.export', ['type' => $type, 'tanggal' => $tanggal]) }}"
-                                class="btn btn-success w-100">
+                            <a href="{{ route('laporan.export', ['type' => $type, 'tanggal' => $tanggal]) }}" class="btn btn-success w-100">
                                 <i class="ti ti-file-export me-1"></i>Export Excel
                             </a>
                         </div>
@@ -85,9 +76,7 @@
             <div class="col-lg-7 mb-4">
                 <div class="card shadow-sm border-0">
                     <div class="card-header bg-white py-3 d-flex align-items-center">
-                        <h5 class="card-title mb-0 fw-semibold">
-                            <i class="ti ti-list me-2"></i>Data Laporan
-                        </h5>
+                        <h5 class="card-title mb-0 fw-semibold"><i class="ti ti-list me-2"></i>Data Laporan</h5>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
@@ -110,32 +99,30 @@
                                         <td>
                                             <span class="fw-semibold text-dark">
                                                 @if($type === 'per_user')
-                                                    {{ $row->userCreate->name ?? 'Tidak Diketahui' }}
+                                                    {{-- Klik User -> Breakdown per Ekspedisi --}}
+                                                    <button type="button" class="btn btn-sm btn-link text-dark fw-semibold text-decoration-none p-0 d-flex align-items-center"
+                                                            onclick="showBreakdownChart('{{ addslashes($row->userCreate->name ?? 'Tidak Diketahui') }}', {{ json_encode($row->breakdown_data) }}, 'Ekspedisi')">
+                                                        <i class="ti ti-chart-pie me-1 text-primary"></i> {{ $row->userCreate->name ?? 'Tidak Diketahui' }}
+                                                    </button>
                                                 @elseif($type === 'per_divisi')
-                                                    {{-- ✅ Tombol Klik untuk Drill-down Ekspedisi --}}
-                                                    <button type="button"
-                                                            class="btn btn-sm btn-link text-dark fw-semibold text-decoration-none p-0 d-flex align-items-center hover-primary"
-                                                            onclick="showEkspedisiBreakdown('{{ addslashes($row->getDivisi->Nama ?? 'Tanpa Divisi') }}', {{ json_encode($row->ekspedisi_breakdown) }})"
-                                                            title="Klik untuk lihat detail ekspedisi">
-                                                        <i class="ti ti-chart-pie me-1 text-primary"></i>
-                                                        {{ $row->getDivisi->Nama ?? 'Tanpa Divisi' }}
+                                                    {{-- Klik Divisi -> Breakdown per Ekspedisi --}}
+                                                    <button type="button" class="btn btn-sm btn-link text-dark fw-semibold text-decoration-none p-0 d-flex align-items-center"
+                                                            onclick="showBreakdownChart('{{ addslashes($row->Divisi ?? 'Tanpa Divisi') }}', {{ json_encode($row->breakdown_data) }}, 'Ekspedisi')">
+                                                        <i class="ti ti-chart-pie me-1 text-primary"></i> {{ $row->Divisi ?? 'Tanpa Divisi' }}
                                                     </button>
                                                 @else
-                                                    {{ $expeditionNames[$row->Ekspedisi] ?? 'Ekspedisi ' . $row->Ekspedisi }}
+                                                    {{-- Klik Ekspedisi (Harian/Bulanan) -> Breakdown per Divisi --}}
+                                                    @php $expName = $expeditionNames[$row->Ekspedisi] ?? 'Ekspedisi ' . $row->Ekspedisi; @endphp
+                                                    <button type="button" class="btn btn-sm btn-link text-dark fw-semibold text-decoration-none p-0 d-flex align-items-center"
+                                                            onclick="showBreakdownChart('{{ addslashes($expName) }}', {{ json_encode($row->breakdown_data) }}, 'Divisi')">
+                                                        <i class="ti ti-chart-pie me-1 text-primary"></i> {{ $expName }}
+                                                    </button>
                                                 @endif
                                             </span>
                                         </td>
-                                        <td class="text-center">
-                                            <span class="badge bg-primary rounded-pill">{{ $row->jumlah_transaksi }}</span>
-                                        </td>
-                                        <td class="text-end">
-                                            <span class="fw-bold text-primary">
-                                                Rp {{ number_format($row->total_pendapatan, 0, ',', '.') }}
-                                            </span>
-                                        </td>
-                                        <td class="text-end">
-                                            <span class="fw-bold">{{ $row->persentase }}%</span>
-                                        </td>
+                                        <td class="text-center"><span class="badge bg-primary rounded-pill">{{ $row->jumlah_transaksi }}</span></td>
+                                        <td class="text-end"><span class="fw-bold text-primary">Rp {{ number_format($row->total_pendapatan, 0, ',', '.') }}</span></td>
+                                        <td class="text-end"><span class="fw-bold">{{ $row->persentase }}%</span></td>
                                     </tr>
                                     @empty
                                     <tr>
@@ -166,7 +153,6 @@
                         <h5 class="mb-0 fw-semibold" id="chartTitle">
                             <i class="ti ti-chart-bar me-2"></i>Grafik Pendapatan Bersih
                         </h5>
-                        {{-- Tombol Kembali (Hidden by default) --}}
                         <button type="button" id="btnResetChart" class="btn btn-sm btn-outline-secondary d-none" onclick="resetChart()">
                             <i class="ti ti-arrow-left me-1"></i>Kembali
                         </button>
@@ -179,50 +165,37 @@
         </div>
     </div>
 
-       <!-- Chart.js Script (Consolidated & Sorted) -->
+    <!-- Chart.js Script -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const ctx = document.getElementById('incomeChart').getContext('2d');
             let mainChart = null;
 
-            // Data awal dari Backend
             const originalLabels = @json($chartLabels);
             const originalData = @json($chartData);
 
-            // Helper: Generate warna konsisten berdasarkan string
+            // Helper: Generate warna konsisten
             function stringToColor(str) {
                 let hash = 0;
                 for (let i = 0; i < str.length; i++) {
                     hash = str.charCodeAt(i) + ((hash << 5) - hash);
                 }
-                const h = Math.abs(hash) % 360;
-                const s = 60 + (Math.abs(hash) % 20);
-                const l = 60;
-                return `hsl(${h},${s}%,${l}%)`;
+                return `hsl(${Math.abs(hash) % 360},${60 + (Math.abs(hash) % 20)}%,60%)`;
             }
 
-            // Helper: Sort data label & value secara descending (terbesar ke terkecil)
+            // Helper: Sort data descending
             function sortDataDescending(labels, values) {
-                // Gabungkan jadi array of objects agar bisa di-sort bersamaan
-                const combined = labels.map((label, index) => ({
-                    label: label,
-                    value: values[index]
-                }));
-
-                // Sort berdasarkan value descending
+                const combined = labels.map((label, index) => ({ label, value: values[index] }));
                 combined.sort((a, b) => b.value - a.value);
-
-                // Pisahkan kembali jadi arrays
                 return {
                     labels: combined.map(item => item.label),
                     values: combined.map(item => item.value)
                 };
             }
 
-            // 1. Fungsi Render Chart Utama (Pendapatan Bersih)
+            // 1. Render Chart Utama
             function renderMainChart() {
-                // ✅ SORT DATA UTAMA DULU
                 const sorted = sortDataDescending(originalLabels, originalData);
                 const colors = sorted.labels.map(label => stringToColor(label));
 
@@ -231,10 +204,10 @@
                 mainChart = new Chart(ctx, {
                     type: 'bar',
                     data: {
-                        labels: sorted.labels, // Gunakan labels yang sudah di-sort
+                        labels: sorted.labels,
                         datasets: [{
                             label: 'Pendapatan Bersih (Rp)',
-                            data: sorted.values, // Gunakan values yang sudah di-sort
+                            data: sorted.values,
                             backgroundColor: colors,
                             borderRadius: 8,
                             borderSkipped: false,
@@ -248,8 +221,7 @@
                             tooltip: {
                                 callbacks: {
                                     label: function(context) {
-                                        const value = context.parsed.y;
-                                        return 'Rp ' + new Intl.NumberFormat('id-ID').format(value);
+                                        return 'Rp ' + new Intl.NumberFormat('id-ID').format(context.parsed.y);
                                     }
                                 }
                             }
@@ -271,33 +243,27 @@
                 });
             }
 
-            // 2. Fungsi Tampilkan Breakdown Ekspedisi (Drill-down)
-            // 2. Fungsi Tampilkan Breakdown Ekspedisi (Drill-down)
-            window.showEkspedisiBreakdown = function(divisiName, breakdownData) {
-                // Update UI Header
-                document.getElementById('chartTitle').innerHTML = `<i class="ti ti-chart-pie me-2"></i>Pendapatan: ${divisiName}`;
+            // 2. Fungsi Drill-down Dinamis (Bisa untuk Ekspedisi ATAU Divisi)
+            window.showBreakdownChart = function(mainName, breakdownData, subLabel) {
+                document.getElementById('chartTitle').innerHTML = `<i class="ti ti-chart-pie me-2"></i>Pendapatan per ${subLabel}: ${mainName}`;
                 document.getElementById('btnResetChart').classList.remove('d-none');
 
-                // Siapkan Data Breakdown
-                let labels = breakdownData.map(item => item.name);
-                let data = breakdownData.map(item => item.total_pendapatan); // <-- UBAH KEY NYA
-
-                // ✅ SORT DATA BREAKDOWN DULU (Descending by Total Pendapatan)
-                const sortedBreakdown = sortDataDescending(labels, data);
+                const labels = breakdownData.map(item => item.name);
+                const data = breakdownData.map(item => item.total_pendapatan);
+                const sorted = sortDataDescending(labels, data);
 
                 const colors = ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#6f42c1', '#fd7e14', '#20c997', '#6610f2'];
 
-                // Hancurkan chart lama & Buat chart baru
                 if (mainChart) mainChart.destroy();
 
                 mainChart = new Chart(ctx, {
                     type: 'bar',
                     data: {
-                        labels: sortedBreakdown.labels,
+                        labels: sorted.labels,
                         datasets: [{
-                            label: 'Total Pendapatan Bersih (Rp)', // <-- UBAH LABEL
-                            data: sortedBreakdown.values,
-                            backgroundColor: colors.slice(0, sortedBreakdown.labels.length),
+                            label: `Total Pendapatan per ${subLabel} (Rp)`,
+                            data: sorted.values,
+                            backgroundColor: colors.slice(0, sorted.labels.length),
                             borderRadius: 8,
                             borderSkipped: false,
                         }]
@@ -311,9 +277,7 @@
                             tooltip: {
                                 callbacks: {
                                     label: function(context) {
-                                        const value = context.parsed.y;
-                                        // <-- UBAH TOOLTIP KE FORMAT RUPIAH
-                                        return 'Rp ' + new Intl.NumberFormat('id-ID').format(value);
+                                        return 'Rp ' + new Intl.NumberFormat('id-ID').format(context.parsed.y);
                                     }
                                 }
                             }
@@ -321,7 +285,7 @@
                         scales: {
                             y: {
                                 beginAtZero: true,
-                                title: { display: true, text: 'Total Pendapatan (Rp)' }, // <-- UBAH JUDUL SUMBU Y
+                                title: { display: true, text: 'Total Pendapatan (Rp)' },
                                 ticks: {
                                     callback: function(value) {
                                         if (value >= 1000000) return (value / 1000000).toFixed(1) + ' jt';
@@ -336,7 +300,7 @@
                 });
             };
 
-            // 3. Fungsi Reset ke Chart Utama
+            // 3. Fungsi Reset
             window.resetChart = function() {
                 document.getElementById('chartTitle').innerHTML = `<i class="ti ti-chart-bar me-2"></i>Grafik Pendapatan Bersih`;
                 document.getElementById('btnResetChart').classList.add('d-none');

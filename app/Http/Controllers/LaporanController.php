@@ -19,10 +19,8 @@ class LaporanController extends Controller
     {
         $type = $request->get('type', 'harian');
 
-        // Default: Harian pakai tanggal hari ini, lainnya pakai bulan ini
         $defaultDate = ($type === 'harian') ? date('Y-m-d') : date('Y-m');
         $tanggal = $request->get('tanggal', $defaultDate);
-
         $date = Carbon::parse($tanggal);
 
         // 1. Tentukan Range Tanggal
@@ -30,84 +28,100 @@ class LaporanController extends Controller
             $startDate = $date->copy()->startOfDay();
             $endDate = $date->copy()->endOfDay();
         } else {
-            // Bulanan, Per User, Per Divisi menggunakan range 1 bulan penuh
             $startDate = $date->copy()->startOfMonth();
             $endDate = $date->copy()->endOfMonth();
         }
 
         // 2. Query Data Berdasarkan Tipe
         if ($type === 'per_user') {
-            // Ambil langsung string dari kolom UserCreate
-            $data = Transaksi::whereBetween('Tanggal', [$startDate, $endDate])
-                ->select(
-                    'UserCreate',
-                    DB::raw('COUNT(*) as jumlah_transaksi'),
-                    DB::raw('SUM(PendapatanBersih) as total_pendapatan')
-                )
+            $data = Transaksi::with('userCreate')->whereBetween('Tanggal', [$startDate, $endDate])
+                ->select('UserCreate', DB::raw('COUNT(*) as jumlah_transaksi'), DB::raw('SUM(PendapatanBersih) as total_pendapatan'))
                 ->groupBy('UserCreate')
                 ->orderBy('total_pendapatan', 'desc')
                 ->get();
 
             $chartLabels = $data->pluck('userCreate.name')->map(fn($n) => $n ?: 'Tidak Diketahui')->toArray();
-
-        } elseif ($type === 'per_divisi') {
-            // Ambil langsung string dari kolom Divisi
-            $data = Transaksi::whereBetween('Tanggal', [$startDate, $endDate])
-                ->select(
-                    'Divisi',
-                    DB::raw('COUNT(*) as jumlah_transaksi'),
-                    DB::raw('SUM(PendapatanBersih) as total_pendapatan')
-                )
-                ->groupBy('Divisi')
-                ->get();
-
-            // Urutkan data berdasar jumlah_transaksi dari terbanyak ke terkecil
-            $data = $data->sortByDesc('jumlah_transaksi')->values();
-
-            // Join ke tabel divisi untuk mendapatkan nama divisi (misal field 'nama_divisi')
-            $divisiNames = Divisi::pluck('Nama', 'id')->toArray();
-            $chartLabels = $data->pluck('Divisi')->map(function($divisiId) use ($divisiNames) {
-                return $divisiNames[$divisiId] ?? 'Tanpa Divisi';
-            })->toArray();
-
-            // ✅ TAMBAHAN: Ambil breakdown ekspedisi untuk setiap divisi
             $expeditionNames = Ekspedisi::pluck('NamaEkspedisi', 'id')->toArray();
 
+            // ✅ BREAKDOWN: Nominal per Ekspedisi untuk setiap User
             foreach ($data as $row) {
-                // Query khusus untuk mendapatkan TOTAL PENDAPATAN per ekspedisi di divisi ini
-                $ekspedisiData = Transaksi::whereBetween('Tanggal', [$startDate, $endDate])
-                    ->where('Divisi', $row->Divisi)
-                    ->select('Ekspedisi', DB::raw('SUM(PendapatanBersih) as total_pendapatan')) // <-- UBAH KE SUM
+                $breakdownData = Transaksi::whereBetween('Tanggal', [$startDate, $endDate])
+                    ->where('UserCreate', $row->UserCreate)
+                    ->select('Ekspedisi', DB::raw('SUM(PendapatanBersih) as total_pendapatan'))
                     ->groupBy('Ekspedisi')
                     ->get();
 
                 $breakdown = [];
-                foreach ($ekspedisiData as $exp) {
-                    $expName = $expeditionNames[$exp->Ekspedisi] ?? 'Ekspedisi ' . $exp->Ekspedisi;
+                foreach ($breakdownData as $exp) {
                     $breakdown[] = [
-                        'name' => $expName,
-                        'total_pendapatan' => $exp->total_pendapatan // <-- UBAH KEY NYA
+                        'name' => $expeditionNames[$exp->Ekspedisi] ?? 'Ekspedisi ' . $exp->Ekspedisi,
+                        'total_pendapatan' => $exp->total_pendapatan
                     ];
                 }
-                // Simpan ke dalam object row agar bisa diakses di view
-                $row->ekspedisi_breakdown = $breakdown;
+                $row->breakdown_data = $breakdown;
             }
-        }else {
-            // Harian & Bulanan (Default: Group by Ekspedisi)
+
+        } elseif ($type === 'per_divisi') {
             $data = Transaksi::whereBetween('Tanggal', [$startDate, $endDate])
-                ->select(
-                    'Ekspedisi',
-                    DB::raw('COUNT(*) as jumlah_transaksi'),
-                    DB::raw('SUM(PendapatanBersih) as total_pendapatan')
-                )
+                ->select('Divisi', DB::raw('COUNT(*) as jumlah_transaksi'), DB::raw('SUM(PendapatanBersih) as total_pendapatan'))
+                ->groupBy('Divisi')
+                ->get();
+
+            $data = $data->sortByDesc('jumlah_transaksi')->values();
+            $chartLabels = $data->pluck('Divisi')->map(fn($n) => $n ?: 'Tanpa Divisi')->toArray();
+            $expeditionNames = Ekspedisi::pluck('NamaEkspedisi', 'id')->toArray();
+
+            // ✅ BREAKDOWN: Nominal per Ekspedisi untuk setiap Divisi
+            foreach ($data as $row) {
+                $breakdownData = Transaksi::whereBetween('Tanggal', [$startDate, $endDate])
+                    ->where('Divisi', $row->Divisi)
+                    ->select('Ekspedisi', DB::raw('SUM(PendapatanBersih) as total_pendapatan'))
+                    ->groupBy('Ekspedisi')
+                    ->get();
+
+                $breakdown = [];
+                foreach ($breakdownData as $exp) {
+                    $breakdown[] = [
+                        'name' => $expeditionNames[$exp->Ekspedisi] ?? 'Ekspedisi ' . $exp->Ekspedisi,
+                        'total_pendapatan' => $exp->total_pendapatan
+                    ];
+                }
+                $row->breakdown_data = $breakdown; // Disamakan key-nya agar JS lebih mudah
+            }
+
+        } else {
+            // Harian & Bulanan (Group by Ekspedisi)
+            $data = Transaksi::whereBetween('Tanggal', [$startDate, $endDate])
+                ->select('Ekspedisi', DB::raw('COUNT(*) as jumlah_transaksi'), DB::raw('SUM(PendapatanBersih) as total_pendapatan'))
                 ->groupBy('Ekspedisi')
                 ->orderBy('total_pendapatan', 'desc')
                 ->get();
 
+            // Join ke master Divisi
+            $divisiNames = Divisi::pluck('Nama', 'id')->toArray();
             $expeditionNames = Ekspedisi::pluck('NamaEkspedisi', 'id')->toArray();
             $chartLabels = $data->pluck('Ekspedisi')->map(function ($id) use ($expeditionNames) {
                 return $expeditionNames[$id] ?? 'Ekspedisi ' . $id;
             })->toArray();
+
+
+            // ✅ BREAKDOWN: Nominal per Divisi untuk setiap Ekspedisi
+            foreach ($data as $row) {
+                $breakdownData = Transaksi::with('getDivisi')->whereBetween('Tanggal', [$startDate, $endDate])
+                    ->where('Ekspedisi', $row->Ekspedisi)
+                    ->select('Divisi', DB::raw('SUM(PendapatanBersih) as total_pendapatan'))
+                    ->groupBy('Divisi')
+                    ->get();
+
+                $breakdown = [];
+                foreach ($breakdownData as $div) {
+                    $breakdown[] = [
+                        'name' => $div->getDivisi->Nama ?: 'Tanpa Divisi',
+                        'total_pendapatan' => $div->total_pendapatan
+                    ];
+                }
+                $row->breakdown_data = $breakdown;
+            }
         }
 
         // 3. Hitung Total & Persentase
@@ -115,15 +129,11 @@ class LaporanController extends Controller
         $totalPendapatan = $data->sum('total_pendapatan');
 
         $dataWithPercentage = $data->map(function ($item) use ($totalPendapatan) {
-            $item->persentase = $totalPendapatan > 0
-                ? round(($item->total_pendapatan / $totalPendapatan) * 100, 1)
-                : 0;
+            $item->persentase = $totalPendapatan > 0 ? round(($item->total_pendapatan / $totalPendapatan) * 100, 1) : 0;
             return $item;
         });
 
-        // 4. Siapkan Data Grafik
         $chartData = $data->pluck('total_pendapatan')->toArray();
-        $expeditionNames = isset($expeditionNames) ? $expeditionNames : [];
 
         return view('laporan.index', compact(
             'type',

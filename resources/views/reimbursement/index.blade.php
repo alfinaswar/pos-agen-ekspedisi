@@ -54,6 +54,11 @@
                             </div>
                         </form>
 
+                        <!-- Show Entries Dropdown -->
+                        <div class="d-flex justify-content-between align-items-center mb-2 mt-3">
+                            <div id="showEntriesWrapper"></div>
+                        </div>
+
                         <div class="table-responsive">
                             <table class="table table-striped table-bordered dt-responsive nowrap align-middle mb-0" id="reimbursementTable" style="width: 100%;">
                                 <thead class="table-light">
@@ -71,6 +76,11 @@
                                 </thead>
                                 <tbody></tbody>
                             </table>
+                        </div>
+                        <!-- Info and pagination moved out for custom placement -->
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div id="tableInfoWrapper"></div>
+                            <div id="tablePaginationWrapper"></div>
                         </div>
                     </div>
                 </div>
@@ -188,7 +198,12 @@
                 processing: true,
                 destroy: true,
                 autoWidth: false,
-                dom: 'Bfrtip',
+                // dom: 'Bfrtip', old
+                // Show 'Show entries' and info, pagination in custom places
+                dom: "<'row'<'col-md-6'l><'col-md-6'f>>" +
+                     "rt" +
+                     "<'row'<'col-md-6'i><'col-md-6'p>>" +
+                     "B", // l = length, f = filter, i = info, p = pagination, B = buttons
                 buttons: [
                     {
                         extend: "excelHtml5",
@@ -260,8 +275,30 @@
                         render: (data) => data ? `<a href="/storage/${data}" target="_blank" class="btn btn-sm btn-outline-success" title="Lihat Bukti Transfer"><i class="ti ti-eye"></i></a>` : '<span class="text-muted">-</span>'
                     },
                     { data: 'action', name: 'action', searchable: false }
-                ]
+                ],
+                lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+                pageLength: 10,
+                drawCallback: function(settings) {
+                    // Move "show entries" to custom div
+                    var lengthMenu = $('#reimbursementTable_wrapper .dataTables_length');
+                    $('#showEntriesWrapper').html(lengthMenu);
+                    // Move info & pagination to their wrappers
+                    var info = $('#reimbursementTable_wrapper .dataTables_info');
+                    $('#tableInfoWrapper').html(info);
+                    var pagination = $('#reimbursementTable_wrapper .dataTables_paginate');
+                    $('#tablePaginationWrapper').html(pagination);
+                }
             });
+
+            // On first draw, move elements
+            setTimeout(function() {
+                var lengthMenu = $('#reimbursementTable_wrapper .dataTables_length');
+                $('#showEntriesWrapper').html(lengthMenu);
+                var info = $('#reimbursementTable_wrapper .dataTables_info');
+                $('#tableInfoWrapper').html(info);
+                var pagination = $('#reimbursementTable_wrapper .dataTables_paginate');
+                $('#tablePaginationWrapper').html(pagination);
+            }, 300);
         });
     </script>
 @endpush

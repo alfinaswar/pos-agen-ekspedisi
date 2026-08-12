@@ -34,7 +34,6 @@
             </div>
         </div>
     </div>
-
 @endif
 
 <div class="content pb-5">
@@ -92,6 +91,24 @@
                                     <div class="fw-semibold text-dark">
                                         <i class="ti ti-building me-1 text-primary"></i>
                                         {{ $transaksi->getDivisi->Nama ?: '-' }}
+                                    </div>
+                                </div>
+
+                                <!-- Tambahan: Nama Pengirim -->
+                                <div class="mb-3">
+                                    <label class="text-muted small mb-1 d-block">Nama Pengirim</label>
+                                    <div class="fw-semibold text-dark">
+                                        <i class="ti ti-user-check me-1 text-primary"></i>
+                                        {{ $transaksi->NamaPengirim ?? '-' }}
+                                    </div>
+                                </div>
+
+                                <!-- Tambahan: Kontak Pengirim -->
+                                <div class="mb-3">
+                                    <label class="text-muted small mb-1 d-block">Kontak Pengirim</label>
+                                    <div class="fw-semibold text-dark">
+                                        <i class="ti ti-phone me-1 text-primary"></i>
+                                        {{ $transaksi->KontakPengirim ?? '-' }}
                                     </div>
                                 </div>
                             </div>
@@ -261,9 +278,6 @@
                                         </div>
                                     </div>
                                 </div>
-
-
-
                             </div>
                         </div>
                     </div>
