@@ -228,7 +228,23 @@
                 $sidebarUser = auth()->user();
             @endphp
 
+            <!-- Pengumuman: Muncul jika Admin, Leader, Finance -->
+            @if($sidebarUser && in_array($sidebarUser->role, ['Admin', 'Leader', 'Finance']))
+            <li>
+                <a href="{{ route('pengumuman.index') }}" class="{{ request()->routeIs('pengumumam.*') ? 'active' : '' }}">
+                    <i class="bi bi-megaphone"></i>
+                    <span>Pengumuman</span>
+                </a>
+            </li>
+            @endif
 
+            <!-- Tambahkan Menu Pekerjaan Kurir -->
+            <li>
+                <a href="{{ route('pekerjaan-kurir.index') }}" class="{{ request()->routeIs('pekerjaan-kurir.*') ? 'active' : '' }}">
+                    <i class="bi bi-box"></i>
+                    <span>Pekerjaan Kurir</span>
+                </a>
+            </li>
 
             <!-- Absensi -->
             <li>

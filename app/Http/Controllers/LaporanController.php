@@ -68,7 +68,7 @@ class LaporanController extends Controller
                 ->get();
 
             $data = $data->sortByDesc('jumlah_transaksi')->values();
-            $chartLabels = $data->pluck('Divisi')->map(fn($n) => $n ?: 'Tanpa Divisi')->toArray();
+            $chartLabels = $data->pluck('getDivisi.Nama')->map(fn($n) => $n ?: 'Tanpa Divisi')->toArray();
             $expeditionNames = Ekspedisi::pluck('NamaEkspedisi', 'id')->toArray();
 
             // ✅ BREAKDOWN: Nominal per Ekspedisi untuk setiap Divisi

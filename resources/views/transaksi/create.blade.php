@@ -18,6 +18,10 @@
         display: none;
         animation: fadeIn 0.3s;
     }
+    /* Custom style for Tagihan section */
+    .tagihan-jatuh-tempo {
+        display: none;
+    }
 </style>
 
 <!-- Content Header dengan Breadcrumb -->
@@ -78,6 +82,37 @@
                                         @enderror
                                     </div>
 
+                                    <!-- Tagihan & Tanggal Jatuh Tempo -->
+                                    <div class="mb-4">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="TagihanSwitch" name="Tagihan" value="Y"
+                                                {{ old('Tagihan', 'N') == 'Y' ? 'checked' : '' }}>
+                                            <label class="form-check-label fw-semibold" for="TagihanSwitch">
+                                                <i class="ti ti-calendar-off me-1 text-primary"></i> Tagihan/Jatuh Tempo?
+                                            </label>
+                                        </div>
+                                        <div id="TanggalJatuhTempoWrapper" class="mt-3 tagihan-jatuh-tempo">
+                                            <label for="TanggalJatuhTempo" class="form-label fw-semibold">
+                                                <i class="ti ti-calendar-time me-1 text-primary"></i>
+                                                Tanggal Jatuh Tempo <span class="text-danger">*</span>
+                                            </label>
+                                            <input type="date"
+                                                   class="form-control @error('TanggalJatuhTempo') is-invalid @enderror"
+                                                   id="TanggalJatuhTempo"
+                                                   name="TanggalJatuhTempo"
+                                                   value="{{ old('TanggalJatuhTempo') }}">
+                                            <div class="form-text text-muted mt-1">
+                                                <i class="ti ti-info-circle me-1"></i>
+                                                Wajib diisi jika transaksi berupa tagihan (belum lunas).
+                                            </div>
+                                            @error('TanggalJatuhTempo')
+                                                <div class="invalid-feedback d-block error-fade-in">
+                                                    <i class="ti ti-alert-circle me-1"></i>{{ $message }}
+                                                </div>
+                                            @enderror
+                                        </div>
+                                    </div>
+
                                     <!-- Ekspedisi -->
                                     <div class="mb-4">
                                         <label for="Ekspedisi" class="form-label fw-semibold">
@@ -102,7 +137,7 @@
                                             </div>
                                         @enderror
                                     </div>
- <div class="mb-4">
+                                    <div class="mb-4">
                                         <label for="NamaPengirim" class="form-label fw-semibold">
                                             <i class="ti ti-user me-1 text-primary"></i> Nama Pengirim
                                         </label>
@@ -465,6 +500,31 @@
 
         // Jalankan saat user mengganti pilihan
         metodeSelect.addEventListener('change', toggleNonTunaiFields);
+
+        // 3. Logika Tagihan & Tanggal Jatuh Tempo
+        const tagihanSwitch = document.getElementById('TagihanSwitch');
+        const tanggalJatuhTempoWrapper = document.getElementById('TanggalJatuhTempoWrapper');
+        const tanggalJatuhTempoInput = document.getElementById('TanggalJatuhTempo');
+
+        // Fungsi show/hide input tanggal jatuh tempo
+        function toggleJatuhTempoInput(){
+            if (tagihanSwitch.checked) {
+                tanggalJatuhTempoWrapper.style.display = 'block';
+                tanggalJatuhTempoInput.setAttribute('required', 'required');
+                tagihanSwitch.value = 'Y';
+            } else {
+                tanggalJatuhTempoWrapper.style.display = 'none';
+                tanggalJatuhTempoInput.removeAttribute('required');
+                tanggalJatuhTempoInput.value = '';
+                tagihanSwitch.value = 'N';
+            }
+        }
+
+        // Jalankan saat halaman dimuat
+        toggleJatuhTempoInput();
+
+        // Saat klik checkbox
+        tagihanSwitch.addEventListener('change', toggleJatuhTempoInput);
     });
 </script>
 @endsection

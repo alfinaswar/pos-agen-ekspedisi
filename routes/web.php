@@ -4,6 +4,8 @@ use App\Http\Controllers\AbsensiController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DivisiController;
 use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\PekerjaanKurirController;
+use App\Http\Controllers\PengumumanController;
 use App\Http\Controllers\ReimbursementController;
 use App\Http\Controllers\TransaksiController;
 use App\Http\Controllers\UserController;
@@ -52,7 +54,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/reimbursement/export', [ReimbursementController::class, 'export'])->name('reimbursement.export');
     Route::resource('reimbursement', ReimbursementController::class);
 
+    Route::resource('pekerjaan-kurir', PekerjaanKurirController::class);
     Route::resource('divisi', DivisiController::class);
+    Route::resource('pengumuman', PengumumanController::class);
     Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
     Route::resource('users', UserController::class);
     Route::get('/laporan/export', [LaporanController::class, 'exportExcel'])->name('laporan.export');

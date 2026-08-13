@@ -107,8 +107,8 @@
                                                 @elseif($type === 'per_divisi')
                                                     {{-- Klik Divisi -> Breakdown per Ekspedisi --}}
                                                     <button type="button" class="btn btn-sm btn-link text-dark fw-semibold text-decoration-none p-0 d-flex align-items-center"
-                                                            onclick="showBreakdownChart('{{ addslashes($row->Divisi ?? 'Tanpa Divisi') }}', {{ json_encode($row->breakdown_data) }}, 'Ekspedisi')">
-                                                        <i class="ti ti-chart-pie me-1 text-primary"></i> {{ $row->Divisi ?? 'Tanpa Divisi' }}
+                                                            onclick="showBreakdownChart('{{ addslashes($row->getDivisi->Nama ?? 'Tanpa Divisi') }}', {{ json_encode($row->breakdown_data) }}, 'Ekspedisi')">
+                                                        <i class="ti ti-chart-pie me-1 text-primary"></i> {{ $row->getDivisi->Nama ?? 'Tanpa Divisi' }}
                                                     </button>
                                                 @else
                                                     {{-- Klik Ekspedisi (Harian/Bulanan) -> Breakdown per Divisi --}}

@@ -202,6 +202,9 @@ class TransaksiController extends Controller
             'KodeBayar'     => 'required_if:Metode,Non-Tunai|nullable|string|max:255',
             'BuktiBayar'    => 'required_if:Metode,Non-Tunai|file|mimes:jpg,jpeg,png,pdf|max:2348', // Wajib kalau Non-Tunai, maks 2MB
             'Keterangan'    => 'nullable|string',
+            'Tagihan'           => 'nullable|in:Y,N',
+            'TanggalJatuhTempo' => 'required_if:Tagihan,Y|nullable|date',
+
         ]);
 
 
@@ -271,6 +274,8 @@ class TransaksiController extends Controller
             'KodeBayar' => 'required_if:Metode,Non-Tunai|nullable|string|max:255',
             'BuktiBayar' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'Keterangan' => 'nullable|string',
+            'Tagihan' => 'nullable|in:Y,N',
+            'TanggalJatuhTempo' => 'required_if:Tagihan,Y|nullable|date',
         ]);
 
 

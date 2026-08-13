@@ -32,7 +32,7 @@
                     <div class="card-body">
                         {{-- LETAKKAN FILTER DISINI --}}
                         <form id="filterForm" >
-                            <div class="row g-2 align-items-end">
+                            <div class="row g-2 align-items-end mb-3">
                                 <div class="col-md-4">
                                     <label for="filterTanggal" class="form-label mb-1 fw-normal">Filter Tanggal</label>
                                     <input type="text" id="filterTanggal" class="form-control form-control-sm" autocomplete="off" placeholder="Pilih rentang tanggal">
@@ -55,9 +55,11 @@
                         </form>
 
                         <!-- Show Entries Dropdown -->
-                        <div class="d-flex justify-content-between align-items-center mb-2 mt-3">
-                            <div id="showEntriesWrapper"></div>
-                        </div>
+                        {{--
+                        Perbaikan:
+                        Hapus custom wrapper showEntriesWrapper.
+                        Biarkan DataTables mengatur penempatan dropdown "Show entries" secara default.
+                        --}}
 
                         <div class="table-responsive">
                             <table class="table table-striped table-bordered dt-responsive nowrap align-middle mb-0" id="reimbursementTable" style="width: 100%;">
@@ -198,12 +200,10 @@
                 processing: true,
                 destroy: true,
                 autoWidth: false,
-                // dom: 'Bfrtip', old
-                // Show 'Show entries' and info, pagination in custom places
-                dom: "<'row'<'col-md-6'l><'col-md-6'f>>" +
+                // Perbaikan: dom default saja, biar show entries tidak hilang
+                dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
                      "rt" +
-                     "<'row'<'col-md-6'i><'col-md-6'p>>" +
-                     "B", // l = length, f = filter, i = info, p = pagination, B = buttons
+                     "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
                 buttons: [
                     {
                         extend: "excelHtml5",
@@ -232,7 +232,6 @@
                         d.status = $('#filterStatus').val();
                     }
                 },
-                // ✅ Default sorting: Tanggal Terbaru ke Terlama (desc)
                 order: [[1, 'desc']],
                 language: {
                     processing: '<div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div> Memuat data...',
@@ -279,25 +278,22 @@
                 lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
                 pageLength: 10,
                 drawCallback: function(settings) {
-                    // Move "show entries" to custom div
-                    var lengthMenu = $('#reimbursementTable_wrapper .dataTables_length');
-                    $('#showEntriesWrapper').html(lengthMenu);
-                    // Move info & pagination to their wrappers
+                    // Hanya pindahkan info & pagination
                     var info = $('#reimbursementTable_wrapper .dataTables_info');
-                    $('#tableInfoWrapper').html(info);
+                    $('#tableInfoWrapper').empty().append(info);
                     var pagination = $('#reimbursementTable_wrapper .dataTables_paginate');
-                    $('#tablePaginationWrapper').html(pagination);
+                    $('#tablePaginationWrapper').empty().append(pagination);
+                    // Jangan sentuh/move .dataTables_length agar "Show entries" tetap stabil
                 }
             });
 
-            // On first draw, move elements
+            // On first draw, move only info & pagination
             setTimeout(function() {
-                var lengthMenu = $('#reimbursementTable_wrapper .dataTables_length');
-                $('#showEntriesWrapper').html(lengthMenu);
                 var info = $('#reimbursementTable_wrapper .dataTables_info');
-                $('#tableInfoWrapper').html(info);
+                $('#tableInfoWrapper').empty().append(info);
                 var pagination = $('#reimbursementTable_wrapper .dataTables_paginate');
-                $('#tablePaginationWrapper').html(pagination);
+                $('#tablePaginationWrapper').empty().append(pagination);
+                // Jangan move .dataTables_length
             }, 300);
         });
     </script>
