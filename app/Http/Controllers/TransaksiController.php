@@ -38,7 +38,7 @@ class TransaksiController extends Controller
                     'Status',
                     'Catatan' // <-- TAMBAHKAN 'Catatan'
                 ])
-                ->orderBy('Tanggal', 'desc');
+                ->orderBy('id', 'desc');
 
             // Kalau bukan admin/leader/finance, hanya tampilkan data milik user itu sendiri
             if (!auth()->user() || !in_array(auth()->user()->role, ['Admin', 'Leader', 'Finance'])) {
@@ -197,17 +197,16 @@ class TransaksiController extends Controller
             'Tanggal'       => 'required|date',
             'Ekspedisi'     => 'required|string|max:255',
             'NoResi'        => 'required|string|max:255',
-            'Metode'        => 'required|in:Tunai,Non-Tunai,COD',
+            'Metode'        => 'required|in:Tunai,Non-Tunai,COD,Tagihan,Qris,Transfer,',
             'Pendapatan'    => 'required|numeric|min:0',
             'KodeBayar'     => 'required_if:Metode,Non-Tunai|nullable|string|max:255',
             'BuktiBayar'    => 'required_if:Metode,Non-Tunai|file|mimes:jpg,jpeg,png,pdf|max:2348', // Wajib kalau Non-Tunai, maks 2MB
             'Keterangan'    => 'nullable|string',
-            'Tagihan'           => 'nullable|in:Y,N',
-            'TanggalJatuhTempo' => 'required_if:Tagihan,Y|nullable|date',
+            'TanggalJatuhTempoMetode' => 'required_if:Metode,Tagihan|nullable|date',
 
         ]);
 
-
+// dd($request->all());
         $data = $request->except(['BuktiBayar']);
         $data['Divisi'] = auth()->user()->divisi ?? '-';
 
@@ -269,13 +268,12 @@ class TransaksiController extends Controller
             'Tanggal' => 'required|date',
             'Ekspedisi' => 'required|string|max:255',
             'NoResi' => 'required|string|max:255',
-            'Metode' => 'required|in:Tunai,Non-Tunai,COD',
+            'Metode' => 'required|in:Tunai,Non-Tunai,COD,Tagihan,Qris,Transfer',
             'Pendapatan' => 'required|numeric|min:0',
             'KodeBayar' => 'required_if:Metode,Non-Tunai|nullable|string|max:255',
             'BuktiBayar' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'Keterangan' => 'nullable|string',
-            'Tagihan' => 'nullable|in:Y,N',
-            'TanggalJatuhTempo' => 'required_if:Tagihan,Y|nullable|date',
+            'TanggalJatuhTempo' => 'required_if:Metode,Tagihan|nullable|date',
         ]);
 
 

@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function Up()
     {
-        Schema::create('PekerjaanKurirs', function (Blueprint $table) {
+        Schema::create('pekerjaan_kurirs', function (Blueprint $table) {
             $table->id();
             $table->date('Tanggal')->nullable();
             $table->time('Jam')->nullable();

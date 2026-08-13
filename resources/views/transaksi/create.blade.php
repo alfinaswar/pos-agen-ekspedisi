@@ -45,7 +45,6 @@
 <!-- Main Form Content -->
 <div class="content pb-5">
     <div class="container-fluid">
-        <!-- col-md-12 wajib, dibatasi max xl-8 dan lg-10 agar tetap rapi di layar besar -->
         <div class="row justify-content-center">
             <div class="col-xl-12 col-lg-10 col-md-12">
                 <div class="card shadow-sm border-0">
@@ -80,37 +79,6 @@
                                                 <i class="ti ti-alert-circle me-1"></i>{{ $message }}
                                             </div>
                                         @enderror
-                                    </div>
-
-                                    <!-- Tagihan & Tanggal Jatuh Tempo -->
-                                    <div class="mb-4">
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" id="TagihanSwitch" name="Tagihan" value="Y"
-                                                {{ old('Tagihan', 'N') == 'Y' ? 'checked' : '' }}>
-                                            <label class="form-check-label fw-semibold" for="TagihanSwitch">
-                                                <i class="ti ti-calendar-off me-1 text-primary"></i> Tagihan/Jatuh Tempo?
-                                            </label>
-                                        </div>
-                                        <div id="TanggalJatuhTempoWrapper" class="mt-3 tagihan-jatuh-tempo">
-                                            <label for="TanggalJatuhTempo" class="form-label fw-semibold">
-                                                <i class="ti ti-calendar-time me-1 text-primary"></i>
-                                                Tanggal Jatuh Tempo <span class="text-danger">*</span>
-                                            </label>
-                                            <input type="date"
-                                                   class="form-control @error('TanggalJatuhTempo') is-invalid @enderror"
-                                                   id="TanggalJatuhTempo"
-                                                   name="TanggalJatuhTempo"
-                                                   value="{{ old('TanggalJatuhTempo') }}">
-                                            <div class="form-text text-muted mt-1">
-                                                <i class="ti ti-info-circle me-1"></i>
-                                                Wajib diisi jika transaksi berupa tagihan (belum lunas).
-                                            </div>
-                                            @error('TanggalJatuhTempo')
-                                                <div class="invalid-feedback d-block error-fade-in">
-                                                    <i class="ti ti-alert-circle me-1"></i>{{ $message }}
-                                                </div>
-                                            @enderror
-                                        </div>
                                     </div>
 
                                     <!-- Ekspedisi -->
@@ -209,9 +177,32 @@
                                                 required>
                                             <option value="Tunai" {{ old('Metode', 'Tunai') == 'Tunai' ? 'selected' : '' }}>Tunai</option>
                                             <option value="COD" {{ old('Metode') == 'COD' ? 'selected' : '' }}>COD</option>
-                                            <option value="Non-Tunai" {{ old('Metode') == 'Non-Tunai' ? 'selected' : '' }}>Non-Tunai</option>
+                                            <option value="Tagihan" {{ old('Metode') == 'Tagihan' ? 'selected' : '' }}>Tagihan</option>
+                                            <option value="Qris" {{ old('Metode') == 'Qris' ? 'selected' : '' }}>Qris</option>
+                                            <option value="Transfer" {{ old('Metode') == 'Transfer' ? 'selected' : '' }}>Transfer</option>
                                         </select>
                                         @error('Metode')
+                                            <div class="invalid-feedback d-block error-fade-in">
+                                                <i class="ti ti-alert-circle me-1"></i>{{ $message }}
+                                            </div>
+                                        @enderror
+                                    </div>
+
+                                    <!-- Tanggal Jatuh Tempo (Khusus Tagihan) -->
+                                    <div class="mb-4" id="TanggalJatuhTempoMetodeWrapper" style="display:none;">
+                                        <label for="TanggalJatuhTempoMetode" class="form-label fw-semibold">
+                                            <i class="ti ti-calendar-time me-1 text-primary"></i> Tanggal Jatuh Tempo <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="date"
+                                            class="form-control @error('TanggalJatuhTempoMetode') is-invalid @enderror"
+                                            id="TanggalJatuhTempoMetode"
+                                            name="TanggalJatuhTempoMetode"
+                                            value="{{ old('TanggalJatuhTempoMetode') }}">
+                                        <div class="form-text text-muted mt-1">
+                                            <i class="ti ti-info-circle me-1"></i>
+                                            Wajib diisi untuk pembayaran Tagihan.
+                                        </div>
+                                        @error('TanggalJatuhTempoMetode')
                                             <div class="invalid-feedback d-block error-fade-in">
                                                 <i class="ti ti-alert-circle me-1"></i>{{ $message }}
                                             </div>
@@ -223,13 +214,11 @@
                                         <label for="PendapatanFormatted" class="form-label fw-semibold">
                                             <i class="ti ti-cash me-1 text-primary"></i> Pendapatan <span class="text-danger">*</span>
                                         </label>
-                                        <!-- Input Tampilan (Formatted) -->
                                         <input type="text"
                                                class="form-control @error('Pendapatan') is-invalid @enderror"
                                                id="PendapatanFormatted"
                                                placeholder="Rp 0"
                                                autocomplete="off">
-                                        <!-- Input Tersembunyi (Raw Value untuk Submit) -->
                                         <input type="hidden" name="Pendapatan" id="PendapatanRaw" value="{{ old('Pendapatan', 0) }}">
 
                                         <div class="form-text text-muted mt-1">
@@ -252,9 +241,7 @@
                                                id="DiskonFormatted"
                                                placeholder="Rp 0"
                                                autocomplete="off"
-                                               inputmode="numeric"
-                                               {{-- pattern="[0-9]*" --}}
-                                               >
+                                               inputmode="numeric">
                                         <input type="hidden" name="Diskon" id="DiskonRaw" value="{{ old('Diskon', 0) }}">
                                         <span class="diskon-error" id="DiskonErrorMsg">
                                             <i class="ti ti-alert-circle me-1"></i>Nilai diskon tidak boleh lebih besar dari Pendapatan.
@@ -285,7 +272,7 @@
                                         </div>
                                     </div>
 
-                                    <!-- Kode Bayar (Conditional: Hanya muncul jika Non-Tunai) -->
+                                    <!-- Kode Bayar (Qris & Transfer saja) -->
                                     <div class="mb-4" id="KodeBayarWrapper" style="display: none;">
                                         <label for="KodeBayar" class="form-label fw-semibold">
                                             <i class="ti ti-receipt me-1 text-primary"></i> Kode Bayar <span class="text-danger">*</span>
@@ -297,7 +284,7 @@
                                                value="{{ old('KodeBayar') }}"
                                                placeholder="Contoh: 8801928374 (VA) atau QRIS">
                                         <div class="form-text text-muted mt-1">
-                                            <i class="ti ti-info-circle me-1"></i>Wajib diisi untuk metode Non-Tunai.
+                                            <i class="ti ti-info-circle me-1"></i>Wajib diisi untuk metode QRIS atau Transfer.
                                         </div>
                                         @error('KodeBayar')
                                             <div class="invalid-feedback d-block error-fade-in">
@@ -306,7 +293,7 @@
                                         @enderror
                                     </div>
 
-                                    <!-- Bukti Bayar (Conditional: Hanya muncul jika Non-Tunai) -->
+                                    <!-- Bukti Bayar (Qris & Transfer saja) -->
                                     <div class="mb-4" id="BuktiBayarWrapper" style="display: none;">
                                         <label for="BuktiBayar" class="form-label fw-semibold">
                                             <i class="ti ti-photo me-1 text-primary"></i> Bukti Pembayaran
@@ -365,7 +352,6 @@
     </div>
 </div>
 
-<!-- JavaScript untuk Logika Form -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // 1. Logika Format Rupiah Otomatis & Pendapatan Bersih
@@ -428,21 +414,15 @@
         validateDiskon();
 
         inputFormatted.addEventListener('input', function(e) {
-            // Hapus semua karakter kecuali angka
             let rawValue = this.value.replace(/[^0-9]/g, '');
-            // Update hidden input dengan raw value (tanpa titik)
             inputRaw.value = rawValue;
-
-            // Update batas maksimal diskon
             diskonFormatted.setAttribute('max', rawValue);
 
-            // Format tampilan
             if (rawValue === '') {
                 this.value = '';
             } else {
                 this.value = 'Rp ' + formatRupiah(rawValue);
             }
-            // Jika Diskon saat ini lebih dari pendapatan, potong secara otomatis
             if (parseInt(diskonRaw.value) > parseInt(rawValue)) {
                 diskonRaw.value = rawValue;
                 diskonFormatted.value = rawValue === "" ? "" : 'Rp ' + formatRupiah(rawValue);
@@ -453,7 +433,6 @@
 
         diskonFormatted.addEventListener('input', function(e) {
             let rawValue = this.value.replace(/[^0-9]/g, '');
-            // Langsung set maksimal diskon sesuai pendapatan
             let pendapatanValue = parseInt(inputRaw.value) || 0;
             if (rawValue !== "" && parseInt(rawValue) > pendapatanValue) {
                 rawValue = pendapatanValue.toString();
@@ -468,7 +447,6 @@
             validateDiskon();
         });
 
-        // Prevent submit if diskon > pendapatan
         form.addEventListener('submit', function(e){
             if (!validateDiskon(true)) {
                 diskonFormatted.focus();
@@ -476,55 +454,44 @@
             }
         });
 
-        // 2. Logika Show/Hide Field Non-Tunai
+        // 2. Logika Show/Hide Field (Tagihan, QRIS, Transfer)
+
         const metodeSelect = document.getElementById('Metode');
         const kodeBayarWrapper = document.getElementById('KodeBayarWrapper');
         const buktiBayarWrapper = document.getElementById('BuktiBayarWrapper');
         const kodeBayarInput = document.getElementById('KodeBayar');
+        const tanggalJatuhTempoMetodeWrapper = document.getElementById('TanggalJatuhTempoMetodeWrapper');
+        const tanggalJatuhTempoMetodeInput = document.getElementById('TanggalJatuhTempoMetode');
 
-        function toggleNonTunaiFields() {
-            if (metodeSelect.value === 'Non-Tunai') {
+        function toggleMetodeFields() {
+            // QRIS & Transfer:
+            if (metodeSelect.value === 'Qris' || metodeSelect.value === 'Transfer') {
                 kodeBayarWrapper.style.display = 'block';
                 buktiBayarWrapper.style.display = 'block';
-                kodeBayarInput.setAttribute('required', 'required'); // Jadikan wajib
+                kodeBayarInput.setAttribute('required', 'required');
             } else {
                 kodeBayarWrapper.style.display = 'none';
                 buktiBayarWrapper.style.display = 'none';
-                kodeBayarInput.removeAttribute('required'); // Hapus wajib
-                kodeBayarInput.value = ''; // Reset nilai
+                kodeBayarInput.removeAttribute('required');
+                kodeBayarInput.value = '';
+            }
+
+            // Tagihan:
+            if (metodeSelect.value === 'Tagihan') {
+                tanggalJatuhTempoMetodeWrapper.style.display = 'block';
+                tanggalJatuhTempoMetodeInput.setAttribute('required', 'required');
+            } else {
+                tanggalJatuhTempoMetodeWrapper.style.display = 'none';
+                tanggalJatuhTempoMetodeInput.removeAttribute('required');
+                tanggalJatuhTempoMetodeInput.value = '';
             }
         }
 
         // Jalankan saat halaman dimuat (untuk handle old input)
-        toggleNonTunaiFields();
+        toggleMetodeFields();
 
         // Jalankan saat user mengganti pilihan
-        metodeSelect.addEventListener('change', toggleNonTunaiFields);
-
-        // 3. Logika Tagihan & Tanggal Jatuh Tempo
-        const tagihanSwitch = document.getElementById('TagihanSwitch');
-        const tanggalJatuhTempoWrapper = document.getElementById('TanggalJatuhTempoWrapper');
-        const tanggalJatuhTempoInput = document.getElementById('TanggalJatuhTempo');
-
-        // Fungsi show/hide input tanggal jatuh tempo
-        function toggleJatuhTempoInput(){
-            if (tagihanSwitch.checked) {
-                tanggalJatuhTempoWrapper.style.display = 'block';
-                tanggalJatuhTempoInput.setAttribute('required', 'required');
-                tagihanSwitch.value = 'Y';
-            } else {
-                tanggalJatuhTempoWrapper.style.display = 'none';
-                tanggalJatuhTempoInput.removeAttribute('required');
-                tanggalJatuhTempoInput.value = '';
-                tagihanSwitch.value = 'N';
-            }
-        }
-
-        // Jalankan saat halaman dimuat
-        toggleJatuhTempoInput();
-
-        // Saat klik checkbox
-        tagihanSwitch.addEventListener('change', toggleJatuhTempoInput);
+        metodeSelect.addEventListener('change', toggleMetodeFields);
     });
 </script>
 @endsection

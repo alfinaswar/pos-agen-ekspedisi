@@ -11,20 +11,16 @@
     .error-fade-in {
         animation: fadeIn 0.3s ease-in-out forwards;
     }
-    .preview-bukti {
-        max-width: 100%;
-        max-height: 150px;
-        object-fit: contain;
-        border: 1px dashed #ced4da;
-        border-radius: 0.375rem;
-        padding: 4px;
-        background-color: #f8f9fa;
-    }
-    .invalid-message {
-        color: #dc3545;
-        font-size: 0.92em;
+    .diskon-error {
+        color: #d93025;
+        font-size: 0.95em;
+        margin-top: 3px;
         display: none;
-        margin-top: 0.35rem;
+        animation: fadeIn 0.3s;
+    }
+    /* Custom style for Tagihan section */
+    .tagihan-jatuh-tempo {
+        display: none;
     }
 </style>
 
@@ -54,38 +50,18 @@
                 <div class="card shadow-sm border-0">
                     <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
                         <h5 class="mb-0 fw-bold text-primary">
-                            <i class="ti ti-edit me-2"></i>Form Edit Transaksi
+                            <i class="ti ti-receipt me-2"></i>Form Edit Transaksi
                         </h5>
                     </div>
-
                     <div class="card-body p-4">
-                        <!-- Method PUT/PATCH untuk Update -->
-                        <form action="{{ route('transaksi.update', $transaksi->id) }}" method="POST" enctype="multipart/form-data" id="formEditTransaksi">
+                        <!-- Edit form: pakai PATCH dan isi value dari $transaksi -->
+                        <form action="{{ route('transaksi.update', $transaksi->id) }}" method="POST" enctype="multipart/form-data" id="formTransaksi">
                             @csrf
-                            @method('PUT')
+                            @method('PATCH')
 
                             <div class="row">
                                 <!-- Kolom Kiri -->
                                 <div class="col-md-6">
-                                    <!-- Kode Transaksi (Readonly) -->
-                                    <div class="mb-4">
-                                        <label for="KodeTransaksi" class="form-label fw-semibold">
-                                            <i class="ti ti-hash me-1 text-primary"></i> Kode Transaksi
-                                        </label>
-                                        <div class="input-group">
-                                            <input type="text"
-                                                   class="form-control bg-light"
-                                                   id="KodeTransaksi"
-                                                   value="{{ old('KodeTransaksi', $transaksi->KodeTransaksi) }}"
-                                                   readonly>
-                                            <span class="input-group-text bg-light border-start-0">
-                                                <i class="ti ti-lock text-muted"></i>
-                                            </span>
-                                        </div>
-                                        <div class="form-text text-muted mt-1">
-                                            <i class="ti ti-info-circle me-1"></i>Kode transaksi tidak dapat diubah.
-                                        </div>
-                                    </div>
 
                                     <!-- Tanggal -->
                                     <div class="mb-4">
@@ -114,26 +90,22 @@
                                                 id="Ekspedisi"
                                                 name="Ekspedisi">
                                             <option value="">-- Pilih Ekspedisi --</option>
-                                            @if(isset($ekspedisis))
-                                                @foreach($ekspedisis as $exp)
-                                                    <option value="{{ $exp->id }}" {{ old('Ekspedisi', $transaksi->Ekspedisi) == $exp->id ? 'selected' : '' }}>
-                                                        {{ $exp->NamaEkspedisi }}
-                                                    </option>
-                                                @endforeach
-                                            @else
-                                                <!-- Fallback jika tidak ada relasi, gunakan nilai string langsung -->
-                                                <option value="{{ old('Ekspedisi', $transaksi->Ekspedisi) }}" selected>
-                                                    {{ old('Ekspedisi', $transaksi->Ekspedisi) }}
+                                            @foreach($ekspedisis as $exp)
+                                                <option value="{{ $exp->id }}"
+                                                    {{ old('Ekspedisi', $transaksi->Ekspedisi) == $exp->id ? 'selected' : '' }}>
+                                                    {{ $exp->NamaEkspedisi }}
                                                 </option>
-                                            @endif
+                                            @endforeach
                                         </select>
+                                        <div class="form-text text-muted mt-1">
+                                            <i class="ti ti-info-circle me-1"></i>Pilih jasa ekspedisi yang digunakan.
+                                        </div>
                                         @error('Ekspedisi')
                                             <div class="invalid-feedback d-block error-fade-in">
                                                 <i class="ti ti-alert-circle me-1"></i>{{ $message }}
                                             </div>
                                         @enderror
                                     </div>
-                                    <!-- ✅ TAMBAHAN: Nama Pengirim -->
                                     <div class="mb-4">
                                         <label for="NamaPengirim" class="form-label fw-semibold">
                                             <i class="ti ti-user me-1 text-primary"></i> Nama Pengirim
@@ -144,6 +116,9 @@
                                                name="NamaPengirim"
                                                value="{{ old('NamaPengirim', $transaksi->NamaPengirim) }}"
                                                placeholder="Contoh: Budi Santoso">
+                                        <div class="form-text text-muted mt-1">
+                                            <i class="ti ti-info-circle me-1"></i>Nama pelanggan/pengirim barang.
+                                        </div>
                                         @error('NamaPengirim')
                                             <div class="invalid-feedback d-block error-fade-in">
                                                 <i class="ti ti-alert-circle me-1"></i>{{ $message }}
@@ -151,7 +126,7 @@
                                         @enderror
                                     </div>
 
-                                    <!-- ✅ TAMBAHAN: Kontak Pengirim -->
+                                    <!-- Kontak Pengirim -->
                                     <div class="mb-4">
                                         <label for="KontakPengirim" class="form-label fw-semibold">
                                             <i class="ti ti-phone me-1 text-primary"></i> Kontak Pengirim
@@ -162,12 +137,16 @@
                                                name="KontakPengirim"
                                                value="{{ old('KontakPengirim', $transaksi->KontakPengirim) }}"
                                                placeholder="Contoh: 0812-3456-7890">
+                                        <div class="form-text text-muted mt-1">
+                                            <i class="ti ti-info-circle me-1"></i>Nomor WhatsApp/Telepon pengirim.
+                                        </div>
                                         @error('KontakPengirim')
                                             <div class="invalid-feedback d-block error-fade-in">
                                                 <i class="ti ti-alert-circle me-1"></i>{{ $message }}
                                             </div>
                                         @enderror
                                     </div>
+
                                     <!-- No. Resi -->
                                     <div class="mb-4">
                                         <label for="NoResi" class="form-label fw-semibold">
@@ -200,9 +179,32 @@
                                                 required>
                                             <option value="Tunai" {{ old('Metode', $transaksi->Metode) == 'Tunai' ? 'selected' : '' }}>Tunai</option>
                                             <option value="COD" {{ old('Metode', $transaksi->Metode) == 'COD' ? 'selected' : '' }}>COD</option>
-                                            <option value="Non-Tunai" {{ old('Metode', $transaksi->Metode) == 'Non-Tunai' ? 'selected' : '' }}>Non-Tunai</option>
+                                            <option value="Tagihan" {{ old('Metode', $transaksi->Metode) == 'Tagihan' ? 'selected' : '' }}>Tagihan</option>
+                                            <option value="Qris" {{ old('Metode', $transaksi->Metode) == 'Qris' ? 'selected' : '' }}>Qris</option>
+                                            <option value="Transfer" {{ old('Metode', $transaksi->Metode) == 'Transfer' ? 'selected' : '' }}>Transfer</option>
                                         </select>
                                         @error('Metode')
+                                            <div class="invalid-feedback d-block error-fade-in">
+                                                <i class="ti ti-alert-circle me-1"></i>{{ $message }}
+                                            </div>
+                                        @enderror
+                                    </div>
+
+                                    <!-- Tanggal Jatuh Tempo (Khusus Tagihan) -->
+                                    <div class="mb-4" id="TanggalJatuhTempoMetodeWrapper" style="display:none;">
+                                        <label for="TanggalJatuhTempoMetode" class="form-label fw-semibold">
+                                            <i class="ti ti-calendar-time me-1 text-primary"></i> Tanggal Jatuh Tempo <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="date"
+                                            class="form-control @error('TanggalJatuhTempoMetode') is-invalid @enderror"
+                                            id="TanggalJatuhTempoMetode"
+                                            name="TanggalJatuhTempoMetode"
+                                            value="{{ old('TanggalJatuhTempoMetode', $transaksi->TanggalJatuhTempoMetode) }}">
+                                        <div class="form-text text-muted mt-1">
+                                            <i class="ti ti-info-circle me-1"></i>
+                                            Wajib diisi untuk pembayaran Tagihan.
+                                        </div>
+                                        @error('TanggalJatuhTempoMetode')
                                             <div class="invalid-feedback d-block error-fade-in">
                                                 <i class="ti ti-alert-circle me-1"></i>{{ $message }}
                                             </div>
@@ -218,7 +220,8 @@
                                                class="form-control @error('Pendapatan') is-invalid @enderror"
                                                id="PendapatanFormatted"
                                                placeholder="Rp 0"
-                                               autocomplete="off">
+                                               autocomplete="off"
+                                               value="Rp {{ old('Pendapatan', number_format($transaksi->Pendapatan,0,',','.')) }}">
                                         <input type="hidden" name="Pendapatan" id="PendapatanRaw" value="{{ old('Pendapatan', $transaksi->Pendapatan) }}">
 
                                         <div class="form-text text-muted mt-1">
@@ -241,16 +244,14 @@
                                                id="DiskonFormatted"
                                                placeholder="Rp 0"
                                                autocomplete="off"
-                                               value="{{ old('Diskon', $transaksi->Diskon ?? 0) ? 'Rp ' . number_format(old('Diskon', $transaksi->Diskon ?? 0), 0, ',', '.') : '' }}">
-                                        <input type="hidden" name="Diskon" id="DiskonRaw" value="{{ old('Diskon', $transaksi->Diskon ?? 0) }}">
-
-                                        <!-- Diskon lebih besar dari pendapatan - error pesan -->
-                                        <div id="diskon-error-msg" class="invalid-message">
-                                            <i class="ti ti-alert-circle me-1"></i>Nominal Diskon tidak boleh lebih besar dari Pendapatan.
-                                        </div>
-
+                                               inputmode="numeric"
+                                               value="Rp {{ old('Diskon', number_format($transaksi->Diskon,0,',','.')) }}">
+                                        <input type="hidden" name="Diskon" id="DiskonRaw" value="{{ old('Diskon', $transaksi->Diskon) }}">
+                                        <span class="diskon-error" id="DiskonErrorMsg">
+                                            <i class="ti ti-alert-circle me-1"></i>Nilai diskon tidak boleh lebih besar dari Pendapatan.
+                                        </span>
                                         <div class="form-text text-muted mt-1">
-                                            <i class="ti ti-info-circle me-1"></i>Ketik angka diskon jika ada, format Rupiah otomatis.
+                                            <i class="ti ti-info-circle me-1"></i>Masukkan nilai diskon jika ada.
                                         </div>
                                         @error('Diskon')
                                             <div class="invalid-feedback d-block error-fade-in">
@@ -259,23 +260,24 @@
                                         @enderror
                                     </div>
 
-                                    <!-- Pendapatan Bersih (readonly, otomatis hitung) -->
+                                    <!-- Pendapatan Bersih (Readonly) -->
                                     <div class="mb-4">
                                         <label for="PendapatanBersihFormatted" class="form-label fw-semibold">
-                                            <i class="ti ti-calculator me-1 text-primary"></i> Pendapatan Bersih
+                                            <i class="ti ti-cash-banknote me-1 text-primary"></i> Pendapatan Bersih
                                         </label>
                                         <input type="text"
-                                               class="form-control bg-light"
+                                               class="form-control"
                                                id="PendapatanBersihFormatted"
                                                placeholder="Rp 0"
-                                               readonly>
-                                        <input type="hidden" name="PendapatanBersih" id="PendapatanBersihRaw" value="{{ old('PendapatanBersih', ($transaksi->Pendapatan ?? 0) - ($transaksi->Diskon ?? 0)) }}">
+                                               readonly
+                                               value="Rp {{ old('PendapatanBersih', number_format($transaksi->PendapatanBersih,0,',','.')) }}">
+                                        <input type="hidden" name="PendapatanBersih" id="PendapatanBersihRaw" value="{{ old('PendapatanBersih', $transaksi->PendapatanBersih) }}">
                                         <div class="form-text text-muted mt-1">
-                                            <i class="ti ti-info-circle me-1"></i>Pendapatan dikurangi Diskon.
+                                            <i class="ti ti-info-circle me-1"></i>Otomatis dihitung: Pendapatan - Diskon.
                                         </div>
                                     </div>
 
-                                    <!-- Kode Bayar (Conditional - NON-TUNAI SAJA) -->
+                                    <!-- Kode Bayar (Qris & Transfer saja) -->
                                     <div class="mb-4" id="KodeBayarWrapper" style="display: none;">
                                         <label for="KodeBayar" class="form-label fw-semibold">
                                             <i class="ti ti-receipt me-1 text-primary"></i> Kode Bayar <span class="text-danger">*</span>
@@ -286,6 +288,9 @@
                                                name="KodeBayar"
                                                value="{{ old('KodeBayar', $transaksi->KodeBayar) }}"
                                                placeholder="Contoh: 8801928374 (VA) atau QRIS">
+                                        <div class="form-text text-muted mt-1">
+                                            <i class="ti ti-info-circle me-1"></i>Wajib diisi untuk metode QRIS atau Transfer.
+                                        </div>
                                         @error('KodeBayar')
                                             <div class="invalid-feedback d-block error-fade-in">
                                                 <i class="ti ti-alert-circle me-1"></i>{{ $message }}
@@ -293,39 +298,18 @@
                                         @enderror
                                     </div>
 
-                                    <!-- Bukti Bayar (Conditional - NON-TUNAI SAJA) -->
+                                    <!-- Bukti Bayar (Qris & Transfer saja) -->
                                     <div class="mb-4" id="BuktiBayarWrapper" style="display: none;">
                                         <label for="BuktiBayar" class="form-label fw-semibold">
                                             <i class="ti ti-photo me-1 text-primary"></i> Bukti Pembayaran
                                         </label>
-
-                                        <!-- Preview File Lama -->
-                                        @if($transaksi->BuktiBayar)
-                                            <div class="mb-2 p-2 bg-light rounded border">
-                                                <p class="mb-1 small text-muted fw-semibold">File Saat Ini:</p>
-                                                @php
-                                                    $ext = pathinfo($transaksi->BuktiBayar, PATHINFO_EXTENSION);
-                                                @endphp
-                                                @if(in_array(strtolower($ext), ['jpg', 'jpeg', 'png', 'gif']))
-                                                    <a href="{{ Storage::url($transaksi->BuktiBayar) }}" target="_blank">
-                                                        <img src="{{ Storage::url($transaksi->BuktiBayar) }}" class="preview-bukti" alt="Bukti Bayar">
-                                                    </a>
-                                                @else
-                                                    <a href="{{ Storage::url($transaksi->BuktiBayar) }}" target="_blank" class="btn btn-sm btn-outline-secondary w-100 text-start">
-                                                        <i class="ti ti-file-type-pdf me-2"></i> {{ basename($transaksi->BuktiBayar) }}
-                                                    </a>
-                                                @endif
-                                            </div>
-                                        @endif
-
-                                        <!-- Input File Baru -->
                                         <input type="file"
                                                class="form-control @error('BuktiBayar') is-invalid @enderror"
                                                id="BuktiBayar"
                                                name="BuktiBayar"
                                                accept="image/*,.pdf">
                                         <div class="form-text text-muted mt-1">
-                                            <i class="ti ti-info-circle me-1"></i>Kosongkan jika tidak ingin mengganti file. (Maks. 2MB)
+                                            <i class="ti ti-info-circle me-1"></i>Format: JPG, PNG, atau PDF (Maks. 2MB).
                                         </div>
                                         @error('BuktiBayar')
                                             <div class="invalid-feedback d-block error-fade-in">
@@ -333,6 +317,9 @@
                                             </div>
                                         @enderror
                                     </div>
+
+                                    <!-- Field Baru: StatusTransaksi -->
+
                                 </div>
                             </div>
 
@@ -345,7 +332,7 @@
                                           id="Keterangan"
                                           name="Keterangan"
                                           rows="3"
-                                          placeholder="Catatan tambahan mengenai transaksi ini...">{{ old('Keterangan', $transaksi->Keterangan) }}</textarea>
+                                          placeholder="Catatan tambahan mengenai transaksi ini...">{{ old('Keterangan') }}</textarea>
                                 @error('Keterangan')
                                     <div class="invalid-feedback d-block error-fade-in">
                                         <i class="ti ti-alert-circle me-1"></i>{{ $message }}
@@ -356,7 +343,7 @@
                             <!-- Action Buttons -->
                             <div class="d-flex gap-3 pt-3 border-top mt-4">
                                 <button type="submit" class="btn btn-primary px-4 d-flex align-items-center fw-semibold">
-                                    <i class="ti ti-device-floppy me-2"></i>Perbarui Data
+                                    <i class="ti ti-device-floppy me-2"></i>Simpan
                                 </button>
                                 <a href="{{ route('transaksi.index') }}" class="btn btn-light text-muted px-4 d-flex align-items-center border fw-semibold">
                                     <i class="ti ti-x me-2"></i>Batal
@@ -370,85 +357,92 @@
     </div>
 </div>
 
-<!-- JavaScript untuk Logika Form -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // 1. Logika Format Rupiah Otomatis
+        // 1. Logika Format Rupiah Otomatis & Pendapatan Bersih
+
         const inputFormatted = document.getElementById('PendapatanFormatted');
         const inputRaw = document.getElementById('PendapatanRaw');
+
         const diskonFormatted = document.getElementById('DiskonFormatted');
         const diskonRaw = document.getElementById('DiskonRaw');
+
         const pendapatanBersihFormatted = document.getElementById('PendapatanBersihFormatted');
         const pendapatanBersihRaw = document.getElementById('PendapatanBersihRaw');
-        const diskonErrorMsg = document.getElementById('diskon-error-msg');
-        const formEditTransaksi = document.getElementById('formEditTransaksi');
 
+        const diskonErrorMsg = document.getElementById('DiskonErrorMsg');
+        const form = document.getElementById('formTransaksi');
+
+        // Fungsi format Rupiah
         const formatRupiah = (number) => {
-            number = Number(number);
-            if (isNaN(number)) return '';
+            number = parseInt(number) || 0;
             return new Intl.NumberFormat('id-ID').format(number);
         };
 
-        // Fungsi update Pendapatan Bersih otomatis
-        function updatePendapatanBersih() {
-            let valPendapatan = Number(inputRaw.value) || 0;
-            let valDiskon = Number(diskonRaw.value) || 0;
-            let hasil = valPendapatan - valDiskon;
-            hasil = hasil < 0 ? 0 : hasil;
-            pendapatanBersihFormatted.value = hasil === 0 ? '' : 'Rp ' + formatRupiah(hasil);
-            pendapatanBersihRaw.value = hasil;
-        }
-
-        // Fungsi cek validasi diskon
-        function validateDiskon() {
-            let pendapatan = Number(inputRaw.value) || 0;
-            let diskon    = Number(diskonRaw.value) || 0;
-            if (diskon > pendapatan) {
-                diskonFormatted.classList.add('is-invalid');
-                diskonErrorMsg.style.display = 'block';
-                return false;
-            } else {
-                diskonFormatted.classList.remove('is-invalid');
-                diskonErrorMsg.style.display = 'none';
-                return true;
-            }
-        }
-
-        // Set nilai awal dari database/old input
+        // Set nilai awal jika ada old input (misal validasi gagal)
         const initialPendapatan = inputRaw.value;
         if (initialPendapatan && initialPendapatan != '0') {
             inputFormatted.value = 'Rp ' + formatRupiah(initialPendapatan);
         }
 
         const initialDiskon = diskonRaw.value;
-        if (diskonFormatted) {
-            if (initialDiskon && initialDiskon != '0') {
-                diskonFormatted.value = 'Rp ' + formatRupiah(initialDiskon);
+        if (initialDiskon && initialDiskon != '0') {
+            diskonFormatted.value = 'Rp ' + formatRupiah(initialDiskon);
+        }
+
+        // Set initial Pendapatan Bersih
+        function updatePendapatanBersih() {
+            let p = parseInt(inputRaw.value) || 0;
+            let d = parseInt(diskonRaw.value) || 0;
+            let bersih = p - d;
+            if (bersih < 0) bersih = 0;
+            pendapatanBersihFormatted.value = 'Rp ' + formatRupiah(bersih);
+            pendapatanBersihRaw.value = bersih;
+        }
+
+        // Validate: Diskon tidak boleh > Pendapatan, show/hide message & prevent submit
+        function validateDiskon(showError = true) {
+            let p = parseInt(inputRaw.value) || 0;
+            let d = parseInt(diskonRaw.value) || 0;
+            if (d > p) {
+                if (showError) {
+                    diskonErrorMsg.style.display = 'inline';
+                }
+                return false;
             } else {
-                diskonFormatted.value = '';
+                diskonErrorMsg.style.display = 'none';
+                return true;
             }
         }
-        // Hitung Pendapatan Bersih waktu load
+
         updatePendapatanBersih();
         validateDiskon();
 
-        // Listener input Pendapatan
         inputFormatted.addEventListener('input', function(e) {
             let rawValue = this.value.replace(/[^0-9]/g, '');
             inputRaw.value = rawValue;
+            diskonFormatted.setAttribute('max', rawValue);
 
-            // Update max Diskon setiap kali Pendapatan berubah
-            let maxDiskon = Number(rawValue) || 0;
-
-            // If diskon existing > new pendapatan, reset diskon ke pendapatan
-            let currentDiskon = Number(diskonRaw.value) || 0;
-            if (currentDiskon > maxDiskon) {
-                diskonRaw.value = maxDiskon;
-                if (diskonFormatted) {
-                    diskonFormatted.value = maxDiskon === 0 ? '' : 'Rp ' + formatRupiah(maxDiskon);
-                }
+            if (rawValue === '') {
+                this.value = '';
+            } else {
+                this.value = 'Rp ' + formatRupiah(rawValue);
             }
+            if (parseInt(diskonRaw.value) > parseInt(rawValue)) {
+                diskonRaw.value = rawValue;
+                diskonFormatted.value = rawValue === "" ? "" : 'Rp ' + formatRupiah(rawValue);
+            }
+            updatePendapatanBersih();
+            validateDiskon();
+        });
 
+        diskonFormatted.addEventListener('input', function(e) {
+            let rawValue = this.value.replace(/[^0-9]/g, '');
+            let pendapatanValue = parseInt(inputRaw.value) || 0;
+            if (rawValue !== "" && parseInt(rawValue) > pendapatanValue) {
+                rawValue = pendapatanValue.toString();
+            }
+            diskonRaw.value = rawValue;
             if (rawValue === '') {
                 this.value = '';
             } else {
@@ -458,35 +452,25 @@
             validateDiskon();
         });
 
-        // Listener input Diskon
-        diskonFormatted.addEventListener('input', function(e) {
-            let pendapatan = Number(inputRaw.value) || 0;
-            let rawValue = this.value.replace(/[^0-9]/g, '');
-
-            // Batasi diskon tidak boleh lebih besar dari pendapatan (langsung)
-            if (Number(rawValue) > pendapatan) {
-                rawValue = pendapatan;
+        form.addEventListener('submit', function(e){
+            if (!validateDiskon(true)) {
+                diskonFormatted.focus();
+                e.preventDefault();
             }
-
-            diskonRaw.value = rawValue;
-
-            if (rawValue === '' || rawValue === '0') {
-                this.value = '';
-            } else {
-                this.value = 'Rp ' + formatRupiah(rawValue);
-            }
-            updatePendapatanBersih();
-            validateDiskon();
         });
 
-        // 2. Logika Show/Hide Field Non-Tunai
+        // 2. Logika Show/Hide Field (Tagihan, QRIS, Transfer)
+
         const metodeSelect = document.getElementById('Metode');
         const kodeBayarWrapper = document.getElementById('KodeBayarWrapper');
         const buktiBayarWrapper = document.getElementById('BuktiBayarWrapper');
         const kodeBayarInput = document.getElementById('KodeBayar');
+        const tanggalJatuhTempoMetodeWrapper = document.getElementById('TanggalJatuhTempoMetodeWrapper');
+        const tanggalJatuhTempoMetodeInput = document.getElementById('TanggalJatuhTempoMetode');
 
-        function toggleNonTunaiFields() {
-            if (metodeSelect.value === 'Non-Tunai') {
+        function toggleMetodeFields() {
+            // QRIS & Transfer:
+            if (metodeSelect.value === 'Qris' || metodeSelect.value === 'Transfer') {
                 kodeBayarWrapper.style.display = 'block';
                 buktiBayarWrapper.style.display = 'block';
                 kodeBayarInput.setAttribute('required', 'required');
@@ -494,25 +478,25 @@
                 kodeBayarWrapper.style.display = 'none';
                 buktiBayarWrapper.style.display = 'none';
                 kodeBayarInput.removeAttribute('required');
-                // Jangan reset value di halaman edit agar data lama tidak hilang jika user iseng ganti ke Tunai/COD lalu kembali
+                kodeBayarInput.value = '';
+            }
+
+            // Tagihan:
+            if (metodeSelect.value === 'Tagihan') {
+                tanggalJatuhTempoMetodeWrapper.style.display = 'block';
+                tanggalJatuhTempoMetodeInput.setAttribute('required', 'required');
+            } else {
+                tanggalJatuhTempoMetodeWrapper.style.display = 'none';
+                tanggalJatuhTempoMetodeInput.removeAttribute('required');
+                tanggalJatuhTempoMetodeInput.value = '';
             }
         }
 
-        // Jalankan saat halaman dimuat (PENTING untuk halaman Edit agar sesuai data DB)
-        toggleNonTunaiFields();
+        // Jalankan saat halaman dimuat (untuk handle old input)
+        toggleMetodeFields();
 
         // Jalankan saat user mengganti pilihan
-        metodeSelect.addEventListener('change', toggleNonTunaiFields);
-
-        // 3. Cegah submit jika diskon > pendapatan
-        if(formEditTransaksi) {
-            formEditTransaksi.addEventListener('submit', function(e) {
-                if (!validateDiskon()) {
-                    diskonFormatted.focus();
-                    e.preventDefault();
-                }
-            });
-        }
+        metodeSelect.addEventListener('change', toggleMetodeFields);
     });
 </script>
 @endsection
