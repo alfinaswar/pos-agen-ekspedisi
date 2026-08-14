@@ -13,7 +13,15 @@ class PekerjaanKurirController extends Controller
     public function index(Request $Request)
     {
         if ($Request->ajax()) {
-            $Query = PekerjaanKurir::latest();
+            // Ambil user yang sedang login
+            $user = Auth::user();
+
+            // Jika bukan admin, filter berdasarkan IdUser
+            if ($user && $user->role !== 'Admin') {
+                $Query = PekerjaanKurir::with('getKurir')->where('IdUser', $user->id)->latest();
+            } else {
+                $Query = PekerjaanKurir::with('getKurir')->latest();
+            }
 
             return DataTables::of($Query)
                 ->addIndexColumn()
@@ -30,33 +38,41 @@ class PekerjaanKurirController extends Controller
                     }
                     return '<span style="font-family:inherit;font-size:98%;">-</span>';
                 })
-
-
-
-
                 ->editColumn('BuktiFoto', function ($Row) {
                     if ($Row->BuktiFoto) {
                         return '<a href="' . asset('storage/' . $Row->BuktiFoto) . '" target="_blank" class="btn btn-sm btn-outline-primary"><i class="ti ti-eye"></i> Lihat</a>';
                     }
                     return '<span class="text-muted">-</span>';
                 })
+                ->editColumn('Durasi', function ($Row) {
+                    if ($Row->Durasi) {
+                        return htmlspecialchars($Row->Durasi) . ' Menit';
+                    }
+                    return '<span class="text-muted">-</span>';
+                })
+
                 ->addColumn('JumlahPaket', function ($Row) {
                     return is_null($Row->JumlahPaket)
                         ? '<span class="text-muted">-</span>'
                         : '<strong>' . $Row->JumlahPaket . ' Paket</strong>';
                 })
-
-
-
-
-
                 ->addColumn('action', function ($Row) {
                     $btnEdit = '<a href="' . route('pekerjaan-kurir.edit', $Row->id) . '" class="btn btn-warning btn-sm text-white" title="Edit"><i class="ti ti-edit"></i></a>';
                     $btnDelete = '<button type="button" class="btn btn-danger btn-sm btn-delete" data-id="' . $Row->Id . '" data-tanggal="' . $Row->Tanggal . '" title="Hapus"><i class="ti ti-trash"></i></button>';
                     return '<div class="d-flex gap-1 justify-content-center">' . $btnEdit . ' ' . $btnDelete . '</div>';
                 })
+                ->addColumn('NamaKurir', function ($Row) {
+                    if (isset($Row->getKurir) && $Row->getKurir && isset($Row->getKurir->name)) {
+                        return e($Row->getKurir->name);
+                    }
+                    // fallback if no relation loaded
+                    if (isset($Row->NamaKurir)) {
+                        return e($Row->NamaKurir);
+                    }
+                    return '<span class="text-muted">-</span>';
+                })
 
-                ->rawColumns(['Pekerjaan', 'BuktiFoto', 'action','JumlahPaket','Tanggal'])
+                ->rawColumns(['Pekerjaan', 'BuktiFoto', 'action','JumlahPaket','Tanggal','NamaKurir'])
                 ->make(true);
         }
 
@@ -145,9 +161,13 @@ class PekerjaanKurirController extends Controller
         return redirect()->route('pekerjaan-kurir.index')->with('success', 'Laporan aktivitas kurir berhasil diperbarui.');
     }
 
-    public function destroy(PekerjaanKurir $PekerjaanKurir)
+    public function destroy($id)
     {
+        dd($id);
         try {
+            // Cari data dulu
+            $PekerjaanKurir = PekerjaanKurir::findOrFail($id);
+
             if ($PekerjaanKurir->BuktiFoto && Storage::disk('public')->exists($PekerjaanKurir->BuktiFoto)) {
                 Storage::disk('public')->delete($PekerjaanKurir->BuktiFoto);
             }

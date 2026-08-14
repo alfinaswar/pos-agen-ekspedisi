@@ -35,6 +35,7 @@
                                     <tr>
                                         <th class="text-center">#</th>
                                         <th>Tanggal & Jam</th>
+                                        <th>Nama Kurir</th>
                                         <th>Pekerjaan</th>
                                         <th>Rute (Dari - Tujuan)</th>
                                         <th class="text-center">Jml. Paket</th>
@@ -66,19 +67,29 @@
             const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, timerProgressBar: true });
             @if (session('success')) Toast.fire({ icon: 'success', title: '{{ session('success') }}' }); @endif
 
+            // Ubah handler delete menjadi gunakan POST dengan _method=DELETE agar cocok dengan Laravel resource routes
             $('body').on('click', '.btn-delete', function() {
                 const Id = $(this).data('id');
                 const Tanggal = $(this).data('tanggal');
                 Swal.fire({
                     title: 'Hapus Laporan?',
                     html: `Hapus data aktivitas tanggal <strong class="text-primary">${Tanggal}</strong>?`,
-                    icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Ya, Hapus!', cancelButtonText: 'Batal', reverseButtons: true
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Ya, Hapus!',
+                    cancelButtonText: 'Batal',
+                    reverseButtons: true
                 }).then((Result) => {
                     if (Result.isConfirmed) {
                         $.ajax({
                             url: "{{ route('pekerjaan-kurir.destroy', ':id') }}".replace(':id', Id),
-                            type: 'DELETE', data: { _token: '{{ csrf_token() }}' },
+                            type: 'POST',
+                            data: {
+                                _method: 'DELETE',
+                                _token: '{{ csrf_token() }}'
+                            },
                             success: function(Response) {
                                 if (Response.success) {
                                     Swal.fire({ icon: 'success', title: 'Berhasil!', text: Response.message, timer: 2000, showConfirmButton: false });
@@ -86,6 +97,9 @@
                                 } else {
                                     Swal.fire('Gagal!', Response.message, 'error');
                                 }
+                            },
+                            error: function(xhr) {
+                                Swal.fire('Gagal!', 'Terjadi kesalahan saat menghapus data.', 'error');
                             }
                         });
                     }
@@ -93,18 +107,24 @@
             });
 
             $('#kurirTable').DataTable({
-                responsive: true, serverSide: true, processing: true, destroy: true, autoWidth: false,
+                responsive: true,
+                serverSide: true,
+                processing: true,
+                destroy: true,
+                autoWidth: false,
                 ajax: { url: "{{ route('pekerjaan-kurir.index') }}", type: 'GET' },
                 columnDefs: [
-                    { className: 'text-center', targets: [0, 4, 6, 7] },
-                    { orderable: false, targets: [0, 7] }
+                    { className: 'text-center', targets: [0, 5, 7, 8] },
+                    { orderable: false, targets: [0, 8] }
                 ],
                 columns: [
                     { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false },
                     { data: 'Tanggal', name: 'Tanggal' },
-
+                    { data: 'NamaKurir', name: 'NamaKurir' },
                     { data: 'Pekerjaan', name: 'Pekerjaan' },
-                    { data: 'DariLokasi', name: 'DariLokasi', render: function(Data, Type, Row) { return '<small class="d-block text-muted">Dari: ' + Data + '</small><small class="fw-semibold">Ke: ' + Row.Tujuan + '</small>'; } },
+                    { data: 'DariLokasi', name: 'DariLokasi', render: function(Data, Type, Row) {
+                        return '<small class="d-block text-muted">Dari: ' + Data + '</small><small class="fw-semibold">Ke: ' + Row.Tujuan + '</small>';
+                    }},
                     { data: 'JumlahPaket', name: 'JumlahPaket' },
                     { data: 'Durasi', name: 'Durasi' },
                     { data: 'BuktiFoto', name: 'BuktiFoto' },

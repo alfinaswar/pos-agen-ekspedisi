@@ -21,4 +21,9 @@ class PekerjaanKurir extends Model
      * @var array
      */
     protected $guarded = ['id'];
+
+    public function getKurir()
+    {
+        return $this->belongsTo(User::class, 'IdUser');
+    }
 }

@@ -133,8 +133,14 @@
                                         @enderror
                                     </div>
 
-                                    <!-- DariLokasi -->
-                                    <div class="mb-4">
+
+                                </div>
+
+                                <div class="col-md-6">
+                                    <!-- Tujuan -->
+                                    <div class="row">
+                                         <!-- DariLokasi -->
+                                    <div class="col-md-6 mb-4">
                                         <label for="DariLokasi" class="form-label fw-semibold">
                                             <i class="bi bi-geo me-1 text-primary"></i> Dari Lokasi <span class="text-danger">*</span>
                                         </label>
@@ -154,11 +160,7 @@
                                             </div>
                                         @enderror
                                     </div>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <!-- Tujuan -->
-                                    <div class="mb-4">
+                                      <div class="col-md-6 mb-4">
                                         <label for="Tujuan" class="form-label fw-semibold">
                                             <i class="bi bi-geo-alt me-1 text-primary"></i> Tujuan <span class="text-danger">*</span>
                                         </label>
@@ -178,6 +180,8 @@
                                             </div>
                                         @enderror
                                     </div>
+                                    </div>
+
 
                                     <!-- JumlahPaket -->
                                     <div class="mb-4">

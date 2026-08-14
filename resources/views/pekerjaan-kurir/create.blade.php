@@ -133,8 +133,14 @@
                                     </div>
 
 
-                                    <!-- DariLokasi -->
-                                    <div class="mb-4">
+
+                                </div>
+
+                                <div class="col-md-6">
+                                    <!-- Tujuan -->
+                                <div class="row">
+                                         <!-- DariLokasi -->
+                                   <div class="col-6 mb-4">
                                         <label for="DariLokasi" class="form-label fw-semibold">
                                             <i class="bi bi-geo me-1 text-primary"></i> Dari Lokasi <span class="text-danger">*</span>
                                         </label>
@@ -154,30 +160,28 @@
                                             </div>
                                         @enderror
                                     </div>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <!-- Tujuan -->
-                                    <div class="mb-4">
-                                        <label for="Tujuan" class="form-label fw-semibold">
-                                            <i class="bi bi-geo-alt me-1 text-primary"></i> Tujuan <span class="text-danger">*</span>
-                                        </label>
-                                        <input type="text"
-                                            class="form-control @error('Tujuan') is-invalid @enderror"
-                                            id="Tujuan"
-                                            name="Tujuan"
-                                            value="{{ old('Tujuan') }}"
-                                            placeholder="Alamat tujuan pengantaran"
-                                            required>
-                                        <div class="form-text text-muted mt-1">
-                                            <i class="bi bi-info-circle me-1"></i>Alamat/lokasi tujuan pekerjaan kurir.
-                                        </div>
-                                        @error('Tujuan')
-                                            <div class="invalid-feedback d-block error-fade-in">
-                                                <i class="bi bi-exclamation-triangle me-1"></i>{{ $message }}
+                                        <div class="col-6 mb-4">
+                                            <label for="Tujuan" class="form-label fw-semibold">
+                                                <i class="bi bi-geo-alt me-1 text-primary"></i> Tujuan <span class="text-danger">*</span>
+                                            </label>
+                                            <input type="text"
+                                                class="form-control @error('Tujuan') is-invalid @enderror"
+                                                id="Tujuan"
+                                                name="Tujuan"
+                                                value="{{ old('Tujuan') }}"
+                                                placeholder="Alamat tujuan pengantaran"
+                                                required>
+                                            <div class="form-text text-muted mt-1">
+                                                <i class="bi bi-info-circle me-1"></i>Alamat/lokasi tujuan pekerjaan kurir.
                                             </div>
-                                        @enderror
+                                            @error('Tujuan')
+                                                <div class="invalid-feedback d-block error-fade-in">
+                                                    <i class="bi bi-exclamation-triangle me-1"></i>{{ $message }}
+                                                </div>
+                                            @enderror
+                                        </div>
                                     </div>
+
 
                                     <!-- JumlahPaket -->
                                     <div class="mb-4">

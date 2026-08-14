@@ -138,7 +138,9 @@
                                             <option value="Leader" {{ old('role') == 'Leader' ? 'selected' : '' }}>Leader</option>
                                             <option value="Kasir" {{ old('role') == 'Kasir' ? 'selected' : '' }}>Kasir</option>
                                             <option value="Finance" {{ old('role') == 'Finance' ? 'selected' : '' }}>Finance</option>
+                                            <option value="Kurir" {{ old('role') == 'Kurir' ? 'selected' : '' }}>Kurir</option>
                                         </select>
+
                                         @error('role') <div class="invalid-feedback d-block error-fade-in"><i class="ti ti-alert-circle me-1"></i>{{ $message }}</div> @enderror
                                     </div>
 

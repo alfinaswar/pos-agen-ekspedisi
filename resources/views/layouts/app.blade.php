@@ -239,12 +239,15 @@
             @endif
 
             <!-- Tambahkan Menu Pekerjaan Kurir -->
+            @if($sidebarUser && in_array($sidebarUser->role, ['Kurir', 'Admin']))
             <li>
                 <a href="{{ route('pekerjaan-kurir.index') }}" class="{{ request()->routeIs('pekerjaan-kurir.*') ? 'active' : '' }}">
                     <i class="bi bi-box"></i>
                     <span>Pekerjaan Kurir</span>
                 </a>
             </li>
+            @endif
+
 
             <!-- Absensi -->
             <li>

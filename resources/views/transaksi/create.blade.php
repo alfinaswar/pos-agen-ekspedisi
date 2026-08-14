@@ -126,7 +126,7 @@
                                     </div>
 
                                     <!-- ✅ TAMBAHAN: Kontak Pengirim -->
-                                    <div class="mb-4">
+                                    {{-- <div class="mb-4">
                                         <label for="KontakPengirim" class="form-label fw-semibold">
                                             <i class="ti ti-phone me-1 text-primary"></i> Kontak Pengirim
                                         </label>
@@ -144,7 +144,7 @@
                                                 <i class="ti ti-alert-circle me-1"></i>{{ $message }}
                                             </div>
                                         @enderror
-                                    </div>
+                                    </div> --}}
                                     <!-- No. Resi -->
                                     <div class="mb-4">
                                         <label for="NoResi" class="form-label fw-semibold">
@@ -273,7 +273,7 @@
                                     </div>
 
                                     <!-- Kode Bayar (Qris & Transfer saja) -->
-                                    <div class="mb-4" id="KodeBayarWrapper" style="display: none;">
+                                    {{-- <div class="mb-4" id="KodeBayarWrapper" style="display: none;">
                                         <label for="KodeBayar" class="form-label fw-semibold">
                                             <i class="ti ti-receipt me-1 text-primary"></i> Kode Bayar <span class="text-danger">*</span>
                                         </label>
@@ -291,7 +291,7 @@
                                                 <i class="ti ti-alert-circle me-1"></i>{{ $message }}
                                             </div>
                                         @enderror
-                                    </div>
+                                    </div> --}}
 
                                     <!-- Bukti Bayar (Qris & Transfer saja) -->
                                     <div class="mb-4" id="BuktiBayarWrapper" style="display: none;">
