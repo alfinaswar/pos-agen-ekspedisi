@@ -7,6 +7,7 @@ use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\PekerjaanKurirController;
 use App\Http\Controllers\PengumumanController;
 use App\Http\Controllers\ReimbursementController;
+use App\Http\Controllers\TenantController;
 use App\Http\Controllers\TransaksiController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -57,6 +58,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('pekerjaan-kurir', PekerjaanKurirController::class);
     Route::resource('divisi', DivisiController::class);
     Route::resource('pengumuman', PengumumanController::class);
+    Route::resource('tenant', TenantController::class);
     Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
     Route::resource('users', UserController::class);
     Route::get('/laporan/export', [LaporanController::class, 'exportExcel'])->name('laporan.export');
