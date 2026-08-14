@@ -157,9 +157,12 @@
                                 <select id="filter_metode" class="form-select form-select-sm">
                                     <option value="">Semua Metode</option>
                                     <option value="Tunai">Tunai</option>
-                                    <option value="Non-Tunai">Non-Tunai</option>
                                     <option value="COD">COD</option>
+                                    <option value="Tagihan">Tagihan</option>
+                                    <option value="Qris">Qris</option>
+                                    <option value="Transfer">Transfer</option>
                                 </select>
+
                             </div>
 
                             <!-- Ekspedisi -->
