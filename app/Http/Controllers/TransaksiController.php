@@ -28,7 +28,7 @@ class TransaksiController extends Controller
                     'Ekspedisi',
                     'NoResi',
                     'Metode',
-                    'KodeBayar',
+                    'NamaPengirim',
                     'Diskon',
                     'PendapatanBersih',
                     'Pendapatan',
@@ -36,6 +36,7 @@ class TransaksiController extends Controller
                     'UserFinance',
                     'DicekPada',
                     'Status',
+                    'BuktiBayar',
                     'Catatan' // <-- TAMBAHKAN 'Catatan'
                 ])
                 ->orderBy('id', 'desc');
@@ -156,7 +157,7 @@ class TransaksiController extends Controller
                     return $html . $dicekPada;
                 })
                 ->addColumn('Bayar', function ($row) {
-                    $kodeBayar = $row->KodeBayar ? htmlspecialchars($row->KodeBayar) : '<span class="text-muted">-</span>';
+                    $kodeBayar = $row->NamaPengirim ? htmlspecialchars($row->NamaPengirim) : '<span class="text-muted">-</span>';
                     if ($row->BuktiBayar) {
                         $url = asset('storage/' . $row->BuktiBayar);
                         $buktiLink = '<a href="' . $url . '" target="_blank" class="btn btn-sm btn-outline-info ms-1" title="Lihat / Unduh Bukti Bayar"><i class="ti ti-download"></i></a>';

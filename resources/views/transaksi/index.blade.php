@@ -221,7 +221,7 @@
                                         <th>Ekspedisi</th>
                                         <th>No. Resi</th>
                                         <th>Metode</th>
-                                        <th>Kode Bayar</th>
+                                        <th>Pengirim</th>
                                         <th class="text-end">Pendapatan</th>
                                         <th class="text-end">Diskon</th>
                                         <th class="text-end">Pendapatan Bersih</th>
