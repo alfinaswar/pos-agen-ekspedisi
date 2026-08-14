@@ -293,7 +293,7 @@
                                         @enderror
                                     </div> --}}
 
-                                    <!-- Bukti Bayar (Qris & Transfer saja) -->
+                                    <!-- Bukti Bayar (Non Tunai: Qris & Transfer saja) -->
                                     <div class="mb-4" id="BuktiBayarWrapper" style="display: none;">
                                         <label for="BuktiBayar" class="form-label fw-semibold">
                                             <i class="ti ti-photo me-1 text-primary"></i> Bukti Pembayaran
@@ -304,7 +304,7 @@
                                                name="BuktiBayar"
                                                accept="image/*,.pdf">
                                         <div class="form-text text-muted mt-1">
-                                            <i class="ti ti-info-circle me-1"></i>Format: JPG, PNG, atau PDF (Maks. 2MB).
+                                            <i class="ti ti-info-circle me-1"></i>Format: JPG, PNG, atau PDF (Maks. 2MB). <b>Wajib isi jika transaksi non tunai (Qris / Transfer).</b>
                                         </div>
                                         @error('BuktiBayar')
                                             <div class="invalid-feedback d-block error-fade-in">
@@ -457,23 +457,26 @@
         // 2. Logika Show/Hide Field (Tagihan, QRIS, Transfer)
 
         const metodeSelect = document.getElementById('Metode');
-        const kodeBayarWrapper = document.getElementById('KodeBayarWrapper');
+        // const kodeBayarWrapper = document.getElementById('KodeBayarWrapper'); // tetap disable
         const buktiBayarWrapper = document.getElementById('BuktiBayarWrapper');
-        const kodeBayarInput = document.getElementById('KodeBayar');
+        // const kodeBayarInput = document.getElementById('KodeBayar');
         const tanggalJatuhTempoMetodeWrapper = document.getElementById('TanggalJatuhTempoMetodeWrapper');
         const tanggalJatuhTempoMetodeInput = document.getElementById('TanggalJatuhTempoMetode');
 
+        function isNonTunaiMetode(val) {
+            // Metode "Qris" dan "Transfer" dianggap non tunai
+            return val === 'Qris' || val === 'Transfer';
+        }
+
         function toggleMetodeFields() {
-            // QRIS & Transfer:
-            if (metodeSelect.value === 'Qris' || metodeSelect.value === 'Transfer') {
-                kodeBayarWrapper.style.display = 'block';
+            // Hanya tampilkan Bukti Bayar jika non tunai (Qris atau Transfer)
+            if (isNonTunaiMetode(metodeSelect.value)) {
                 buktiBayarWrapper.style.display = 'block';
-                kodeBayarInput.setAttribute('required', 'required');
+                document.getElementById('BuktiBayar').setAttribute('required', 'required');
             } else {
-                kodeBayarWrapper.style.display = 'none';
                 buktiBayarWrapper.style.display = 'none';
-                kodeBayarInput.removeAttribute('required');
-                kodeBayarInput.value = '';
+                document.getElementById('BuktiBayar').removeAttribute('required');
+                document.getElementById('BuktiBayar').value = '';
             }
 
             // Tagihan:

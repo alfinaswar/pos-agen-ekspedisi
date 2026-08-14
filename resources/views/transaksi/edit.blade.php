@@ -298,7 +298,7 @@
                                         @enderror
                                     </div> --}}
 
-                                    <!-- Bukti Bayar (Qris & Transfer saja) -->
+                                    <!-- Bukti Bayar: tampil untuk semua Metode non-tunai (Qris, Transfer, Tagihan) -->
                                     <div class="mb-4" id="BuktiBayarWrapper" style="display: none;">
                                         <label for="BuktiBayar" class="form-label fw-semibold">
                                             <i class="ti ti-photo me-1 text-primary"></i> Bukti Pembayaran
@@ -459,29 +459,44 @@
             }
         });
 
-        // 2. Logika Show/Hide Field (Tagihan, QRIS, Transfer)
+        // 2. Logika Show/Hide Field
+        //
+        // BuktiBayar muncul untuk metode non-tunai: Qris, Transfer, Tagihan
+        // Kode Bayar tetap seperti sebelumnya (Qris & Transfer)
 
         const metodeSelect = document.getElementById('Metode');
         const kodeBayarWrapper = document.getElementById('KodeBayarWrapper');
         const buktiBayarWrapper = document.getElementById('BuktiBayarWrapper');
+        // KodeBayar bisa tetap pakai variable ini meskipun field-nya masih di-comment
         const kodeBayarInput = document.getElementById('KodeBayar');
         const tanggalJatuhTempoMetodeWrapper = document.getElementById('TanggalJatuhTempoMetodeWrapper');
         const tanggalJatuhTempoMetodeInput = document.getElementById('TanggalJatuhTempoMetode');
 
+        function metodeIsNonTunai() {
+            // Non-tunai: Qris, Transfer, Tagihan
+            return metodeSelect.value === 'Qris' || metodeSelect.value === 'Transfer' || metodeSelect.value === 'Tagihan';
+        }
+
         function toggleMetodeFields() {
-            // QRIS & Transfer:
+            // QRIS & Transfer
             if (metodeSelect.value === 'Qris' || metodeSelect.value === 'Transfer') {
-                kodeBayarWrapper.style.display = 'block';
-                buktiBayarWrapper.style.display = 'block';
-                kodeBayarInput.setAttribute('required', 'required');
+                if (kodeBayarWrapper) {
+                    kodeBayarWrapper.style.display = 'block';
+                    if (kodeBayarInput) {
+                        kodeBayarInput.setAttribute('required', 'required');
+                    }
+                }
             } else {
-                kodeBayarWrapper.style.display = 'none';
-                buktiBayarWrapper.style.display = 'none';
-                kodeBayarInput.removeAttribute('required');
-                kodeBayarInput.value = '';
+                if (kodeBayarWrapper) {
+                    kodeBayarWrapper.style.display = 'none';
+                    if (kodeBayarInput) {
+                        kodeBayarInput.removeAttribute('required');
+                        kodeBayarInput.value = '';
+                    }
+                }
             }
 
-            // Tagihan:
+            // Tagihan
             if (metodeSelect.value === 'Tagihan') {
                 tanggalJatuhTempoMetodeWrapper.style.display = 'block';
                 tanggalJatuhTempoMetodeInput.setAttribute('required', 'required');
@@ -489,6 +504,13 @@
                 tanggalJatuhTempoMetodeWrapper.style.display = 'none';
                 tanggalJatuhTempoMetodeInput.removeAttribute('required');
                 tanggalJatuhTempoMetodeInput.value = '';
+            }
+
+            // Bukti Bayar untuk semua metode non-tunai
+            if (metodeIsNonTunai()) {
+                buktiBayarWrapper.style.display = 'block';
+            } else {
+                buktiBayarWrapper.style.display = 'none';
             }
         }
 
