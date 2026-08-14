@@ -186,6 +186,36 @@
             background: rgba(0, 0, 0, 0.5); z-index: 999;
         }
         .sidebar-overlay.show { display: block; }
+        /* Smooth scroll untuk list pengumuman */
+.dropdown-menu ul {
+    scroll-behavior: smooth;
+}
+
+/* Hover effect untuk item pengumuman */
+.dropdown-item:hover {
+    background-color: #f8f9fa;
+    transform: translateX(2px);
+    transition: all 0.2s ease;
+}
+   /* Hide scrollbar for Chrome, Safari and Opera */
+    .dropdown-menu .list-unstyled::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Hide scrollbar for IE, Edge and Firefox */
+    .dropdown-menu .list-unstyled {
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+    }
+/* Animasi badge */
+/* .badge {
+    animation: pulse 2s infinite;
+} */
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+    70% { box-shadow: 0 0 0 6px rgba(220, 53, 69, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+}
     </style>
 </head>
 <body>
@@ -311,34 +341,125 @@
     <!-- Main Content -->
     <div class="main-content">
         <!-- Header -->
-        <header class="top-header">
-            <div class="header-left">
-                <button class="btn-toggle-sidebar" id="toggleSidebar">
-                    <i class="bi bi-list"></i>
-                </button>
-                <h5 class="mb-0">@yield('page-title', 'Dashboard')</h5>
-            </div>
-            <div class="header-right">
-                <span class="header-date">{{ now()->locale('id')->isoFormat('dddd, D MMMM YYYY') }}</span>
-                <div class="user-dropdown dropdown">
-                    <div class="user-avatar">
-                        {{ optional(auth()->user())->name ? substr(auth()->user()->name, 0, 1) : '?' }}
-                    </div>
-                    <div class="d-flex flex-column">
-                        <span>{{ optional(auth()->user())->name ?? 'Guest' }}</span>
-                        <small class="text-muted" style="font-size: 12px;">
-                            @if(auth()->check())
-                                {{ auth()->user()->role }}
-                            @else
-                                -
-                            @endif
-                        </small>
-                    </div>
-                    <i class="bi bi-chevron-down"></i>
-                </div>
-            </div>
+<header class="top-header">
+    <div class="header-left">
+        <button class="btn-toggle-sidebar" id="toggleSidebar">
+            <i class="bi bi-list"></i>
+        </button>
+        <h5 class="mb-0">@yield('page-title', 'Dashboard')</h5>
+    </div>
+    <div class="header-right d-flex align-items-center gap-3">
 
-        </header>
+        {{-- Tanggal --}}
+        <span class="header-date d-none d-md-block">{{ now()->locale('id')->isoFormat('dddd, D MMMM YYYY') }}</span>
+
+        {{-- 🔔 ICON PENGUMUMAN / NOTIFIKASI DINAMIS --}}
+        <div class="dropdown">
+            <button class="btn btn-light position-relative rounded-circle p-2"
+                    type="button"
+                    id="dropdownAnnouncement"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                    title="Pengumuman">
+                <i class="bi bi-bell-fill fs-5 text-secondary"></i>
+
+                {{-- Badge notifikasi dinamis --}}
+                @if(isset($UnreadCount) && $UnreadCount > 0)
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 10px; min-width: 18px; height: 18px; padding: 3px;">
+                        {{ $UnreadCount }}
+                    </span>
+                @endif
+            </button>
+
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="min-width: 320px; max-width: 95vw;">
+                <li class="px-3 py-2 border-bottom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 fw-bold"><i class="bi bi-megaphone me-2 text-primary"></i>Pengumuman</h6>
+                        <a href="{{ route('pengumuman.index') }}" class="btn btn-sm btn-link text-decoration-none p-0">Lihat Semua</a>
+                    </div>
+                </li>
+                <li>
+                    <ul class="list-unstyled mb-0" style="max-height: 300px; overflow-y: auto;">
+
+                        @forelse($RecentAnnouncements ?? [] as $Announcement)
+                            <li>
+                                <a href="{{ route('pengumuman.show', $Announcement->id) }}" class="dropdown-item d-flex gap-3 py-3 border-bottom">
+                                    <div class="flex-shrink-0">
+                                        @php
+                                            // Logika Warna & Ikon berdasarkan Kategori (Pascal Case)
+                                            $IconClass = 'bi-info-circle-fill text-primary';
+                                            $BgClass = 'bg-primary bg-opacity-10';
+
+                                            if ($Announcement->Kategori === 'Darurat') {
+                                                $IconClass = 'bi-exclamation-triangle-fill text-danger';
+                                                $BgClass = 'bg-danger bg-opacity-10';
+                                            } elseif ($Announcement->Kategori === 'Penting') {
+                                                $IconClass = 'bi-exclamation-circle-fill text-warning';
+                                                $BgClass = 'bg-warning bg-opacity-10';
+                                            }
+                                        @endphp
+
+                                        <div class="{{ $BgClass }} rounded-circle p-2">
+                                            <i class="bi {{ $IconClass }}"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex justify-content-between">
+                                            <small class="fw-semibold text-truncate" style="max-width: 160px;" title="{{ $Announcement->Judul }}">
+                                                {{ $Announcement->Judul }}
+                                            </small>
+                                            <small class="text-muted">
+                                                {{ \Carbon\Carbon::parse($Announcement->CreatedAt)->diffForHumans() }}
+                                            </small>
+                                        </div>
+                                        <p class="mb-0 small text-muted mt-1" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                            {!! \Illuminate\Support\Str::limit(strip_tags($Announcement->Isi), 50) !!}
+
+                                        </p>
+                                    </div>
+                                </a>
+                            </li>
+                        @empty
+                            <li>
+                                <div class="dropdown-item text-center text-muted py-4">
+                                    <i class="bi bi-inbox fs-4 d-block mb-2"></i>
+                                    <small>Tidak ada pengumuman baru.</small>
+                                </div>
+                            </li>
+                        @endforelse
+
+                    </ul>
+                </li>
+                <li class="px-3 py-2 border-top bg-light text-center">
+                    <button type="button" class="btn btn-sm btn-danger w-100" data-bs-dismiss="dropdown">
+                        <i class="bi bi-x me-1"></i> Tutup
+                    </button>
+                </li>
+
+            </ul>
+        </div>
+        {{-- END ICON PENGUMUMAN --}}
+
+        {{-- User Dropdown (Tetap sama) --}}
+        <div class="user-dropdown dropdown">
+            <div class="user-avatar">
+                {{ optional(auth()->user())->name ? substr(auth()->user()->name, 0, 1) : '?' }}
+            </div>
+            <div class="d-flex flex-column">
+                <span>{{ optional(auth()->user())->name ?? 'Guest' }}</span>
+                <small class="text-muted" style="font-size: 12px;">
+                    @if(auth()->check())
+                        {{ auth()->user()->role }}
+                    @else
+                        -
+                    @endif
+                </small>
+            </div>
+            <i class="bi bi-chevron-down"></i>
+        </div>
+
+    </div>
+</header>
 
         <!-- Content -->
         <div class="content-area">

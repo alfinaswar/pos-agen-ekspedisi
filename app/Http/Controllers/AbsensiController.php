@@ -159,7 +159,15 @@ class AbsensiController extends Controller
 
                     return $statusText;
                 })
-                ->rawColumns(['action', 'StatusInfo', 'Divisi', 'StatusVerif'])
+                ->addColumn('Tanggal', function ($row) {
+                    $tanggal = $row->Tanggal ?? null;
+                    if ($tanggal) {
+                        return \Carbon\Carbon::parse($tanggal)->translatedFormat('l, d/m/Y');
+                    }
+                    return '-';
+                })
+                ->rawColumns(['action', 'StatusInfo', 'Divisi', 'StatusVerif', 'Tanggal'])
+
                 ->make(true);
 
         }

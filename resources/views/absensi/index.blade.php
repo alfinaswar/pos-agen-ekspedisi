@@ -279,7 +279,8 @@
                     { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false },
                     { data: 'Nama', name: 'Nama', render: (data) => `<span class="fw-semibold text-dark">${data}</span>` },
                     { data: 'Divisi', name: 'Divisi' },
-                    { data: 'Tanggal', name: 'Tanggal', render: (data) => data ? new Date(data).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-' },
+                    { data: 'Tanggal', name: 'Tanggal' },
+
                     {
                         data: 'Status', name: 'Status',
                         render: (data) => {

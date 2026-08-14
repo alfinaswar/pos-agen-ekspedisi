@@ -16,7 +16,7 @@
     </div>
 
     <div class="row justify-content-center">
-        <div class="col-lg-9 col-xl-8">
+        <div class="col-lg-9 col-xl-12">
             <div class="card shadow-sm border-0">
                 <div class="card-header bg-white border-bottom-0 py-4">
                     <h4 class="mb-0 fw-bold text-primary">
@@ -48,12 +48,10 @@
                             {!! $Pengumuman->Isi !!}
                         </div>
                     </div>
-                    <a href="{{ route('pengumuman.index') }}" class="btn btn-secondary">
+                    {{-- <a href="{{ route('pengumuman.index') }}" class="btn btn-secondary">
                         <i class="ti ti-arrow-left"></i> Kembali
-                    </a>
-                    <a href="{{ route('pengumuman.edit', $Pengumuman->id) }}" class="btn btn-warning text-white">
-                        <i class="ti ti-edit"></i> Edit
-                    </a>
+                    </a> --}}
+
                 </div>
                 <div class="card-footer bg-white py-3 small text-end text-muted">
                     <span>Terakhir diperbarui:
