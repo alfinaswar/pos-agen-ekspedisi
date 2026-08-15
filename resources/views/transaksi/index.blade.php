@@ -392,9 +392,10 @@
                                 icon = 'ti ti-qrcode';
                                 break;
                             case 'Transfer':
-                                badgeClass = 'bg-purple';
+                                badgeClass = 'bg-purple text-dark';
                                 icon = 'ti ti-exchange';
                                 break;
+
                             default:
                                 badgeClass = 'bg-secondary';
                                 icon = '';
