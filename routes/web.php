@@ -55,7 +55,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/reimbursement/export', [ReimbursementController::class, 'export'])->name('reimbursement.export');
     Route::resource('reimbursement', ReimbursementController::class);
 
-    Route::resource('pekerjaan-kurir', PekerjaanKurirController::class);
+
+        Route::get('pekerjaan-kurir/export', [PekerjaanKurirController::class, 'Export'])->name('pekerjaan-kurir.export');
+        Route::resource('pekerjaan-kurir', PekerjaanKurirController::class);
+        Route::post('pekerjaan-kurir/bulk-verify', [PekerjaanKurirController::class, 'BulkVerify'])->name('pekerjaan-kurir.bulkVerify');
+
     Route::resource('divisi', DivisiController::class);
     Route::resource('pengumuman', PengumumanController::class);
     Route::resource('tenant', TenantController::class);

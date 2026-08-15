@@ -217,6 +217,7 @@
     100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
 }
     </style>
+    @stack('css')
 </head>
 <body>
     <!-- Sidebar Overlay for Mobile -->
@@ -230,6 +231,9 @@
         </div>
 
         <ul class="sidebar-menu">
+             @php
+                $sidebarUser = auth()->user();
+            @endphp
             <!-- Dashboard -->
             <li>
                 <a href="{{ route('dashboard.index') }}" class="{{ request()->routeIs('dashboard.*') ? 'active' : '' }}">
@@ -239,12 +243,15 @@
             </li>
 
             <!-- Transaksi -->
+            @if($sidebarUser && $sidebarUser->role !== 'Kurir')
             <li>
                 <a href="{{ route('transaksi.index') }}" class="{{ request()->routeIs('transaksi.*') ? 'active' : '' }}">
                     <i class="bi bi-receipt"></i>
                     <span>Transaksi</span>
                 </a>
             </li>
+            @endif
+
 
             <!-- Laporan -->
             <li>
@@ -254,9 +261,7 @@
                 </a>
             </li>
 
-            @php
-                $sidebarUser = auth()->user();
-            @endphp
+
 
             <!-- Pengumuman: Muncul jika Admin, Leader, Finance -->
             @if($sidebarUser && in_array($sidebarUser->role, ['Admin', 'Leader', 'Finance']))

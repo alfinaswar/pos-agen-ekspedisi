@@ -2,88 +2,131 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\PekerjaanKurirExport;
 use App\Models\PekerjaanKurir;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
 
 class PekerjaanKurirController extends Controller
 {
-    public function index(Request $Request)
+    public function Index(Request $Request)
     {
         if ($Request->ajax()) {
-            // Ambil user yang sedang login
-            $user = Auth::user();
+            $Query = PekerjaanKurir::latest();
 
-            // Jika bukan admin, filter berdasarkan IdUser
-            if ($user && $user->role !== 'Admin') {
-                $Query = PekerjaanKurir::with('getKurir')->where('IdUser', $user->id)->latest();
-            } else {
-                $Query = PekerjaanKurir::with('getKurir')->latest();
+            // ✅ TAMBAHAN: Logika Filter
+            if ($Request->filled('TanggalAwal')) {
+                $Query->whereDate('Tanggal', '>=', $Request->TanggalAwal);
+            }
+            if ($Request->filled('TanggalAkhir')) {
+                $Query->whereDate('Tanggal', '<=', $Request->TanggalAkhir);
+            }
+            if ($Request->filled('UserId')) {
+                $Query->where('UserId', $Request->UserId); // Asumsi ada kolom UserId, atau ganti 'UserCreate' jika menggunakan string nama
             }
 
             return DataTables::of($Query)
                 ->addIndexColumn()
-                ->addColumn('Tanggal', function ($Row) {
-                    if ($Row->Tanggal) {
-                        $tanggal = \Carbon\Carbon::parse($Row->Tanggal)->format('d M Y');
-                        $jam = $Row->Jam
-                            ? ' <span class="text-muted" style="font-size:100%;font-family:inherit;">'
-                                . '<span style="font-size:100%;">'
-                                . \Carbon\Carbon::createFromFormat('H:i:s', $Row->Jam)->format('H:i')
-                                . '</span></span>'
-                            : '';
-                        return '<span style="font-family:inherit;font-size:98%;">' . $tanggal . '</span>' . $jam;
+                ->editColumn('Tanggal', function ($Row) {
+                    return $Row->Tanggal ? \Carbon\Carbon::parse($Row->Tanggal)->format('d M Y') . '<br><small class="text-muted">' . $Row->Jam . '</small>' : '-';
+                })
+                ->editColumn('Pekerjaan', function ($Row) {
+                    $Badge = match ($Row->Pekerjaan) {
+                        'Ambil Paket' => 'bg-info text-dark',
+                        'Antar Paket' => 'bg-success',
+                        'Lain-lain' => 'bg-secondary'
+                    };
+                    return '<span class="badge ' . $Badge . '">' . $Row->Pekerjaan . '</span>';
+                })
+                ->editColumn('Status', function ($Row) {
+                    $Badge = match ($Row->Status) {
+                        'Y' => 'bg-success',
+                        'N' => 'bg-danger',
+                        default => 'bg-secondary'
+                    };
+                    $Label = match ($Row->Status) {
+                        'Y' => 'Disetujui',
+                        'N' => 'Ditolak',
+                        default => 'Belum Verif'
+                    };
+
+                    $Html = '<span class="badge ' . $Badge . '">' . $Label . '</span>';
+
+                    if (!empty($Row->Catatan)) {
+                        $CatatanEscaped = htmlspecialchars($Row->Catatan, ENT_QUOTES, 'UTF-8');
+                        $Html .= ' <button type="button" class="btn btn-sm btn-outline-secondary p-0 px-1 ms-1 btn-view-catatan-kurir"
+                                    data-catatan="' . $CatatanEscaped . '" title="Lihat Catatan Verifikasi" style="vertical-align: middle;">
+                                    <i class="ti ti-message" style="font-size: 0.9rem;"></i>
+                                  </button>';
                     }
-                    return '<span style="font-family:inherit;font-size:98%;">-</span>';
+                    return $Html;
                 })
                 ->editColumn('BuktiFoto', function ($Row) {
                     if ($Row->BuktiFoto) {
-                        return '<a href="' . asset('storage/' . $Row->BuktiFoto) . '" target="_blank" class="btn btn-sm btn-outline-primary"><i class="ti ti-eye"></i> Lihat</a>';
+                        return '<a href="' . asset('storage/' . $Row->BuktiFoto) . '" target="_blank" class="btn btn-sm btn-outline-primary"><i class="ti ti-eye"></i></a>';
                     }
                     return '<span class="text-muted">-</span>';
-                })
-                ->editColumn('Durasi', function ($Row) {
-                    if ($Row->Durasi) {
-                        return htmlspecialchars($Row->Durasi) . ' Menit';
-                    }
-                    return '<span class="text-muted">-</span>';
-                })
-
-                ->addColumn('JumlahPaket', function ($Row) {
-                    return is_null($Row->JumlahPaket)
-                        ? '<span class="text-muted">-</span>'
-                        : '<strong>' . $Row->JumlahPaket . ' Paket</strong>';
                 })
                 ->addColumn('action', function ($Row) {
-                    $btnEdit = '<a href="' . route('pekerjaan-kurir.edit', $Row->id) . '" class="btn btn-warning btn-sm text-white" title="Edit"><i class="ti ti-edit"></i></a>';
-                    $btnDelete = '<button type="button" class="btn btn-danger btn-sm btn-delete" data-id="' . $Row->Id . '" data-tanggal="' . $Row->Tanggal . '" title="Hapus"><i class="ti ti-trash"></i></button>';
-                    return '<div class="d-flex gap-1 justify-content-center">' . $btnEdit . ' ' . $btnDelete . '</div>';
+                    $Btn = '<div class="d-flex gap-1 justify-content-center">';
+                    // Tidak ada tombol Edit, hanya tombol Hapus jika ingin tetap bisa menghapus
+                    $Btn .= '<button type="button" class="btn btn-danger btn-sm btn-delete" data-id="' . $Row->Id . '" data-tanggal="' . $Row->Tanggal . '" title="Hapus"><i class="ti ti-trash"></i></button>';
+                    $Btn .= '</div>';
+                    return $Btn;
                 })
-                ->addColumn('NamaKurir', function ($Row) {
-                    if (isset($Row->getKurir) && $Row->getKurir && isset($Row->getKurir->name)) {
-                        return e($Row->getKurir->name);
-                    }
-                    // fallback if no relation loaded
-                    if (isset($Row->NamaKurir)) {
-                        return e($Row->NamaKurir);
-                    }
-                    return '<span class="text-muted">-</span>';
+                ->editColumn('NamaKurir', function ($Row) {
+                    return $Row->getKurir->name ?? '-';
                 })
 
-                ->rawColumns(['Pekerjaan', 'BuktiFoto', 'action','JumlahPaket','Tanggal','NamaKurir'])
+                ->rawColumns(['Tanggal', 'Pekerjaan', 'Status', 'BuktiFoto', 'action'])
                 ->make(true);
         }
 
-        return view('pekerjaan-kurir.index');
+        // ✅ TAMBAHAN: Kirim data user ke view untuk dropdown filter
+        $Users = User::select('id', 'name')->orderBy('name', 'asc')->get();
+        return view('pekerjaan-kurir.index', compact('Users'));
     }
 
     public function create()
     {
         return view('pekerjaan-kurir.create');
     }
+    public function BulkVerify(Request $Request)
+    {
+        $Request->validate([
+            'Ids' => 'required|array|min:1',
+            'Ids.*' => 'exists:pekerjaan_kurirs,id',
+            'Status' => 'required|in:Y,N,N/A',
+            'Catatan' => 'nullable|string|max:1000',
+        ]);
 
+        $UpdatedCount = 0;
+        $UserName = Auth::user()->name ?? 'System';
+        $Now = now();
+
+        foreach ($Request->Ids as $Id) {
+            $PekerjaanKurir = PekerjaanKurir::find($Id);
+            // dd($PekerjaanKurir);
+            if ($PekerjaanKurir) {
+                $PekerjaanKurir->update([
+                    'Status' => $Request->Status,
+                    'Catatan' => $Request->Catatan,
+                    'UserVerif' => $UserName,
+                    'DicekPada' => $Now,
+                ]);
+                $UpdatedCount++;
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Berhasil memverifikasi {$UpdatedCount} laporan pekerjaan kurir."
+        ]);
+    }
     public function store(Request $Request)
     {
         // Custom validation, following migration structure (nullable for most fields except required)
@@ -161,24 +204,65 @@ class PekerjaanKurirController extends Controller
         return redirect()->route('pekerjaan-kurir.index')->with('success', 'Laporan aktivitas kurir berhasil diperbarui.');
     }
 
-    public function destroy($id)
+    public function destroy(PekerjaanKurir $PekerjaanKurir)
     {
-        dd($id);
         try {
-            // Cari data dulu
-            $PekerjaanKurir = PekerjaanKurir::findOrFail($id);
-
+            // 1. Hapus file bukti foto dari storage jika ada
             if ($PekerjaanKurir->BuktiFoto && Storage::disk('public')->exists($PekerjaanKurir->BuktiFoto)) {
                 Storage::disk('public')->delete($PekerjaanKurir->BuktiFoto);
             }
 
+            // 2. Catat user yang melakukan penghapusan (Audit Trail)
             $PekerjaanKurir->UserDelete = Auth::user()->name ?? 'System';
             $PekerjaanKurir->save();
+
+            // 3. Lakukan soft delete
             $PekerjaanKurir->delete();
 
-            return response()->json(['success' => true, 'message' => 'Data berhasil dihapus.']);
+            // 4. Kembalikan response JSON yang diharapkan oleh AJAX
+            return response()->json([
+                'success' => true,
+                'message' => 'Data laporan aktivitas berhasil dihapus.'
+            ]);
+
         } catch (\Exception $Exception) {
-            return response()->json(['success' => false, 'message' => 'Gagal menghapus data.'], 500);
+            // Jika terjadi error, kembalikan JSON error agar bisa ditangkap oleh blok 'error' di AJAX
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data: ' . $Exception->getMessage()
+            ], 500);
         }
+    }
+    public function Export(Request $Request)
+    {
+        $Query = PekerjaanKurir::latest();
+
+        // Terapkan filter yang sama dengan DataTables
+        if ($Request->filled('TanggalAwal')) {
+            $Query->whereDate('Tanggal', '>=', $Request->TanggalAwal);
+        }
+        if ($Request->filled('TanggalAkhir')) {
+            $Query->whereDate('Tanggal', '<=', $Request->TanggalAkhir);
+        }
+        if ($Request->filled('UserId')) {
+            $Query->where('UserId', $Request->UserId);
+        }
+
+        $Data = $Query->get();
+
+        // Format String Info Filter untuk ditampilkan di Excel
+        $FilterInfo = 'Periode: ' . ($Request->TanggalAwal ? $Request->TanggalAwal : 'Semua') .
+            ' s/d ' . ($Request->TanggalAkhir ? $Request->TanggalAkhir : 'Semua');
+
+        if ($Request->filled('UserId')) {
+            $UserName = User::find($Request->UserId)?->name ?? 'Unknown';
+            $FilterInfo .= ' | Kurir: ' . $UserName;
+        }
+
+        // Nama file dengan timestamp
+        $FileName = 'Laporan_Pekerjaan_Kurir_' . date('Y-m-d_His') . '.xlsx';
+
+        // Download menggunakan Maatwebsite\Excel
+        return Excel::download(new PekerjaanKurirExport($Data, $FilterInfo), $FileName);
     }
 }
