@@ -82,8 +82,15 @@ class PekerjaanKurirController extends Controller
                     return $Row->getKurir->name ?? '-';
                 })
 
+                ->editColumn('JumlahPaket', function ($Row) {
+                    return $Row->JumlahPaket !== null ? $Row->JumlahPaket . ' Paket' : '-';
+                })
+                ->editColumn('Durasi', function ($Row) {
+                    return $Row->Durasi !== null ? $Row->Durasi . ' Menit' : '-';
+                })
                 ->rawColumns(['Tanggal', 'Pekerjaan', 'Status', 'BuktiFoto', 'action'])
                 ->make(true);
+
         }
 
         // ✅ TAMBAHAN: Kirim data user ke view untuk dropdown filter
