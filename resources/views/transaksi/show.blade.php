@@ -103,14 +103,7 @@
                                     </div>
                                 </div>
 
-                                <!-- Tambahan: Kontak Pengirim -->
-                                <div class="mb-3">
-                                    <label class="text-muted small mb-1 d-block">Kontak Pengirim</label>
-                                    <div class="fw-semibold text-dark">
-                                        <i class="ti ti-phone me-1 text-primary"></i>
-                                        {{ $transaksi->KontakPengirim ?? '-' }}
-                                    </div>
-                                </div>
+
                             </div>
 
                             <!-- Kolom Kanan: Info Keuangan & Lainnya -->

@@ -196,15 +196,15 @@
                                             <i class="ti ti-calendar-time me-1 text-primary"></i> Tanggal Jatuh Tempo <span class="text-danger">*</span>
                                         </label>
                                         <input type="date"
-                                            class="form-control @error('TanggalJatuhTempoMetode') is-invalid @enderror"
+                                            class="form-control @error('TanggalJatuhTempo') is-invalid @enderror"
                                             id="TanggalJatuhTempoMetode"
-                                            name="TanggalJatuhTempoMetode"
-                                            value="{{ old('TanggalJatuhTempoMetode', $transaksi->TanggalJatuhTempoMetode) }}">
+                                            name="TanggalJatuhTempo"
+                                            value="{{ old('TanggalJatuhTempo', $transaksi->TanggalJatuhTempo) }}">
                                         <div class="form-text text-muted mt-1">
                                             <i class="ti ti-info-circle me-1"></i>
                                             Wajib diisi untuk pembayaran Tagihan.
                                         </div>
-                                        @error('TanggalJatuhTempoMetode')
+                                        @error('TanggalJatuhTempo')
                                             <div class="invalid-feedback d-block error-fade-in">
                                                 <i class="ti ti-alert-circle me-1"></i>{{ $message }}
                                             </div>

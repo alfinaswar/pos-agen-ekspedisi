@@ -365,10 +365,43 @@
                     { data: 'NoResi', name: 'NoResi', render: (data) => data ? `<span class="font-monospace small">${data}</span>` : '<span class="text-muted">-</span>' },
                     { data: 'Metode', name: 'Metode', render: (data) => {
                         if (!data) return '<span class="badge bg-secondary">-</span>';
-                        let badgeClass = data === 'Tunai' ? 'bg-success' : (data === 'Non-Tunai' ? 'bg-info text-dark' : (data === 'COD' ? 'bg-warning text-dark' : 'bg-secondary'));
-                        let icon = data === 'Tunai' ? 'ti ti-cash' : (data === 'Non-Tunai' ? 'ti ti-credit-card' : (data === 'COD' ? 'ti ti-truck' : ''));
-                        return `<span class="badge ${badgeClass}">${icon ? `<i class="${icon} me-1"></i>` : ''}${data}</span>`;
+                        let badgeClass = '';
+                        let icon = '';
+                        let label = data;
+
+                        // Tentukan warna badge dan ikon berdasarkan metode
+                        switch (data) {
+                            case 'Tunai':
+                                badgeClass = 'bg-success';
+                                icon = 'ti ti-cash';
+                                break;
+                            case 'Non-Tunai':
+                                badgeClass = 'bg-info text-dark';
+                                icon = 'ti ti-credit-card';
+                                break;
+                            case 'COD':
+                                badgeClass = 'bg-warning text-dark';
+                                icon = 'ti ti-truck';
+                                break;
+                            case 'Tagihan':
+                                badgeClass = 'bg-primary';
+                                icon = 'ti ti-file-invoice';
+                                break;
+                            case 'Qris':
+                                badgeClass = 'bg-danger';
+                                icon = 'ti ti-qrcode';
+                                break;
+                            case 'Transfer':
+                                badgeClass = 'bg-purple';
+                                icon = 'ti ti-exchange';
+                                break;
+                            default:
+                                badgeClass = 'bg-secondary';
+                                icon = '';
+                        }
+                        return `<span class="badge ${badgeClass}">${icon ? `<i class="${icon} me-1"></i>` : ''}${label}</span>`;
                     }},
+
                     { data: 'Bayar', name: 'Bayar' },
                     { data: 'Pendapatan', name: 'Pendapatan', render: (data) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(data || 0) },
                     { data: 'Diskon', name: 'Diskon', render: (data) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(data || 0) },

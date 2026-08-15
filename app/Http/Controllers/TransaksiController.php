@@ -204,7 +204,7 @@ class TransaksiController extends Controller
             'NamaPengirim' => 'required|string|max:255',
             'BuktiBayar'    => 'required_if:Metode,Non-Tunai|file|mimes:jpg,jpeg,png,pdf|max:2348', // Wajib kalau Non-Tunai, maks 2MB
             'Keterangan'    => 'nullable|string',
-            'TanggalJatuhTempoMetode' => 'required_if:Metode,Tagihan|nullable|date',
+            'TanggalJatuhTempo' => 'required_if:Metode,Tagihan|nullable|date',
 
         ]);
 
