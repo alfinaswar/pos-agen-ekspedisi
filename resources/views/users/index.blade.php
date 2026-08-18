@@ -22,12 +22,15 @@
         <div class="row">
             <div class="col-12">
                 <div class="card shadow-sm border-0">
-                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <div class="card-header bg-white py-3 d-flex align-items-center">
                         <h4 class="card-title mb-0 fw-semibold"><i class="ti ti-list me-2"></i>Data User</h4>
-                        <a href="{{ route('users.create') }}" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
-                            <i class="ti ti-user-plus"></i> Tambah User
-                        </a>
+                        <div class="ms-auto">
+                            <a href="{{ route('users.create') }}" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
+                                <i class="ti ti-user-plus"></i> Tambah User
+                            </a>
+                        </div>
                     </div>
+
                     <div class="card-body">
                         <div class="table-responsive">
                             <table class="table table-striped table-bordered dt-responsive nowrap align-middle mb-0" id="usersTable" style="width: 100%;">

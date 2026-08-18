@@ -37,10 +37,13 @@
                         <h4 class="card-title mb-0 fw-semibold">
                             <i class="ti ti-list me-2"></i>Data Pengumuman
                         </h4>
-                        <a href="{{ route('pengumuman.create') }}" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
-                            <i class="ti ti-plus"></i> Tambah Pengumuman
-                        </a>
+                        <div class="ms-auto">
+                            <a href="{{ route('pengumuman.create') }}" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
+                                <i class="ti ti-plus"></i> Tambah Pengumuman
+                            </a>
+                        </div>
                     </div>
+
 
                     <!-- Card Body -->
                     <div class="card-body">

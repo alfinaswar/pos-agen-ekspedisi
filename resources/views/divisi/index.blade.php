@@ -28,14 +28,17 @@
             <div class="col-12">
                 <div class="card shadow-sm border-0">
                     <!-- Card Header -->
-                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div class="card-header bg-white py-3 d-flex align-items-center flex-wrap gap-2">
                         <h4 class="card-title mb-0 fw-semibold">
                             <i class="ti ti-list me-2"></i>Data Divisi
                         </h4>
-                        <a href="{{ route('divisi.create') }}" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
-                            <i class="ti ti-plus"></i> Tambah Divisi
-                        </a>
+                        <div class="ms-auto">
+                            <a href="{{ route('divisi.create') }}" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
+                                <i class="ti ti-plus"></i> Tambah Divisi
+                            </a>
+                        </div>
                     </div>
+
 
                     <!-- Card Body -->
                     <div class="card-body">

@@ -31,14 +31,17 @@
             <div class="col-12">
                 <div class="card shadow-sm border-0">
                     <!-- Card Header -->
-                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <div class="card-header bg-white py-3 d-flex align-items-center">
                         <h4 class="card-title mb-0 fw-semibold">
                             <i class="ti ti-list me-2"></i>Data Ekspedisi
                         </h4>
-                        <a href="{{ route('ekspedisi.create') }}" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
-                            <i class="ti ti-plus"></i> Tambah Ekspedisi
-                        </a>
+                        <div class="ms-auto">
+                            <a href="{{ route('ekspedisi.create') }}" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
+                                <i class="ti ti-plus"></i> Tambah Ekspedisi
+                            </a>
+                        </div>
                     </div>
+
 
                     <!-- Card Body -->
                     <div class="card-body">

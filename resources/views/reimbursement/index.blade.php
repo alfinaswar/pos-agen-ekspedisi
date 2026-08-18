@@ -25,10 +25,13 @@
                 <div class="card shadow-sm border-0">
                     <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                         <h4 class="card-title mb-0 fw-semibold"><i class="ti ti-list me-2"></i>Data Pengajuan</h4>
-                        <a href="{{ route('reimbursement.create') }}" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
-                            <i class="ti ti-plus"></i> Ajukan Reimbursement
-                        </a>
+                        <div class="ms-auto">
+                            <a href="{{ route('reimbursement.create') }}" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
+                                <i class="ti ti-plus"></i> Ajukan Reimbursement
+                            </a>
+                        </div>
                     </div>
+
                     <div class="card-body">
                         {{-- LETAKKAN FILTER DISINI --}}
                         <form id="filterForm" >

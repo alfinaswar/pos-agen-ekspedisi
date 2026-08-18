@@ -117,7 +117,7 @@
                     <div
                         class="card-header bg-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
                         <h4 class="card-title mb-0 fw-semibold"><i class="ti ti-list me-2"></i>Data Transaksi</h4>
-                        <div class="d-flex gap-2">
+                        <div class="ms-auto d-flex gap-2">
                             @if (auth()->check() && in_array(auth()->user()->role, ['Admin', 'Finance']))
                                 <button type="button" class="btn btn-warning btn-sm d-flex align-items-center gap-1"
                                     id="btn_bulk_verify" disabled>
@@ -130,6 +130,7 @@
                             </a>
                         </div>
                     </div>
+
 
                     <div class="card-body">
                         <!-- Modern Filter Row -->

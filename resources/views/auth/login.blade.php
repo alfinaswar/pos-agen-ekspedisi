@@ -175,7 +175,10 @@
     <div class="container-login">
         <div class="login-card shadow">
             <div class="login-header">
-                <span class="logo-icon"><i class="bi bi-box-seam"></i></span>
+                <span>
+                    <img src="{{ asset('img/logo/maurekap-icon-hd-transparent.png') }}" alt="Logo" style="height: 120px;">
+                </span>
+
                 <h2>POS AGEN EKSPEDISI</h2>
                 <p>Sistem Pencatatan Pendapatan & Laporan</p>
             </div>

@@ -42,9 +42,11 @@
         <div class="row">
             <div class="col-12">
                 <div class="card shadow-sm border-0">
-                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                        <h4 class="card-title mb-0 fw-semibold"><i class="ti ti-list me-2"></i>Data Aktivitas Harian</h4>
-                        <div class="d-flex gap-2">
+                    <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
+                        <h4 class="card-title mb-0 fw-semibold">
+                            <i class="ti ti-list me-2"></i>Data Aktivitas Harian
+                        </h4>
+                        <div class="ms-auto d-flex gap-2">
                             @if($CanBulkVerify)
                             <button type="button" class="btn btn-warning btn-sm d-flex align-items-center gap-1" id="BtnBulkVerify" disabled>
                                 <i class="ti ti-checklist"></i> Verifikasi Terpilih (<span id="SelectedCount">0</span>)
@@ -55,6 +57,7 @@
                             </a>
                         </div>
                     </div>
+
                     <div class="card-body">
 
 
