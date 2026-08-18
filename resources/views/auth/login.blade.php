@@ -179,7 +179,7 @@
                     <img src="{{ asset('img/logo/maurekap-icon-hd-transparent.png') }}" alt="Logo" style="height: 120px;">
                 </span>
 
-                <h2>POS AGEN EKSPEDISI</h2>
+                <h2>MAUREKAP</h2>
                 <p>Sistem Pencatatan Pendapatan & Laporan</p>
             </div>
             <div class="login-body">
