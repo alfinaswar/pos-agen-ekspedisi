@@ -357,7 +357,8 @@
                 ],
                 columns: [
                     @if ($canBulkVerify)
-                        { data: 'id', name: 'id', orderable: false, searchable: false, render: function(data, type, row) { const isChecked = selectedIds.has(data) ? 'checked' : ''; return `<input type="checkbox" class="form-check-input row-checkbox" value="${data}" ${isChecked}>`; } },
+                        { data: 'id', name: 'id', searchable: false, render: function(data, type, row) { const isChecked = selectedIds.has(data) ? 'checked' : ''; return `<input type="checkbox" class="form-check-input row-checkbox" value="${data}" ${isChecked}>`; } },
+
                     @endif
                     { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false },
                     { data: 'UserCreate', name: 'UserCreate', render: (data) => data ? `<span class="fw-bold text-primary">${data}</span>` : '<span class="text-muted">-</span>' },
