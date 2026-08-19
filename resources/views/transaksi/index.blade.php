@@ -360,7 +360,8 @@
                         { data: 'id', name: 'id', searchable: false, render: function(data, type, row) { const isChecked = selectedIds.has(data) ? 'checked' : ''; return `<input type="checkbox" class="form-check-input row-checkbox" value="${data}" ${isChecked}>`; } },
 
                     @endif
-                    { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false },
+                    { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
+
                     { data: 'UserCreate', name: 'UserCreate', render: (data) => data ? `<span class="fw-bold text-primary">${data}</span>` : '<span class="text-muted">-</span>' },
                     { data: 'Tanggal', name: 'Tanggal', render: (data) => data ? new Date(data).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-' },
                     { data: 'Ekspedisi', name: 'Ekspedisi', render: (data) => data ? `<span class="fw-semibold">${data}</span>` : '<span class="text-muted">-</span>' },
