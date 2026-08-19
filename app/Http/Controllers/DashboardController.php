@@ -155,4 +155,8 @@ class DashboardController extends Controller
             'selectedBulan' // Sekarang variabel ini sudah terdefinisi
         ));
     }
+public function indexTenant()
+{
+    return view('dashboard.manajemen-tenant');
+}
 }

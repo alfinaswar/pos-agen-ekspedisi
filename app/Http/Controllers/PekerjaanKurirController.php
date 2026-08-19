@@ -16,7 +16,12 @@ class PekerjaanKurirController extends Controller
     public function Index(Request $Request)
     {
         if ($Request->ajax()) {
-            $Query = PekerjaanKurir::latest();
+            if (in_array(Auth::user()->Role, ['Admin', 'Leader','Superadmin'])) {
+                $Query = PekerjaanKurir::latest();
+            } else {
+                $Query = PekerjaanKurir::where('IdUser', Auth::id())->latest();
+            }
+
 
             // ✅ TAMBAHAN: Logika Filter
             if ($Request->filled('TanggalAwal')) {
@@ -74,7 +79,7 @@ class PekerjaanKurirController extends Controller
                 ->addColumn('action', function ($Row) {
                     $Btn = '<div class="d-flex gap-1 justify-content-center">';
                     // Tidak ada tombol Edit, hanya tombol Hapus jika ingin tetap bisa menghapus
-                    $Btn .= '<button type="button" class="btn btn-danger btn-sm btn-delete" data-id="' . $Row->Id . '" data-tanggal="' . $Row->Tanggal . '" title="Hapus"><i class="ti ti-trash"></i></button>';
+                    $Btn .= '<button type="button" class="btn btn-danger btn-sm btn-delete" data-id="' . $Row->id . '" data-tanggal="' . $Row->Tanggal . '" title="Hapus"><i class="ti ti-trash"></i></button>';
                     $Btn .= '</div>';
                     return $Btn;
                 })
@@ -211,34 +216,29 @@ class PekerjaanKurirController extends Controller
         return redirect()->route('pekerjaan-kurir.index')->with('success', 'Laporan aktivitas kurir berhasil diperbarui.');
     }
 
-    public function destroy(PekerjaanKurir $PekerjaanKurir)
+    public function destroy($id)
     {
-        try {
-            // 1. Hapus file bukti foto dari storage jika ada
-            if ($PekerjaanKurir->BuktiFoto && Storage::disk('public')->exists($PekerjaanKurir->BuktiFoto)) {
-                Storage::disk('public')->delete($PekerjaanKurir->BuktiFoto);
-            }
-
-            // 2. Catat user yang melakukan penghapusan (Audit Trail)
-            $PekerjaanKurir->UserDelete = Auth::user()->name ?? 'System';
-            $PekerjaanKurir->save();
-
-            // 3. Lakukan soft delete
-            $PekerjaanKurir->delete();
-
-            // 4. Kembalikan response JSON yang diharapkan oleh AJAX
-            return response()->json([
-                'success' => true,
-                'message' => 'Data laporan aktivitas berhasil dihapus.'
-            ]);
-
-        } catch (\Exception $Exception) {
-            // Jika terjadi error, kembalikan JSON error agar bisa ditangkap oleh blok 'error' di AJAX
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal menghapus data: ' . $Exception->getMessage()
-            ], 500);
+        // dd($id);
+        // 0. Cari datanya dulu
+        $PekerjaanKurir = PekerjaanKurir::findOrFail($id);
+// dd($PekerjaanKurir);
+        // 1. Hapus file bukti foto dari storage jika ada
+        if ($PekerjaanKurir->BuktiFoto && Storage::disk('public')->exists($PekerjaanKurir->BuktiFoto)) {
+            Storage::disk('public')->delete($PekerjaanKurir->BuktiFoto);
         }
+
+        // 2. Catat user yang melakukan penghapusan (Audit Trail)
+        $PekerjaanKurir->UserDelete = Auth::user()->name ?? 'System';
+        $PekerjaanKurir->save();
+
+        // 3. Lakukan soft delete
+        $PekerjaanKurir->delete();
+
+        // 4. Kembalikan response JSON yang diharapkan oleh AJAX
+        return response()->json([
+            'success' => true,
+            'message' => 'Data laporan aktivitas berhasil dihapus.'
+        ]);
     }
     public function Export(Request $Request)
     {

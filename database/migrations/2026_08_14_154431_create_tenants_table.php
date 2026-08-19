@@ -17,10 +17,14 @@ return new class extends Migration {
             $table->string('Telepon', 50)->nullable();
             $table->text('Alamat')->nullable();
 
+            // Kontak Person / PIC Tenant
+            $table->string('NamaPIC', 100)->nullable()->comment('Nama PIC/Kontak Person utama');
+            $table->string('EmailPIC', 100)->nullable();
+            $table->string('TeleponPIC', 50)->nullable();
+            $table->text('AlamatPIC')->nullable();
             // Join & Referal
             $table->date('TanggalJoin');
             $table->string('KodeReferal', 50)->unique()->nullable();
-
             // Subscription
             $table->enum('StatusSubscription', ['Aktif', 'Nonaktif', 'Expired'])->default('Aktif');
             $table->date('TanggalMulaiSubscription')->nullable();

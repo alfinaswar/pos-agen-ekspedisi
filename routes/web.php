@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DivisiController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\PekerjaanKurirController;
+use App\Http\Controllers\PendaftaranTenantController;
 use App\Http\Controllers\PengumumanController;
 use App\Http\Controllers\ReimbursementController;
 use App\Http\Controllers\TenantController;
@@ -26,11 +27,19 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+Route::get('/landing-page', function () {
+    return view('landing-page.index');
+});
+Route::get('/daftar', function () {
+    return view('landing-page.pendaftaran');
+})->name('daftar');
+Route::post('/pendaftaran-tenant/kirim', [App\Http\Controllers\PendaftaranTenantController::class, 'store'])->name('pendaftaran-tenant.store');
 
 Auth::routes();
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
+    Route::get('/manajemen-tenant', [DashboardController::class, 'indexTenant'])->name('dashboard.manajemen-tenant');
     Route::get('/', [DashboardController::class, 'index'])->name('home');
     Route::get('/ekspedisi', [App\Http\Controllers\EkspedisiController::class, 'index'])->name('ekspedisi.index');
     Route::get('/ekspedisi/data', [App\Http\Controllers\EkspedisiController::class, 'data'])->name('ekspedisi.data');
@@ -67,4 +76,6 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('users', UserController::class);
     Route::get('/laporan/export', [LaporanController::class, 'exportExcel'])->name('laporan.export');
 
+    // ROUTE UNTUK MANAJEMEN TENANT\
+    Route::resource('pendaftaran-tenant', PendaftaranTenantController::class);
 });

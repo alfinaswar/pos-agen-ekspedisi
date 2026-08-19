@@ -22,7 +22,7 @@
     <!-- AdminLTE 4 -->
     <link rel="stylesheet" href="{{ asset('assets/css/adminlte.css') }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-
+    <link rel="icon" type="image/x-icon" href="{{ asset('img/favicon_io/favicon.ico') }}">
     @stack('styles')
     @stack('css')
 
@@ -323,6 +323,17 @@
 
                     {{-- Divider & Logout --}}
                     <li class="nav-header">AKUN</li>
+
+
+                    @if ($sidebarUser && $sidebarUser->role == 'Admin')
+                        <li class="nav-item">
+                            <a href="{{ route('dashboard.manajemen-tenant') }}" class="nav-link {{ request()->routeIs('superadmin.dashboard') ? 'active' : '' }}">
+                                <i class="nav-icon bi bi-shield-lock"></i>
+                                <p>Dashboard Superadmin</p>
+                            </a>
+                        </li>
+                    @endif
+
                     <li class="nav-item">
                         <a href="#" class="nav-link"
                            onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
@@ -330,6 +341,7 @@
                             <p>Logout</p>
                         </a>
                     </li>
+
                 </ul>
             </nav>
         </div>
