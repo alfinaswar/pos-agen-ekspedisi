@@ -254,7 +254,7 @@
                     @endif
 
                     {{-- Pekerjaan Kurir --}}
-                    @if($sidebarUser && in_array($sidebarUser->role, ['Kurir', 'Admin']))
+                    @if($sidebarUser && in_array($sidebarUser->role, ['Kurir', 'Admin','Leader']))
                     <li class="nav-item">
                         <a href="{{ route('pekerjaan-kurir.index') }}"
                            class="nav-link {{ request()->routeIs('pekerjaan-kurir.*') ? 'active' : '' }}">
