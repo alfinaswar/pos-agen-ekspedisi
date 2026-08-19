@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.app-manajemen-tenant')
 
 @section('content')
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
@@ -24,10 +24,13 @@
                 <div class="card shadow-sm border-0">
                     <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                         <h4 class="card-title mb-0 fw-semibold"><i class="ti ti-list me-2"></i>Data Tenant</h4>
-                        <a href="{{ route('tenant.create') }}" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
-                            <i class="ti ti-plus"></i> Tambah Tenant
-                        </a>
+                        <div class="ms-auto">
+                            {{-- <a href="{{ route('tenant.create') }}" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
+                                <i class="ti ti-plus"></i> Tambah Tenant
+                            </a> --}}
+                        </div>
                     </div>
+
                     <div class="card-body">
                         <div class="table-responsive">
                             <table class="table table-striped table-bordered dt-responsive nowrap align-middle mb-0"
@@ -40,6 +43,8 @@
                                         <th>Tanggal Join</th>
                                         <th class="text-center">Status Subscription</th>
                                         <th>Kode Referal</th>
+                                        <th>Tanggal Mulai Subscription</th>
+                                        <th>Tanggal Akhir Subscription</th>
                                         <th style="width: 120px;" class="text-center">Aksi</th>
                                     </tr>
                                 </thead>
@@ -110,8 +115,8 @@
                 responsive: true, serverSide: true, processing: true, destroy: true, autoWidth: false,
                 ajax: { url: "{{ route('tenant.index') }}", type: 'GET' },
                 columnDefs: [
-                    { className: 'text-center', targets: [0, 4, 6] },
-                    { orderable: false, targets: [0, 6] }
+                    { className: 'text-center', targets: [0, 4, 8] },
+                    { orderable: false, targets: [0, 8] }
                 ],
                 columns: [
                     { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false },
@@ -120,6 +125,8 @@
                     { data: 'TanggalJoin', name: 'TanggalJoin' },
                     { data: 'StatusSubscription', name: 'StatusSubscription' },
                     { data: 'KodeReferal', name: 'KodeReferal', render: function(Data) { return Data ? `<span class="badge bg-light text-dark border">${Data}</span>` : '<span class="text-muted">-</span>'; } },
+                    { data: 'TanggalMulaiSubscription', name: 'TanggalMulaiSubscription' },
+                    { data: 'TanggalAkhirSubscription', name: 'TanggalAkhirSubscription' },
                     { data: 'action', name: 'action', searchable: false }
                 ],
                 language: { url: "//cdn.datatables.net/plug-ins/1.13.7/i18n/id.json" }

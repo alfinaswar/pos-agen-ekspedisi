@@ -1,0 +1,228 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\TagihanPembayaran;
+use App\Models\Tenant;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Yajra\DataTables\Facades\DataTables;
+
+class TagihanPembayaranController extends Controller
+{
+    public function Index(Request $Request)
+    {
+        if ($Request->ajax()) {
+            $User = auth()->user();
+            $Query = TagihanPembayaran::with('Tenant')->latest('id');
+
+            // Keamanan: Jika bukan Superadmin, paksa filter berdasarkan TenantId
+            if ($User->role !== 'Superadmin' && isset($User->TenantId)) {
+                $Query->where('TenantId', $User->TenantId);
+            }
+
+            // Filter Tenant (HANYA berlaku jika Superadmin)
+            if ($User->role === 'Superadmin' && $Request->filled('TenantId')) {
+                $Query->where('TenantId', $Request->TenantId);
+            }
+
+            return DataTables::of($Query)
+                ->addIndexColumn()
+                ->editColumn('NomorTagihan', function ($Row) {
+                    return '<span class="fw-semibold text-primary">' . $Row->NomorTagihan . '</span>';
+                })
+                ->editColumn('NamaTenant', function ($Row) {
+                    return $Row->Tenant ? $Row->Tenant->Nama : '-';
+                })
+                ->addColumn('TanggalBayar', function ($Row) {
+                    if ($Row->TanggalPembayaran) {
+                        return \Carbon\Carbon::parse($Row->TanggalPembayaran)->format('d-m-Y');
+                    }
+                    return '<span class="text-muted">-</span>';
+                })
+
+
+
+                ->editColumn('JumlahTagihan', function ($Row) {
+                    return 'Rp ' . number_format($Row->JumlahTagihan, 0, ',', '.');
+                })
+                ->editColumn('StatusPembayaran', function ($Row) {
+                    $Badge = match ($Row->StatusPembayaran) {
+                        'Lunas' => 'bg-success',
+                        'Terlambat' => 'bg-danger',
+                        default => 'bg-warning text-dark'
+                    };
+                    return '<span class="badge ' . $Badge . '">' . $Row->StatusPembayaran . '</span>';
+                })
+                ->editColumn('BuktiPembayaran', function ($Row) {
+                    if ($Row->BuktiPembayaran) {
+                        return '<a href="' . asset('storage/' . $Row->BuktiPembayaran) . '" target="_blank" class="btn btn-sm btn-outline-primary"><i class="ti ti-eye"></i></a>';
+                    }
+                    return '<span class="text-muted">-</span>';
+                })
+                ->addColumn('action', function ($Row) {
+                    $Btn = '<div class="d-flex gap-1 justify-content-center">';
+                    // Tombol Show / Verifikasi Detail
+                    $Btn .= '<a href="' . route('tagihan-pembayaran.show', $Row->id) . '" class="btn btn-info btn-sm text-white" title="Lihat Detail"><i class="ti ti-eye"></i></a> ';
+
+                    if ($Row->StatusPembayaran !== 'Lunas') {
+                        $Btn .= '<a href="' . route('tagihan-pembayaran.konfirmasi', $Row->id) . '" class="btn btn-success btn-sm text-white" title="Konfirmasi Bayar"><i class="ti ti-check"></i></a> ';
+                    }
+                    $Btn .= '<button type="button" class="btn btn-danger btn-sm btn-hapus" data-id="' . $Row->id . '" data-nomor="' . htmlspecialchars($Row->NomorTagihan) . '" title="Hapus"><i class="ti ti-trash"></i></button>';
+                    $Btn .= '</div>';
+                    return $Btn;
+                })
+                ->rawColumns(['NomorTagihan', 'Tenant.Nama', 'StatusPembayaran', 'BuktiPembayaran', 'action'])
+                ->make(true);
+        }
+
+        $User = auth()->user();
+        $Tenants = $User->role === 'Superadmin'
+            ? Tenant::select('id', 'Nama')->orderBy('Nama', 'asc')->get()
+            : Tenant::select('id', 'Nama')->where('id', $User->TenantId ?? 0)->get();
+
+        return view('tagihan-pembayaran.index', compact('Tenants'));
+    }
+
+    public function Create()
+    {
+        $Tenants = Tenant::where('StatusSubscription', 'Aktif')->get();
+        return view('tagihan-pembayaran.create', compact('Tenants'));
+    }
+    public function Show(TagihanPembayaran $TagihanPembayaran)
+    {
+        // Muat relasi Tenant agar data nama tenant tersedia di view
+        $TagihanPembayaran->load('Tenant');
+        return view('tagihan-pembayaran.show', compact('TagihanPembayaran'));
+    }
+    public function Store(Request $Request)
+    {
+        $Request->validate([
+            'TenantId' => 'required|exists:tenants,id',
+            'PeriodeBulan' => 'required|string|max:50',
+            'TanggalJatuhTempo' => 'required|date',
+            'JumlahTagihan' => 'required|numeric|min:0',
+            'Catatan' => 'nullable|string',
+        ]);
+
+        // Generate Nomor Tagihan Unik: INV-YYYYMM-Random
+        $NomorTagihan = 'INV-' . date('Ymd') . '-' . strtoupper(Str::random(4));
+
+        $Data = $Request->except(['JumlahTagihan']);
+        $Data['NomorTagihan'] = $NomorTagihan;
+        $Data['JumlahTagihan'] = str_replace(',', '', $Request->JumlahTagihan); // Bersihkan format jika ada
+        $Data['StatusPembayaran'] = 'Belum Bayar';
+        $Data['UserCreate'] = Auth::user()->name ?? 'System';
+
+        TagihanPembayaran::create($Data);
+
+        return redirect()->route('tagihan-pembayaran.index')->with('success', 'Tagihan berhasil dibuat.');
+    }
+
+    public function Edit(TagihanPembayaran $TagihanPembayaran)
+    {
+        $Tenants = Tenant::where('StatusSubscription', 'Aktif')->get();
+        return view('tagihan-pembayaran.edit', compact('TagihanPembayaran', 'Tenants'));
+    }
+
+    public function Update(Request $Request, TagihanPembayaran $TagihanPembayaran)
+    {
+        $Request->validate([
+            'TenantId' => 'required|exists:tenants,id',
+            'PeriodeBulan' => 'required|string|max:50',
+            'TanggalJatuhTempo' => 'required|date',
+            'JumlahTagihan' => 'required|numeric|min:0',
+            'Catatan' => 'nullable|string',
+        ]);
+
+        $Data = $Request->except(['JumlahTagihan']);
+        $Data['JumlahTagihan'] = str_replace(',', '', $Request->JumlahTagihan);
+        $Data['UserUpdate'] = Auth::user()->name ?? 'System';
+
+        $TagihanPembayaran->update($Data);
+
+        return redirect()->route('tagihan-pembayaran.index')->with('success', 'Tagihan berhasil diperbarui.');
+    }
+
+    public function Destroy(TagihanPembayaran $TagihanPembayaran)
+    {
+        try {
+            if ($TagihanPembayaran->BuktiPembayaran && Storage::disk('public')->exists($TagihanPembayaran->BuktiPembayaran)) {
+                Storage::disk('public')->delete($TagihanPembayaran->BuktiPembayaran);
+            }
+
+            $TagihanPembayaran->UserDelete = Auth::user()->name ?? 'System';
+            $TagihanPembayaran->save();
+            $TagihanPembayaran->delete();
+
+            return response()->json(['success' => true, 'message' => 'Tagihan berhasil dihapus.']);
+        } catch (\Exception $Exception) {
+            return response()->json(['success' => false, 'message' => 'Gagal menghapus tagihan.'], 500);
+        }
+    }
+
+    // ✅ METHOD TAMBAHAN: Form Konfirmasi Pembayaran
+    public function KonfirmasiForm(TagihanPembayaran $TagihanPembayaran)
+    {
+        return view('tagihan-pembayaran.konfirmasi', compact('TagihanPembayaran'));
+    }
+
+    public function BulkApprove(Request $Request)
+    {
+        $Request->validate([
+            'Ids' => 'required|array|min:1',
+            'Ids.*' => 'exists:tagihan_pembayarans,id',
+        ]);
+
+        $UpdatedCount = 0;
+        $UserName = Auth::user()->name ?? 'System';
+
+        foreach ($Request->Ids as $Id) {
+            $Tagihan = TagihanPembayaran::find($Id);
+            // Hanya update jika belum lunas
+            if ($Tagihan && $Tagihan->StatusPembayaran !== 'Lunas') {
+                $Tagihan->update([
+                    'StatusPembayaran' => 'Lunas',
+                    'TanggalPembayaran' => now(), // Tandai tanggal approve sebagai tanggal bayar
+                    'UserUpdate' => $UserName,
+                ]);
+                $UpdatedCount++;
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Berhasil menyetujui {$UpdatedCount} tagihan pembayaran."
+        ]);
+    }
+    public function KonfirmasiProses(Request $Request, TagihanPembayaran $TagihanPembayaran)
+    {
+        $Request->validate([
+            'TanggalPembayaran' => 'required|date',
+            'BuktiPembayaran' => 'nullable|image|mimes:jpeg,png,jpg,pdf|max:2048',
+            'Catatan' => 'nullable|string',
+        ]);
+
+        $Data = [
+            'StatusPembayaran' => 'Lunas',
+            'TanggalPembayaran' => $Request->TanggalPembayaran,
+            'Catatan' => $Request->Catatan,
+            'UserUpdate' => Auth::user()->name ?? 'System',
+        ];
+
+        if ($Request->hasFile('BuktiPembayaran')) {
+            if ($TagihanPembayaran->BuktiPembayaran && Storage::disk('public')->exists($TagihanPembayaran->BuktiPembayaran)) {
+                Storage::disk('public')->delete($TagihanPembayaran->BuktiPembayaran);
+            }
+            $File = $Request->file('BuktiPembayaran');
+            $FileName = time() . '_' . preg_replace('/[^A-Za-z0-9\-_\.]/', '', $File->getClientOriginalName());
+            $Data['BuktiPembayaran'] = $File->storeAs('tagihan', $FileName, 'public');
+        }
+
+        $TagihanPembayaran->update($Data);
+
+        return redirect()->route('tagihan-pembayaran.index')->with('success', 'Pembayaran berhasil dikonfirmasi dan status diubah menjadi Lunas.');
+    }
+}

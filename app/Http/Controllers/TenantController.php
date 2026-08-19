@@ -18,8 +18,9 @@ class TenantController extends Controller
             return DataTables::of($Query)
                 ->addIndexColumn()
                 ->editColumn('TanggalJoin', function ($Row) {
-                    return $Row->TanggalJoin ? $Row->TanggalJoin->format('d M Y') : '-';
+                    return $Row->TanggalJoin ? \Carbon\Carbon::parse($Row->TanggalJoin)->format('d M Y') : '-';
                 })
+
                 ->editColumn('StatusSubscription', function ($Row) {
                     $Badge = match ($Row->StatusSubscription) {
                         'Aktif' => 'bg-success',
@@ -28,6 +29,13 @@ class TenantController extends Controller
                     };
                     return '<span class="badge ' . $Badge . '">' . $Row->StatusSubscription . '</span>';
                 })
+                ->addColumn('TanggalMulaiSubscription', function ($Row) {
+                    return $Row->TanggalMulaiSubscription ? \Carbon\Carbon::parse($Row->TanggalMulaiSubscription)->format('d M Y') : '-';
+                })
+                ->addColumn('TanggalAkhirSubscription', function ($Row) {
+                    return $Row->TanggalAkhirSubscription ? \Carbon\Carbon::parse($Row->TanggalAkhirSubscription)->format('d M Y') : '-';
+                })
+
                 ->addColumn('action', function ($Row) {
                     $Btn = '<div class="d-flex gap-1 justify-content-center">';
                     $Btn .= '<a href="' . route('tenant.edit', $Row->id) . '" class="btn btn-warning btn-sm text-white" title="Edit"><i class="ti ti-edit"></i></a> ';
@@ -39,12 +47,12 @@ class TenantController extends Controller
                 ->make(true);
         }
 
-        return view('tenant.index');
+        return view('manejemen-tenant.tenant.index');
     }
 
     public function Create()
     {
-        return view('tenant.create');
+        return view('manejemen-tenant.tenant.create');
     }
 
     public function Store(Request $Request)
@@ -77,7 +85,7 @@ class TenantController extends Controller
 
     public function Edit(Tenant $Tenant)
     {
-        return view('tenant.edit', compact('Tenant'));
+        return view('manejemen-tenant.tenant.edit', compact('Tenant'));
     }
 
     public function Update(Request $Request, Tenant $Tenant)

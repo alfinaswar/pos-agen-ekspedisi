@@ -22,6 +22,9 @@ return new class extends Migration
             $table->string('AlamatPIC')->nullable();
             $table->string('BuktiPembayaran')->nullable();
             $table->enum('Status', ['Y', 'N','N/A'])->nullable();
+            $table->text('CatatanVerifikasi')->nullable();
+            $table->dateTime('VerifPada')->nullable();
+            $table->string('VerifOleh')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });

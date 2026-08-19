@@ -8,6 +8,7 @@ use App\Http\Controllers\PekerjaanKurirController;
 use App\Http\Controllers\PendaftaranTenantController;
 use App\Http\Controllers\PengumumanController;
 use App\Http\Controllers\ReimbursementController;
+use App\Http\Controllers\TagihanPembayaranController;
 use App\Http\Controllers\TenantController;
 use App\Http\Controllers\TransaksiController;
 use App\Http\Controllers\UserController;
@@ -78,4 +79,20 @@ Route::middleware(['auth'])->group(function () {
 
     // ROUTE UNTUK MANAJEMEN TENANT\
     Route::resource('pendaftaran-tenant', PendaftaranTenantController::class);
+
+    Route::post('pendaftaran-tenant/{PendaftaranTenant}/verifikasi', [PendaftaranTenantController::class, 'Verifikasi'])->name('pendaftaran-tenant.verifikasi');
+
+    Route::get('tagihan-pembayaran', [TagihanPembayaranController::class, 'Index'])->name('tagihan-pembayaran.index');
+    Route::get('tagihan-pembayaran/create', [TagihanPembayaranController::class, 'Create'])->name('tagihan-pembayaran.create');
+    Route::post('tagihan-pembayaran', [TagihanPembayaranController::class, 'Store'])->name('tagihan-pembayaran.store');
+    Route::get('tagihan-pembayaran/{TagihanPembayaran}', [TagihanPembayaranController::class, 'Show'])->name('tagihan-pembayaran.show'); // <-- Route Show
+    Route::get('tagihan-pembayaran/{TagihanPembayaran}/edit', [TagihanPembayaranController::class, 'Edit'])->name('tagihan-pembayaran.edit');
+    Route::put('tagihan-pembayaran/{TagihanPembayaran}', [TagihanPembayaranController::class, 'Update'])->name('tagihan-pembayaran.update');
+    Route::delete('tagihan-pembayaran/{TagihanPembayaran}', [TagihanPembayaranController::class, 'Destroy'])->name('tagihan-pembayaran.destroy');
+
+    Route::get('tagihan-pembayaran/{TagihanPembayaran}/konfirmasi', [TagihanPembayaranController::class, 'KonfirmasiForm'])->name('tagihan-pembayaran.konfirmasi');
+    Route::post('tagihan-pembayaran/{TagihanPembayaran}/konfirmasi', [TagihanPembayaranController::class, 'KonfirmasiProses'])->name('tagihan-pembayaran.konfirmasi.proses');
+
+    // ✅ Route Bulk Approve
+    Route::post('tagihan-pembayaran/bulk-approve', [TagihanPembayaranController::class, 'BulkApprove'])->name('tagihan-pembayaran.bulkApprove');
 });

@@ -325,7 +325,7 @@
                     <li class="nav-header">AKUN</li>
 
 
-                    @if ($sidebarUser && $sidebarUser->role == 'Admin')
+                    @if ($sidebarUser && $sidebarUser->role == 'Superadmin')
                         <li class="nav-item">
                             <a href="{{ route('dashboard.manajemen-tenant') }}" class="nav-link {{ request()->routeIs('superadmin.dashboard') ? 'active' : '' }}">
                                 <i class="nav-icon bi bi-shield-lock"></i>
@@ -333,6 +333,15 @@
                             </a>
                         </li>
                     @endif
+                @if ($sidebarUser && $sidebarUser->role == 'Admin')
+                    <li class="nav-item">
+                        <a href="{{ route('tagihan-pembayaran.index') }}" class="nav-link {{ request()->routeIs('tagihan-pembayaran.index') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-file-earmark-text"></i>
+                            <p>Tagihan</p>
+                        </a>
+                    </li>
+                @endif
+
 
                     <li class="nav-item">
                         <a href="#" class="nav-link"

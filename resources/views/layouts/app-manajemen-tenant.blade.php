@@ -128,6 +128,14 @@
                             <p>Pendaftaran</p>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a href="{{ route('tenant.index') }}"
+                           class="nav-link {{ request()->routeIs('tenant.*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-building"></i>
+                            <p>Tenant</p>
+                        </a>
+                    </li>
+
                 </ul>
             </nav>
         </div>

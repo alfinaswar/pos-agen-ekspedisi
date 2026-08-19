@@ -2,8 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\TenantApprovedMail;
 use App\Models\PendaftaranTenant;
+use App\Models\TagihanPembayaran;
+use App\Models\Tenant;
+use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Yajra\DataTables\DataTables;
 
 class PendaftaranTenantController extends Controller
@@ -15,6 +25,14 @@ class PendaftaranTenantController extends Controller
     {
         if ($Request->ajax()) {
             $Query = PendaftaranTenant::latest('created_at');
+
+            // ✅ TAMBAHAN: Logika Filter Tanggal (berdasarkan created_at)
+            if ($Request->filled('TanggalAwal')) {
+                $Query->whereDate('created_at', '>=', $Request->TanggalAwal);
+            }
+            if ($Request->filled('TanggalAkhir')) {
+                $Query->whereDate('created_at', '<=', $Request->TanggalAkhir);
+            }
 
             return DataTables::of($Query)
                 ->addIndexColumn()
@@ -33,13 +51,15 @@ class PendaftaranTenantController extends Controller
                 })
                 ->editColumn('BuktiPembayaran', function ($Row) {
                     if ($Row->BuktiPembayaran) {
-                        return '<a href="' . asset('storage/' . $Row->BuktiPembayaran) . '" target="_blank" class="btn btn-sm btn-outline-primary"><i class="ti ti-eye"></i> Lihat</a>';
+                        return '<a href="' . asset('storage/' . $Row->BuktiPembayaran) . '" target="_blank" class="btn btn-sm btn-outline-primary"><i class="ti ti-eye"></i></a>';
                     }
                     return '<span class="text-muted">-</span>';
                 })
                 ->addColumn('action', function ($Row) {
                     $Btn = '<div class="d-flex gap-1 justify-content-center">';
-                    $Btn .= '<a href="#" class="btn btn-info btn-sm text-white" title="Detail"><i class="ti ti-eye"></i></a>';
+                    $Btn .= '<a href="' . route('pendaftaran-tenant.show', $Row->id) . '" class="btn btn-info btn-sm text-white" title="Verifikasi"><i class="ti ti-eye"></i></a> ';
+                    // ✅ TAMBAHAN: Tombol Hapus
+                    $Btn .= '<button type="button" class="btn btn-danger btn-sm btn-hapus" data-id="' . $Row->id . '" data-nama="' . htmlspecialchars($Row->Nama) . '" title="Hapus"><i class="ti ti-trash"></i></button>';
                     $Btn .= '</div>';
                     return $Btn;
                 })
@@ -98,7 +118,7 @@ class PendaftaranTenantController extends Controller
             'EmailPIC'         => $validated['EmailPIC'],
             'AlamatPIC'        => $validated['AlamatPIC'] ?? null,
             'BuktiPembayaran'  => $buktiPembayaranPath,
-            'Status'           => 'N',
+            'Status'           => 'N/A',
         ]);
 
         return redirect()
@@ -113,11 +133,117 @@ class PendaftaranTenantController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(PendaftaranTenant $pendaftaranTenant)
+    public function Show(PendaftaranTenant $PendaftaranTenant)
     {
-        //
+        return view('manejemen-tenant.pendaftaran.show', compact('PendaftaranTenant'));
     }
 
+    // ✅ METHOD BARU: Proses Verifikasi
+    public function Verifikasi(Request $Request, PendaftaranTenant $PendaftaranTenant)
+    {
+        $Request->validate([
+            'Status' => 'required|in:Y,N',
+            'CatatanVerifikasi' => 'nullable|string|max:1000',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            // 1. Update Status Pendaftaran
+            $PendaftaranTenant->update([
+                'Status' => $Request->Status,
+                'CatatanVerifikasi' => $Request->CatatanVerifikasi,
+                'VerifOleh' => Auth::user()->name ?? 'System',
+                'VerifPada' => now(),
+            ]);
+
+            // 2. Jika Disetujui (Y), Buat Master Tenant, User Admin, dan Tagihan Pertama
+            if ($Request->Status === 'Y') {
+                $TanggalJoin = now();
+                $PasswordPlain = Carbon::parse($PendaftaranTenant->created_at)->format('Ymd');
+
+                // A. Buat Data Master Tenant
+                $NewTenant = Tenant::create([
+                    'Nama' => $PendaftaranTenant->Nama ?? null,
+                    'Email' => $PendaftaranTenant->Email ?? null,
+                    'Alamat' => $PendaftaranTenant->Alamat ?? null,
+                    'Telepon' => $PendaftaranTenant->Telepon ?? null,
+                    'NamaPIC' => $PendaftaranTenant->NamaPIC ?? null,
+                    'EmailPIC' => $PendaftaranTenant->EmailPIC ?? null,
+                    'AlamatPIC' => $PendaftaranTenant->AlamatPIC ?? null,
+                    'TeleponPIC' => $PendaftaranTenant->TeleponPIC ?? null,
+                    'TanggalJoin' => $TanggalJoin,
+                    'StatusSubscription' => 'Aktif',
+                    'TanggalMulaiSubscription' => $TanggalJoin,
+                    'TanggalAkhirSubscription' => $TanggalJoin->copy()->addMonth(),
+                    'UserCreate' => Auth::user()->name ?? 'System',
+                ]);
+
+                // B. Buat User Admin untuk Tenant tersebut
+                $UserName = $PendaftaranTenant->NamaPIC ?: $PendaftaranTenant->Nama;
+                $UserEmail = $PendaftaranTenant->EmailPIC ?: $PendaftaranTenant->Email;
+
+                User::create([
+                    'tenant_id' => $NewTenant->Kode,
+                    'name' => $UserName,
+                    'email' => $UserEmail,
+                    'password' => Hash::make($PasswordPlain),
+                    'role' => 'Admin',
+                    'user_create' => Auth::user()->name ?? 'System',
+                ]);
+
+
+                $PeriodeBulan = now()->format('Y-m');
+                $TanggalJatuhTempo = now()->addDays(7);
+                $buktiPembayaranBaru = null;
+                if ($PendaftaranTenant->BuktiPembayaran && Storage::disk('public')->exists($PendaftaranTenant->BuktiPembayaran)) {
+                    $namaFile = basename($PendaftaranTenant->BuktiPembayaran);
+                    $targetPath = 'bukti-bayar/' . $namaFile;
+                    Storage::disk('public')->copy($PendaftaranTenant->BuktiPembayaran, $targetPath);
+                    $buktiPembayaranBaru = $targetPath;
+                }
+                TagihanPembayaran::create([
+                    'TenantId'            => $NewTenant->Kode,
+                    'PeriodeBulan'        => $PeriodeBulan,
+                    'TanggalJatuhTempo'   => $TanggalJatuhTempo,
+                    'JumlahTagihan'       => 149000,
+                    'StatusPembayaran'    => 'Lunas',
+                    'TanggalPembayaran'   => $TanggalJoin,
+                    'BuktiPembayaran'     => $buktiPembayaranBaru,
+                    'Catatan'             => null,
+                    'Status'              => 'N/A',
+                    'CatatanVerifikasi'   => null,
+                    'VerifPada'           => null,
+                    'VerifOleh'           => null,
+                    'UserCreate'          => Auth::user()->name ?? 'System',
+                ]);
+            }
+
+            DB::commit();
+
+            // 3. Kirim Email Jika Disetujui dan Email PIC Ada
+            if ($Request->Status === 'Y' && !empty($UserEmail)) {
+                $LoginUrl = url('/login');
+
+                Mail::to($UserEmail)->send(new TenantApprovedMail(
+                    $UserName,
+                    $UserEmail,
+                    $PasswordPlain,
+                    $LoginUrl
+                ));
+            }
+
+            $Pesan = $Request->Status === 'Y'
+                ? 'Pendaftaran berhasil disetujui. Tenant, Akun Admin, dan Tagihan Pertama telah dibuat.'
+                : 'Pendaftaran tenant ditolak.';
+
+            return redirect()->route('pendaftaran-tenant.index')->with('success', $Pesan);
+
+        } catch (\Exception $Exception) {
+            dd($Exception);
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Gagal memproses verifikasi: ' . $Exception->getMessage());
+        }
+    }
     /**
      * Show the form for editing the specified resource.
      */
@@ -137,8 +263,24 @@ class PendaftaranTenantController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(PendaftaranTenant $pendaftaranTenant)
+    public function Destroy(PendaftaranTenant $PendaftaranTenant)
     {
-        //
+        try {
+            if ($PendaftaranTenant->BuktiPembayaran && Storage::disk('public')->exists($PendaftaranTenant->BuktiPembayaran)) {
+                Storage::disk('public')->delete($PendaftaranTenant->BuktiPembayaran);
+            }
+
+            $PendaftaranTenant->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data pendaftaran berhasil dihapus.'
+            ]);
+        } catch (\Exception $Exception) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data: ' . $Exception->getMessage()
+            ], 500);
+        }
     }
 }
