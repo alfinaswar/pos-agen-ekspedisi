@@ -21,6 +21,7 @@ return new class extends Migration {
             // Status & Pembayaran
             $Table->enum('StatusPembayaran', ['Belum Bayar', 'Lunas', 'Terlambat'])->default('Belum Bayar');
             $Table->date('TanggalPembayaran')->nullable();
+            $Table->date('BerlakuHingga')->nullable();
             $Table->string('BuktiPembayaran')->nullable();
             $Table->text('Catatan')->nullable();
             //verif

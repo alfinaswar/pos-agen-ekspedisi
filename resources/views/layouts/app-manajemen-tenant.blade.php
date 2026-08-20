@@ -135,6 +135,13 @@
                             <p>Tenant</p>
                         </a>
                     </li>
+ <li class="nav-item">
+    <a href="{{ route('tagihan-pembayaran.index') }}"
+       class="nav-link {{ request()->routeIs('tagihan-pembayaran.*') ? 'active' : '' }}">
+        <i class="nav-icon bi bi-receipt"></i>
+        <p>Tagihan</p>
+    </a>
+</li>
 
                 </ul>
             </nav>

@@ -174,7 +174,7 @@ class PendaftaranTenantController extends Controller
                     'TanggalJoin' => $TanggalJoin,
                     'StatusSubscription' => 'Aktif',
                     'TanggalMulaiSubscription' => $TanggalJoin,
-                    'TanggalAkhirSubscription' => $TanggalJoin->copy()->addMonth(),
+                    'TanggalAkhirSubscription' => $TanggalJoin->copy()->addDays(30),
                     'UserCreate' => Auth::user()->name ?? 'System',
                 ]);
 
@@ -208,6 +208,7 @@ class PendaftaranTenantController extends Controller
                     'JumlahTagihan'       => 149000,
                     'StatusPembayaran'    => 'Lunas',
                     'TanggalPembayaran'   => $TanggalJoin,
+                    'BerlakuHingga'   => $TanggalJoin->copy()->addDays(30),
                     'BuktiPembayaran'     => $buktiPembayaranBaru,
                     'Catatan'             => null,
                     'Status'              => 'N/A',

@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends(auth()->user()->role === 'Superadmin' ? 'layouts.app-manajemen-tenant' : 'layouts.app')
 
 @section('content')
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
@@ -36,10 +36,45 @@
                         </div>
                     </div>
 
-
                     <div class="card-body">
-                        <!-- Filter Row (Status Dihapus) -->
+                        <!-- Filter Row -->
                         <div class="row g-2 mb-3 align-items-end">
+                            <!-- Filter Tahun -->
+                            <div class="col-md-3">
+                                <label class="form-label small fw-semibold text-muted">Tahun</label>
+                                <select class="form-select form-select-sm" id="FilterTahun">
+                                    <option value="">Semua Tahun</option>
+                                    @php
+                                        $CurrentTahun = date('Y');
+                                        for ($i = $CurrentTahun - 2; $i <= $CurrentTahun + 2; $i++) {
+                                            $Selected = ($i == $CurrentTahun) ? 'selected' : '';
+                                            echo "<option value='{$i}' {$Selected}>{$i}</option>";
+                                        }
+                                    @endphp
+                                </select>
+                            </div>
+
+                            <!-- Filter Bulan -->
+                            <div class="col-md-3">
+                                <label class="form-label small fw-semibold text-muted">Bulan</label>
+                                <select class="form-select form-select-sm" id="FilterBulan">
+                                    <option value="">Semua Bulan</option>
+                                    <option value="01">Januari</option>
+                                    <option value="02">Februari</option>
+                                    <option value="03">Maret</option>
+                                    <option value="04">April</option>
+                                    <option value="05">Mei</option>
+                                    <option value="06">Juni</option>
+                                    <option value="07">Juli</option>
+                                    <option value="08">Agustus</option>
+                                    <option value="09">September</option>
+                                    <option value="10">Oktober</option>
+                                    <option value="11">November</option>
+                                    <option value="12">Desember</option>
+                                </select>
+                            </div>
+
+                            <!-- Filter Tenant (HANYA Untuk Superadmin) -->
                             @if(auth()->user()->role === 'Superadmin')
                             <div class="col-md-3">
                                 <label class="form-label small fw-semibold text-muted">Pilih Tenant</label>
@@ -52,7 +87,8 @@
                             </div>
                             @endif
 
-                            <div class="col-md-{{ auth()->user()->role === 'Superadmin' ? '9' : '12' }}">
+                            <!-- Action Buttons -->
+                            <div class="col-md-{{ auth()->user()->role === 'Superadmin' ? '3' : '6' }}">
                                 <div class="d-flex gap-2">
                                     <button type="button" id="BtnFilter" class="btn btn-primary btn-sm px-3">
                                         <i class="ti ti-filter me-1"></i> Tampilkan
@@ -76,11 +112,7 @@
                                         @endif
                                         <th class="text-center">#</th>
                                         <th>No. Tagihan</th>
-                                        @if(auth()->user()->role === 'Superadmin')
                                         <th>Nama Tenant</th>
-                                        @else
-                                        <th>Nama Tenant</th>
-                                        @endif
                                         <th>Periode</th>
                                         <th class="text-center">Jatuh Tempo</th>
                                         <th class="text-center">Tanggal Bayar</th>
@@ -99,27 +131,89 @@
         </div>
     </div>
 
-    <!-- Modal Bulk Approve (Hanya untuk Superadmin) -->
+   <!-- Modal Bulk Approve dengan Form Verifikasi (Hanya untuk Superadmin) -->
     @if(auth()->user()->role === 'Superadmin')
     <div class="modal fade" id="BulkApproveModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content border-0 shadow">
                 <div class="modal-header bg-success bg-opacity-10 border-bottom-0">
                     <h5 class="modal-title fw-bold text-success-emphasis">
-                        <i class="ti ti-checklist me-2"></i>Persetujuan Massal Tagihan
+                        <i class="ti ti-shield-check me-2"></i>Form Verifikasi Massal Tagihan
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <p class="text-muted small mb-0">
-                        Anda akan mengubah status <strong id="ModalSelectedCount" class="text-dark">0</strong> tagihan terpilih menjadi <strong class="text-success">Lunas</strong>.<br>
-                        <small class="text-danger">* Tindakan ini akan otomatis mengisi "Tanggal Bayar" dengan hari ini.</small>
-                    </p>
+                    <div class="alert alert-info d-flex align-items-center mb-3">
+                        <i class="ti ti-info-circle me-2 fs-5"></i>
+                        <div>
+                            <strong>Tagihan Terpilih:</strong> <span id="ModalSelectedCount" class="text-dark fw-bold">0</span> tagihan akan diverifikasi
+                        </div>
+                    </div>
+
+                    <form id="FormBulkVerifikasi">
+                        <!-- Status Verifikasi -->
+                        <div class="mb-3">
+                            <label for="BulkStatus" class="form-label fw-semibold">
+                                Status Verifikasi <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select" id="BulkStatus" name="Status" required>
+                                <option value="">-- Pilih Status --</option>
+                                <option value="Lunas">Lunas</option>
+                                <option value="Belum Bayar">Belum Bayar</option>
+                                <option value="Terlambat">Terlambat</option>
+                            </select>
+                            <div class="form-text text-muted">
+                                <i class="ti ti-info-circle me-1"></i>Status yang akan diterapkan ke semua tagihan terpilih
+                            </div>
+                        </div>
+
+                        <!-- Catatan Verifikasi -->
+                        <div class="mb-3">
+                            <label for="BulkCatatanVerifikasi" class="form-label fw-semibold">
+                                Catatan Verifikasi
+                            </label>
+                            <textarea class="form-control" id="BulkCatatanVerifikasi" name="CatatanVerifikasi" rows="3" placeholder="Masukkan catatan verifikasi (opsional)..."></textarea>
+                            <div class="form-text text-muted">
+                                <i class="ti ti-info-circle me-1"></i>Catatan ini akan disimpan untuk semua tagihan yang diverifikasi
+                            </div>
+                        </div>
+
+                        <!-- VerifPada (Auto-filled) -->
+                        <div class="mb-3">
+                            <label for="BulkVerifPada" class="form-label fw-semibold">
+                                Tanggal Verifikasi
+                            </label>
+                            <input type="datetime-local" class="form-control" id="BulkVerifPada" name="VerifPada" value="{{ date('Y-m-d\TH:i') }}" readonly>
+                            <div class="form-text text-muted">
+                                <i class="ti ti-clock me-1"></i>Otomatis terisi dengan tanggal dan waktu saat ini
+                            </div>
+                        </div>
+
+                        <!-- VerifOleh (Auto-filled) -->
+                        <div class="mb-3">
+                            <label for="BulkVerifOleh" class="form-label fw-semibold">
+                                Diverifikasi Oleh
+                            </label>
+                            <input type="text" class="form-control" id="BulkVerifOleh" name="VerifOleh" value="{{ auth()->user()->name }}" readonly>
+                            <div class="form-text text-muted">
+                                <i class="ti ti-user me-1"></i>Otomatis terisi dengan user yang sedang login
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning d-flex align-items-center mb-0">
+                            <i class="ti ti-alert-triangle me-2 fs-5"></i>
+                            <div>
+                                <strong>Perhatian!</strong> Tindakan ini akan mengubah status dan menambahkan catatan verifikasi ke semua tagihan terpilih.
+                            </div>
+                        </div>
+                    </form>
                 </div>
                 <div class="modal-footer border-top-0 pt-0">
-                    <button type="button" class="btn btn-light text-muted" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-light text-muted" data-bs-dismiss="modal">
+                        <i class="ti ti-x me-1"></i>Batal
+                    </button>
                     <button type="button" class="btn btn-success text-white fw-semibold px-4" id="BtnSubmitBulkApprove">
-                        <i class="ti ti-check me-1"></i> Ya, Setujui Semua
+                        <i class="ti ti-check me-1"></i> Verifikasi & Simpan
                     </button>
                 </div>
             </div>
@@ -151,6 +245,10 @@
                     url: "{{ route('tagihan-pembayaran.index') }}",
                     type: 'GET',
                     data: function (Data) {
+                        // Kirim parameter filter ke server
+                        Data.FilterTahun = $('#FilterTahun').val();
+                        Data.FilterBulan = $('#FilterBulan').val();
+
                         @if(auth()->user()->role === 'Superadmin')
                         Data.TenantId = $('#FilterTenant').val();
                         @endif
@@ -215,6 +313,8 @@
             });
 
             $('#BtnReset').on('click', function() {
+                $('#FilterTahun').val('');
+                $('#FilterBulan').val('');
                 @if(auth()->user()->role === 'Superadmin')
                 $('#FilterTenant').val('');
                 @endif
@@ -229,15 +329,25 @@
                 Swal.fire({
                     title: 'Hapus Tagihan?',
                     html: `Anda akan menghapus tagihan:<br><strong class="text-primary">${Nomor}</strong><br>Tindakan ini tidak dapat dibatalkan!`,
-                    icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Ya, Hapus!', cancelButtonText: 'Batal', reverseButtons: true
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Ya, Hapus!',
+                    cancelButtonText: 'Batal',
+                    reverseButtons: true
                 }).then((Result) => {
                     if (Result.isConfirmed) {
                         $.ajax({
                             url: "{{ route('tagihan-pembayaran.destroy', ':id') }}".replace(':id', Id),
                             type: 'POST',
-                            data: { _method: 'DELETE', _token: '{{ csrf_token() }}' },
-                            beforeSend: function() { Swal.fire({ title: 'Menghapus...', text: 'Mohon tunggu sebentar', allowOutsideClick: false, didOpen: () => Swal.showLoading() }); },
+                            data: {
+                                _method: 'DELETE',
+                                _token: '{{ csrf_token() }}'
+                            },
+                            beforeSend: function() {
+                                Swal.fire({ title: 'Menghapus...', text: 'Mohon tunggu sebentar', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                            },
                             success: function(Response) {
                                 if (Response.success) {
                                     Swal.fire({ icon: 'success', title: 'Berhasil!', text: Response.message, timer: 2000, showConfirmButton: false });
@@ -294,8 +404,13 @@
                 Swal.fire({
                     title: 'Konfirmasi Persetujuan Massal',
                     html: `Anda akan menyetujui <strong>${Ids.length}</strong> tagihan menjadi status <strong class="text-success">Lunas</strong>.<br><span class="text-muted small">Lanjutkan proses ini?</span>`,
-                    icon: 'warning', showCancelButton: true, confirmButtonColor: '#198754', cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Ya, Setujui!', cancelButtonText: 'Batal', reverseButtons: true
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#198754',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Ya, Setujui!',
+                    cancelButtonText: 'Batal',
+                    reverseButtons: true
                 }).then((Result) => {
                     if (Result.isConfirmed) {
                         Swal.fire({ title: 'Memproses...', text: 'Mohon tunggu sebentar', allowOutsideClick: false, didOpen: () => Swal.showLoading() });

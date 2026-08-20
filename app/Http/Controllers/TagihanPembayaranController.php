@@ -18,6 +18,19 @@ class TagihanPembayaranController extends Controller
             $User = auth()->user();
             $Query = TagihanPembayaran::with('Tenant')->latest('id');
 
+            // ✅ TAMBAHAN: Logika Filter Tahun dan Bulan
+            $FilterTahun = $Request->FilterTahun ?? null;
+            $FilterBulan = $Request->FilterBulan ?? null;
+
+            if ($FilterTahun && $FilterBulan) {
+                // Gabungkan menjadi format YYYY-MM (contoh: 2026-08)
+                $PeriodeBulan = $FilterTahun . '-' . str_pad($FilterBulan, 2, '0', STR_PAD_LEFT);
+                $Query->where('PeriodeBulan', $PeriodeBulan);
+            } elseif ($FilterTahun) {
+                // Jika hanya tahun yang dipilih, cari semua bulan di tahun tersebut
+                $Query->where('PeriodeBulan', 'like', $FilterTahun . '-%');
+            }
+
             // Keamanan: Jika bukan Superadmin, paksa filter berdasarkan TenantId
             if ($User->role !== 'Superadmin' && isset($User->TenantId)) {
                 $Query->where('TenantId', $User->TenantId);
@@ -42,9 +55,6 @@ class TagihanPembayaranController extends Controller
                     }
                     return '<span class="text-muted">-</span>';
                 })
-
-
-
                 ->editColumn('JumlahTagihan', function ($Row) {
                     return 'Rp ' . number_format($Row->JumlahTagihan, 0, ',', '.');
                 })
@@ -64,7 +74,6 @@ class TagihanPembayaranController extends Controller
                 })
                 ->addColumn('action', function ($Row) {
                     $Btn = '<div class="d-flex gap-1 justify-content-center">';
-                    // Tombol Show / Verifikasi Detail
                     $Btn .= '<a href="' . route('tagihan-pembayaran.show', $Row->id) . '" class="btn btn-info btn-sm text-white" title="Lihat Detail"><i class="ti ti-eye"></i></a> ';
 
                     if ($Row->StatusPembayaran !== 'Lunas') {
@@ -74,7 +83,7 @@ class TagihanPembayaranController extends Controller
                     $Btn .= '</div>';
                     return $Btn;
                 })
-                ->rawColumns(['NomorTagihan', 'Tenant.Nama', 'StatusPembayaran', 'BuktiPembayaran', 'action'])
+                ->rawColumns(['NomorTagihan', 'NamaTenant', 'StatusPembayaran', 'BuktiPembayaran', 'action'])
                 ->make(true);
         }
 
