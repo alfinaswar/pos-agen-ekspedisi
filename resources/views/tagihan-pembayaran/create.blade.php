@@ -6,6 +6,21 @@
 <style>
     @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
     .error-fade-in { animation: fadeIn 0.3s ease-in-out forwards; }
+    .dropzone {
+        border: 2px dashed #0d6efd;
+        border-radius: 8px;
+        padding: 1.5rem;
+        text-align: center;
+        background: #f8fbff;
+        color: #0d6efd;
+        cursor: pointer;
+        transition: border-color 0.2s;
+    }
+    .dropzone.dragover {
+        border-color: #198754;
+        background: #e6f9eb;
+        color: #198754;
+    }
 </style>
 
 <div class="content-header pb-2">
@@ -26,7 +41,7 @@
 <div class="content pb-5">
     <div class="container-fluid">
         <div class="row justify-content-center">
-            <div class="col-xl-12 col-lg-12 col-md-12">
+            <div class="col-xl-12 col-lg-10 col-md-12">
                 <div class="card shadow-sm border-0">
                     <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
                         <h5 class="mb-0 fw-bold text-primary">
@@ -34,7 +49,7 @@
                         </h5>
                     </div>
                     <div class="card-body p-4">
-                        <form action="{{ route('tagihan-pembayaran.store') }}" method="POST" id="FormTagihan">
+                        <form action="{{ route('tagihan-pembayaran.store') }}" method="POST" id="FormTagihan" enctype="multipart/form-data">
                             @csrf
                             <div class="row g-4">
                                 <!-- Kolom Kiri -->
@@ -46,33 +61,29 @@
                                         <select class="form-select @error('TenantId') is-invalid @enderror" id="TenantId" name="TenantId" required>
                                             <option value="">-- Pilih Tenant --</option>
                                             @foreach($Tenants as $Tenant)
-                                                <option value="{{ $Tenant->id }}" {{ old('TenantId') == $Tenant->id ? 'selected' : '' }}>
+                                                <option value="{{ $Tenant->Kode }}" {{ old('TenantId') == $Tenant->Kode ? 'selected' : '' }}>
                                                     {{ $Tenant->Nama }}
                                                 </option>
+
                                             @endforeach
                                         </select>
                                         @error('TenantId') <div class="invalid-feedback d-block error-fade-in"><i class="ti ti-alert-circle me-1"></i>{{ $message }}</div> @enderror
                                     </div>
 
+
+
                                     <div class="mb-4">
                                         <label for="PeriodeBulan" class="form-label fw-semibold">
                                             <i class="ti ti-calendar-month me-1 text-primary"></i> Periode Bulan <span class="text-danger">*</span>
                                         </label>
-                                        <input type="text" class="form-control @error('PeriodeBulan') is-invalid @enderror" id="PeriodeBulan" name="PeriodeBulan" value="{{ old('PeriodeBulan') }}" placeholder="Contoh: Oktober 2023" required>
-                                        @error('PeriodeBulan') <div class="invalid-feedback d-block error-fade-in"><i class="ti ti-alert-circle me-1"></i>{{ $message }}</div> @enderror
+                                        <input type="month" class="form-control @error('PeriodeBulan') is-invalid @enderror" id="PeriodeBulan" name="PeriodeBulan" value="{{ old('PeriodeBulan') }}" required>
+                                        @error('PeriodeBulan')
+                                            <div class="invalid-feedback d-block error-fade-in">
+                                                <i class="ti ti-alert-circle me-1"></i>{{ $message }}
+                                            </div>
+                                        @enderror
                                     </div>
 
-                                    <div class="mb-4">
-                                        <label for="TanggalJatuhTempo" class="form-label fw-semibold">
-                                            <i class="ti ti-calendar-event me-1 text-primary"></i> Tanggal Jatuh Tempo <span class="text-danger">*</span>
-                                        </label>
-                                        <input type="date" class="form-control @error('TanggalJatuhTempo') is-invalid @enderror" id="TanggalJatuhTempo" name="TanggalJatuhTempo" value="{{ old('TanggalJatuhTempo') }}" required>
-                                        @error('TanggalJatuhTempo') <div class="invalid-feedback d-block error-fade-in"><i class="ti ti-alert-circle me-1"></i>{{ $message }}</div> @enderror
-                                    </div>
-                                </div>
-
-                                <!-- Kolom Kanan -->
-                                <div class="col-md-6">
                                     <div class="mb-4">
                                         <label for="JumlahTagihan" class="form-label fw-semibold">
                                             <i class="ti ti-cash me-1 text-primary"></i> Jumlah Tagihan (Rp) <span class="text-danger">*</span>
@@ -83,6 +94,45 @@
                                         </div>
                                         <div class="form-text text-muted mt-1"><i class="ti ti-info-circle me-1"></i>Format angka akan otomatis dipisahkan ribuan.</div>
                                         @error('JumlahTagihan') <div class="invalid-feedback d-block error-fade-in"><i class="ti ti-alert-circle me-1"></i>{{ $message }}</div> @enderror
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label for="TanggalPembayaran" class="form-label fw-semibold">
+                                            <i class="ti ti-calendar-check me-1 text-primary"></i> Tanggal Pembayaran <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="date" class="form-control @error('TanggalPembayaran') is-invalid @enderror" id="TanggalPembayaran" name="TanggalPembayaran" value="{{ now()->format('Y-m-d') }}" readonly>
+                                        <div class="form-text text-muted">Otomatis diisi hari ini.</div>
+                                        @error('TanggalPembayaran') <div class="invalid-feedback d-block error-fade-in"><i class="ti ti-alert-circle me-1"></i>{{ $message }}</div> @enderror
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label for="BerlakuHingga" class="form-label fw-semibold">
+                                            <i class="ti ti-calendar-plus me-1 text-primary"></i> Berlaku Hingga <span class="text-danger">*</span>
+                                        </label>
+                                        @php
+                                            $berlakuHingga = \Carbon\Carbon::now()->addMonth()->format('Y-m-d');
+                                        @endphp
+                                        <input type="date" class="form-control @error('BerlakuHingga') is-invalid @enderror" id="BerlakuHingga" name="BerlakuHingga" value="{{ $berlakuHingga }}" readonly>
+                                        <div class="form-text text-muted">Otomatis 1 tahun dari tanggal pembayaran.</div>
+                                        @error('BerlakuHingga') <div class="invalid-feedback d-block error-fade-in"><i class="ti ti-alert-circle me-1"></i>{{ $message }}</div> @enderror
+                                    </div>
+                                </div>
+
+                                <!-- Kolom Kanan -->
+                                <div class="col-md-6">
+                                    <div class="mb-4">
+                                        <label for="BuktiPembayaran" class="form-label fw-semibold">
+                                            <i class="ti ti-upload me-1 text-primary"></i> Bukti Pembayaran <span class="text-danger">*</span>
+                                        </label>
+                                        <div id="dropzone" class="dropzone">
+                                            <span><i class="ti ti-cloud-upload me-2"></i>Drag & Drop file di sini atau klik untuk pilih file.</span>
+                                            <input type="file" style="display:none;" id="BuktiPembayaran" name="BuktiPembayaran" accept="image/*,application/pdf" required>
+                                        </div>
+                                        <div class="form-text text-muted mt-1">
+                                            <i class="ti ti-info-circle me-1"></i>Format diterima: JPG, PNG, PDF. Maks. 2MB.
+                                        </div>
+                                        <div id="file-name" class="mt-1 small"></div>
+                                        @error('BuktiPembayaran') <div class="invalid-feedback d-block error-fade-in"><i class="ti ti-alert-circle me-1"></i>{{ $message }}</div> @enderror
                                     </div>
 
                                     <div class="mb-4">
@@ -115,24 +165,61 @@
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Format angka dengan pemisah ribuan saat mengetik (JumlahTagihan)
             const InputJumlah = document.getElementById('JumlahTagihan');
+            if (InputJumlah) {
+                InputJumlah.addEventListener('input', function() {
+                    let Value = this.value.replace(/[^,\d]/g, '').toString();
+                    let Split = Value.split(',');
+                    let Sisa = Split[0].length % 3;
+                    let Rupiah = Split[0].substr(0, Sisa);
+                    let Ribuan = Split[0].substr(Sisa).match(/\d{3}/gi);
 
-            // Format angka dengan pemisah ribuan saat mengetik
-            InputJumlah.addEventListener('input', function() {
-                let Value = this.value.replace(/[^,\d]/g, '').toString();
-                let Split = Value.split(',');
-                let Sisa = Split[0].length % 3;
-                let Rupiah = Split[0].substr(0, Sisa);
-                let Ribuan = Split[0].substr(Sisa).match(/\d{3}/gi);
+                    if (Ribuan) {
+                        let Separator = Sisa ? '.' : '';
+                        Rupiah += Separator + Ribuan.join('.');
+                    }
+                    Rupiah = Split[1] != undefined ? Rupiah + ',' + Split[1] : Rupiah;
+                    this.value = Rupiah;
+                });
+            }
 
-                if (Ribuan) {
-                    let Separator = Sisa ? '.' : '';
-                    Rupiah += Separator + Ribuan.join('.');
+            // Drag & drop untuk BuktiPembayaran
+            const dropzone = document.getElementById('dropzone');
+            const fileInput = document.getElementById('BuktiPembayaran');
+            const fileNameDiv = document.getElementById('file-name');
+
+            if (dropzone && fileInput) {
+                dropzone.addEventListener('click', function() {
+                    fileInput.click();
+                });
+
+                dropzone.addEventListener('dragover', function(e) {
+                    e.preventDefault(); e.stopPropagation();
+                    dropzone.classList.add('dragover');
+                });
+                dropzone.addEventListener('dragleave', function(e) {
+                    e.preventDefault(); e.stopPropagation();
+                    dropzone.classList.remove('dragover');
+                });
+                dropzone.addEventListener('drop', function(e) {
+                    e.preventDefault(); e.stopPropagation();
+                    dropzone.classList.remove('dragover');
+                    if (e.dataTransfer.files && e.dataTransfer.files.length) {
+                        fileInput.files = e.dataTransfer.files;
+                        updateFileName();
+                    }
+                });
+                fileInput.addEventListener('change', updateFileName);
+
+                function updateFileName() {
+                    if (fileInput.files.length > 0) {
+                        fileNameDiv.textContent = fileInput.files[0].name;
+                    } else {
+                        fileNameDiv.textContent = '';
+                    }
                 }
-
-                Rupiah = Split[1] != undefined ? Rupiah + ',' + Split[1] : Rupiah;
-                this.value = Rupiah;
-            });
+            }
         });
     </script>
 @endpush

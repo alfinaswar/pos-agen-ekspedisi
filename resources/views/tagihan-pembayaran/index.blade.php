@@ -81,7 +81,7 @@
                                 <select class="form-select form-select-sm" id="FilterTenant">
                                     <option value="">Semua Tenant</option>
                                     @foreach($Tenants as $Tenant)
-                                        <option value="{{ $Tenant->id }}">{{ $Tenant->Nama }}</option>
+                                        <option value="{{ $Tenant->Kode }}">{{ $Tenant->Nama }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -158,10 +158,11 @@
                             </label>
                             <select class="form-select" id="BulkStatus" name="Status" required>
                                 <option value="">-- Pilih Status --</option>
-                                <option value="Lunas">Lunas</option>
-                                <option value="Belum Bayar">Belum Bayar</option>
-                                <option value="Terlambat">Terlambat</option>
+                                <option value="Y">Diverifikasi</option>
+                                <option value="N">Ditolak</option>
+                                <option value="N/A">Belum Verif</option>
                             </select>
+
                             <div class="form-text text-muted">
                                 <i class="ti ti-info-circle me-1"></i>Status yang akan diterapkan ke semua tagihan terpilih
                             </div>
@@ -398,28 +399,62 @@
                 }
             });
 
-            $('#BtnSubmitBulkApprove').on('click', function() {
+                        $('#BtnSubmitBulkApprove').on('click', function() {
                 const Ids = Array.from(SelectedIds);
+                const Status = $('#BulkStatus').val();
+                const CatatanVerifikasi = $('#BulkCatatanVerifikasi').val();
+                const VerifPada = $('#BulkVerifPada').val();
+                const VerifOleh = $('#BulkVerifOleh').val();
+
+                // Validasi status
+                if (!Status) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Validasi Gagal',
+                        text: 'Silakan pilih status verifikasi!',
+                        confirmButtonColor: '#198754'
+                    });
+                    return;
+                }
 
                 Swal.fire({
-                    title: 'Konfirmasi Persetujuan Massal',
-                    html: `Anda akan menyetujui <strong>${Ids.length}</strong> tagihan menjadi status <strong class="text-success">Lunas</strong>.<br><span class="text-muted small">Lanjutkan proses ini?</span>`,
+                    title: 'Konfirmasi Verifikasi Massal',
+                    html: `Anda akan memverifikasi <strong>${Ids.length}</strong> tagihan dengan status <strong class="text-success">${Status}</strong>.<br><span class="text-muted small">Lanjutkan proses ini?</span>`,
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#198754',
                     cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Ya, Setujui!',
+                    confirmButtonText: 'Ya, Verifikasi!',
                     cancelButtonText: 'Batal',
                     reverseButtons: true
                 }).then((Result) => {
                     if (Result.isConfirmed) {
-                        Swal.fire({ title: 'Memproses...', text: 'Mohon tunggu sebentar', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                        Swal.fire({
+                            title: 'Memproses...',
+                            text: 'Mohon tunggu sebentar',
+                            allowOutsideClick: false,
+                            didOpen: () => Swal.showLoading()
+                        });
+
                         $.ajax({
                             url: "{{ route('tagihan-pembayaran.bulkApprove') }}",
                             type: 'POST',
-                            data: { _token: '{{ csrf_token() }}', Ids: Ids },
+                            data: {
+                                _token: '{{ csrf_token() }}',
+                                Ids: Ids,
+                                Status: Status,
+                                CatatanVerifikasi: CatatanVerifikasi,
+                                VerifPada: VerifPada,
+                                VerifOleh: VerifOleh
+                            },
                             success: function(Response) {
-                                Swal.fire({ icon: 'success', title: 'Berhasil!', text: Response.message, timer: 2000, showConfirmButton: false });
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil!',
+                                    text: Response.message,
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
                                 SelectedIds.clear();
                                 bootstrap.Modal.getInstance(document.getElementById('BulkApproveModal')).hide();
                                 $('#TagihanTable').DataTable().ajax.reload(null, false);

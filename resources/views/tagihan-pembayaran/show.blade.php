@@ -224,7 +224,7 @@
                                     @if($TagihanPembayaran->UserUpdate || $TagihanPembayaran->TanggalPembayaran)
                                     <div class="mt-2 text-muted small">
                                         <i class="ti ti-user-check me-1"></i> {{ $TagihanPembayaran->UserUpdate ?? '-' }}
-                                        <i class="ti ti-clock ms-3 me-1"></i> {{ $TagihanPembayaran->TanggalPembayaran ? $TagihanPembayaran->TanggalPembayaran->format('d/m/Y H:i') : '-' }}
+                                        <i class="ti ti-clock ms-3 me-1"></i> {{ $TagihanPembayaran->TanggalPembayaran ? $TagihanPembayaran->TanggalPembayaran : '-' }}
                                     </div>
                                     @endif
                                 </div>
@@ -252,22 +252,20 @@
                                                     </label>
                                                     <input type="date" class="form-control form-control-sm fw-semibold" id="TanggalPembayaran" name="TanggalPembayaran" value="{{ date('Y-m-d') }}" required>
                                                 </div>
-                                                <div class="col-md-5">
-                                                    <label for="BuktiPembayaran" class="form-label fw-semibold small text-uppercase text-muted mb-1">
-                                                        Upload Bukti Transfer (Opsional)
-                                                    </label>
-                                                    <input type="file" class="form-control form-control-sm" id="BuktiPembayaran" name="BuktiPembayaran" accept="image/png, image/jpeg, image/jpg, image/webp, application/pdf">
-                                                    <div class="form-text text-muted small mt-1"><i class="ti ti-info-circle me-1"></i>Maks. 2MB. JPG, PNG, atau PDF.</div>
 
-                                                    <!-- Preview Area -->
-                                                    <div class="mt-2 d-none" id="PreviewContainer">
-                                                        <div class="position-relative d-inline-block">
-                                                            <img id="ImagePreview" src="#" alt="Pratinjau" class="img-fluid rounded border bg-light" style="max-height: 150px; max-width: 100%; object-fit: contain;">
-                                                            <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle shadow-sm" id="RemoveImageBtn" title="Hapus"><i class="ti ti-x"></i></button>
-                                                        </div>
-                                                    </div>
+                                                <div class="col-md-4">
+                                                    <label for="StatusVerifikasi" class="form-label fw-semibold small text-uppercase text-muted mb-1">
+                                                        Status Verif <span class="text-danger">*</span>
+                                                    </label>
+                                                    <select class="form-select form-select-sm fw-semibold" id="StatusVerifikasi" name="StatusVerifikasi" required>
+                                                        <option value="Y">Ya, Verifikasi</option>
+                                                        <option value="N">Tolak</option>
+                                                        <option value="N/a">N/A</option>
+                                                    </select>
+
                                                 </div>
-                                                <div class="col-md-3">
+
+                                                <div class="col-md-4">
                                                     <label for="Catatan" class="form-label fw-semibold small text-uppercase text-muted mb-1">
                                                         Catatan
                                                     </label>
@@ -280,6 +278,7 @@
                                                 </div>
                                             </div>
                                         </form>
+
                                     </div>
                                 </div>
                             </div>

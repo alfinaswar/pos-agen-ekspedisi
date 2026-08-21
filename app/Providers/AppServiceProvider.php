@@ -5,6 +5,8 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use App\Models\Pengumuman; // Import Model
+use App\Models\Tenant;
+use Illuminate\Support\Facades\Auth;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,6 +25,33 @@ class AppServiceProvider extends ServiceProvider
             $UnreadCount = $RecentAnnouncements->count();
             $View->with('RecentAnnouncements', $RecentAnnouncements);
             $View->with('UnreadCount', $UnreadCount);
+        });
+
+        // ✅ TAMBAHKAN INI: View Composer untuk alert subscription
+
+        View::composer('*', function ($View) {
+            $User = Auth::user();
+
+            // Default values
+            $CurrentTenant = null;
+            $IsSubscriptionExpiringSoon = false;
+            $SubscriptionRemainingDays = null;
+            $IsSubscriptionExpired = false;
+
+            if ($User && isset($User->tenant_id)) {
+                // ✅ Gunakan first() untuk memastikan mendapatkan model instance
+                $CurrentTenant = Tenant::where('Kode', $User->tenant_id)->first();
+                if ($CurrentTenant) {
+                    $IsSubscriptionExpiringSoon = $CurrentTenant->IsSubscriptionExpiringSoon(7);
+                    $SubscriptionRemainingDays = $CurrentTenant->GetRemainingDays();
+                    $IsSubscriptionExpired = $CurrentTenant->IsSubscriptionExpired();
+                }
+            }
+            // dd($IsSubscriptionExpired);
+            $View->with('CurrentTenant', $CurrentTenant);
+            $View->with('IsSubscriptionExpiringSoon', $IsSubscriptionExpiringSoon);
+            $View->with('SubscriptionRemainingDays', $SubscriptionRemainingDays);
+            $View->with('IsSubscriptionExpired', $IsSubscriptionExpired);
         });
     }
 }

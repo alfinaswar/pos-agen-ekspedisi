@@ -108,51 +108,92 @@ class TagihanPembayaranController extends Controller
     }
     public function Store(Request $Request)
     {
+        // 1. Validasi Input
         $Request->validate([
             'TenantId' => 'required|exists:tenants,id',
-            'PeriodeBulan' => 'required|string|max:50',
-            'TanggalJatuhTempo' => 'required|date',
-            'JumlahTagihan' => 'required|numeric|min:0',
-            'Catatan' => 'nullable|string',
+            'PeriodeBulan' => 'required|date_format:Y-m',
+            'JumlahTagihan' => 'required|string',
+            'TanggalPembayaran' => 'required|date',
+            'BerlakuHingga' => 'required|date|after_or_equal:TanggalPembayaran',
+            'BuktiPembayaran' => 'required|file|mimes:jpeg,png,jpg,pdf|max:2048',
+            'Catatan' => 'nullable|string|max:1000',
         ]);
 
-        // Generate Nomor Tagihan Unik: INV-YYYYMM-Random
-        $NomorTagihan = 'INV-' . date('Ymd') . '-' . strtoupper(Str::random(4));
+        // 2. Bersihkan format angka (hapus titik ribuan)
+        $CleanAmount = str_replace('.', '', $Request->JumlahTagihan);
 
-        $Data = $Request->except(['JumlahTagihan']);
-        $Data['NomorTagihan'] = $NomorTagihan;
-        $Data['JumlahTagihan'] = str_replace(',', '', $Request->JumlahTagihan); // Bersihkan format jika ada
-        $Data['StatusPembayaran'] = 'Belum Bayar';
+        // 3. Siapkan data untuk disimpan
+        $Data = $Request->except(['JumlahTagihan', 'BuktiPembayaran', 'BerlakuHingga']);
+        $Data['JumlahTagihan'] = $CleanAmount;
+
+        // Mapping field 'BerlakuHingga' dari view ke 'TanggalJatuhTempo' di database
+        $Data['TanggalJatuhTempo'] = $Request->BerlakuHingga;
+
+        $Data['StatusPembayaran'] = 'Lunas'; // Default status saat dibuat
         $Data['UserCreate'] = Auth::user()->name ?? 'System';
 
+        // 4. Handle Upload File
+        if ($Request->hasFile('BuktiPembayaran')) {
+            $File = $Request->file('BuktiPembayaran');
+            $FileName = time() . '_' . preg_replace('/[^A-Za-z0-9\-_\.]/', '', $File->getClientOriginalName());
+            $Data['BuktiPembayaran'] = $File->storeAs('tagihan', $FileName, 'public');
+        }
+
+        // 5. Simpan ke Database
         TagihanPembayaran::create($Data);
 
-        return redirect()->route('tagihan-pembayaran.index')->with('success', 'Tagihan berhasil dibuat.');
+        return redirect()->route('tagihan-pembayaran.index')->with('success', 'Tagihan pembayaran berhasil dibuat.');
     }
 
     public function Edit(TagihanPembayaran $TagihanPembayaran)
     {
-        $Tenants = Tenant::where('StatusSubscription', 'Aktif')->get();
+        $Tenants = Tenant::where('StatusSubscription', 'Aktif')->orderBy('Nama', 'asc')->get();
+
+        // Load relasi tenant agar nama tenant tersedia di view
+        $TagihanPembayaran->load('Tenant');
+
         return view('tagihan-pembayaran.edit', compact('TagihanPembayaran', 'Tenants'));
     }
 
     public function Update(Request $Request, TagihanPembayaran $TagihanPembayaran)
     {
+        // 1. Validasi Input (Bukti Pembayaran jadi nullable agar tidak wajib diganti)
         $Request->validate([
             'TenantId' => 'required|exists:tenants,id',
-            'PeriodeBulan' => 'required|string|max:50',
-            'TanggalJatuhTempo' => 'required|date',
-            'JumlahTagihan' => 'required|numeric|min:0',
-            'Catatan' => 'nullable|string',
+            'PeriodeBulan' => 'required|date_format:Y-m',
+            'JumlahTagihan' => 'required|string',
+            'TanggalPembayaran' => 'required|date',
+            'BerlakuHingga' => 'required|date|after_or_equal:TanggalPembayaran',
+            'BuktiPembayaran' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
+            'Catatan' => 'nullable|string|max:1000',
         ]);
 
-        $Data = $Request->except(['JumlahTagihan']);
-        $Data['JumlahTagihan'] = str_replace(',', '', $Request->JumlahTagihan);
+        // 2. Bersihkan format angka
+        $CleanAmount = str_replace('.', '', $Request->JumlahTagihan);
+
+        // 3. Siapkan data untuk diupdate
+        $Data = $Request->except(['JumlahTagihan', 'BuktiPembayaran', 'BerlakuHingga']);
+        $Data['JumlahTagihan'] = $CleanAmount;
+        $Data['TanggalJatuhTempo'] = $Request->BerlakuHingga; // Mapping ke DB
         $Data['UserUpdate'] = Auth::user()->name ?? 'System';
 
+        // 4. Handle Upload File Baru (Jika ada)
+        if ($Request->hasFile('BuktiPembayaran')) {
+            // Hapus file lama dari storage jika ada
+            if ($TagihanPembayaran->BuktiPembayaran && Storage::disk('public')->exists($TagihanPembayaran->BuktiPembayaran)) {
+                Storage::disk('public')->delete($TagihanPembayaran->BuktiPembayaran);
+            }
+
+            // Upload file baru
+            $File = $Request->file('BuktiPembayaran');
+            $FileName = time() . '_' . preg_replace('/[^A-Za-z0-9\-_\.]/', '', $File->getClientOriginalName());
+            $Data['BuktiPembayaran'] = $File->storeAs('tagihan', $FileName, 'public');
+        }
+
+        // 5. Update ke Database
         $TagihanPembayaran->update($Data);
 
-        return redirect()->route('tagihan-pembayaran.index')->with('success', 'Tagihan berhasil diperbarui.');
+        return redirect()->route('tagihan-pembayaran.index')->with('success', 'Tagihan pembayaran berhasil diperbarui.');
     }
 
     public function Destroy(TagihanPembayaran $TagihanPembayaran)
@@ -180,45 +221,92 @@ class TagihanPembayaranController extends Controller
 
     public function BulkApprove(Request $Request)
     {
+        // Validation
         $Request->validate([
             'Ids' => 'required|array|min:1',
             'Ids.*' => 'exists:tagihan_pembayarans,id',
+            'Status' => 'required|in:Y,N,N/A',
+            'CatatanVerifikasi' => 'nullable|string|max:1000',
+            'VerifPada' => 'nullable|date',
+            'VerifOleh' => 'nullable|string|max:200',
         ]);
 
         $UpdatedCount = 0;
-        $UserName = Auth::user()->name ?? 'System';
+        $FailedIds = [];
+        $UserName = $Request->VerifOleh ?? (Auth::user()->name ?? 'System');
+        $VerifDate = $Request->VerifPada ?? now();
 
         foreach ($Request->Ids as $Id) {
-            $Tagihan = TagihanPembayaran::find($Id);
-            // Hanya update jika belum lunas
-            if ($Tagihan && $Tagihan->StatusPembayaran !== 'Lunas') {
-                $Tagihan->update([
-                    'StatusPembayaran' => 'Lunas',
-                    'TanggalPembayaran' => now(), // Tandai tanggal approve sebagai tanggal bayar
-                    'UserUpdate' => $UserName,
-                ]);
+            try {
+                $Tagihan = TagihanPembayaran::findOrFail($Id);
+
+                $UpdateData = [
+                    'Status' => $Request->Status,
+                    'CatatanVerifikasi' => $Request->CatatanVerifikasi,
+                    'VerifPada' => $VerifDate,
+                    'VerifOleh' => $UserName,
+                ];
+                if ($Request->filled('CatatanVerifikasi')) {
+                    $UpdateData['Catatan'] = $Request->CatatanVerifikasi;
+                }
+
+                // Update tenant subscription if Status is 'Y'
+                if ($Request->Status === 'Y' && $Tagihan->TenantId) {
+                    $tenant = Tenant::where('Kode', $Tagihan->TenantId)->first();
+                    if ($tenant) {
+                        $tenant->StatusSubscription = 'Aktif';
+                        $tenant->TanggalMulaiSubscription = now();
+                        $tenant->TanggalAkhirSubscription = now()->copy()->addMonth();
+                        if (!$tenant->save()) {
+                            throw new \Exception("Gagal menyimpan perubahan tenant (ID: $Id)");
+                        }
+                    }
+                }
+
+                if (!$Tagihan->update($UpdateData)) {
+                    throw new \Exception("Gagal update tagihan (ID: $Id)");
+                }
+
                 $UpdatedCount++;
+            } catch (\Throwable $e) {
+                $FailedIds[] = [
+                    'id' => $Id,
+                    'error' => $e->getMessage()
+                ];
+                // Optionally: Log::error("BulkApprove error: ".$e->getMessage());
             }
+        }
+
+        if (count($FailedIds) > 0) {
+            return response()->json([
+                'success' => false,
+                'message' => "Sebagian tagihan gagal diverifikasi. Berhasil: {$UpdatedCount}. Gagal: " . count($FailedIds),
+                'failed' => $FailedIds
+            ], 500);
         }
 
         return response()->json([
             'success' => true,
-            'message' => "Berhasil menyetujui {$UpdatedCount} tagihan pembayaran."
+            'message' => "Berhasil memverifikasi {$UpdatedCount} tagihan pembayaran dengan status {$Request->Status}."
         ]);
     }
     public function KonfirmasiProses(Request $Request, TagihanPembayaran $TagihanPembayaran)
     {
         $Request->validate([
             'TanggalPembayaran' => 'required|date',
-            'BuktiPembayaran' => 'nullable|image|mimes:jpeg,png,jpg,pdf|max:2048',
-            'Catatan' => 'nullable|string',
+            'StatusVerifikasi' => 'required|in:Y,N,N/a,N/A',
+            'Catatan' => 'nullable|string|max:1000',
         ]);
 
-        $Data = [
-            'StatusPembayaran' => 'Lunas',
-            'TanggalPembayaran' => $Request->TanggalPembayaran,
+        $UserName = Auth::user()->name ?? 'System';
+        $VerifDate = $Request->TanggalPembayaran ?? now();
+        $StatusVerifikasi = $Request->StatusVerifikasi;
+
+        $UpdateData = [
+            'StatusPembayaran' => $StatusVerifikasi === 'Y' ? 'Lunas' : ($StatusVerifikasi === 'N' ? 'Ditolak' : 'N/A'),
+            'TanggalPembayaran' => $VerifDate,
             'Catatan' => $Request->Catatan,
-            'UserUpdate' => Auth::user()->name ?? 'System',
+            'UserUpdate' => $UserName,
         ];
 
         if ($Request->hasFile('BuktiPembayaran')) {
@@ -227,11 +315,25 @@ class TagihanPembayaranController extends Controller
             }
             $File = $Request->file('BuktiPembayaran');
             $FileName = time() . '_' . preg_replace('/[^A-Za-z0-9\-_\.]/', '', $File->getClientOriginalName());
-            $Data['BuktiPembayaran'] = $File->storeAs('tagihan', $FileName, 'public');
+            $UpdateData['BuktiPembayaran'] = $File->storeAs('tagihan', $FileName, 'public');
         }
 
-        $TagihanPembayaran->update($Data);
+        // Jika status Y, update data subscription di model Tenant terkait
+        if ($StatusVerifikasi === 'Y' && $TagihanPembayaran->TenantId) {
+            $tenant = Tenant::where('Kode', $TagihanPembayaran->TenantId)->first();
+            if ($tenant) {
+                $tenant->StatusSubscription = 'Aktif';
+                $tenant->TanggalMulaiSubscription = now();
+                $tenant->TanggalAkhirSubscription = now()->copy()->addMonth();
+                $tenant->save();
+            }
+        }
 
-        return redirect()->route('tagihan-pembayaran.index')->with('success', 'Pembayaran berhasil dikonfirmasi dan status diubah menjadi Lunas.');
+        $TagihanPembayaran->update($UpdateData);
+
+        return redirect()->route('tagihan-pembayaran.index')->with(
+            'success',
+            'Pembayaran berhasil diverifikasi. Status telah diubah menjadi ' . $UpdateData['StatusPembayaran'] . '.'
+        );
     }
 }

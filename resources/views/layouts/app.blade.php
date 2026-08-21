@@ -30,6 +30,48 @@
 </head>
 
 <body class="layout-fixed sidebar-expand-lg sidebar-mini bg-body-tertiary">
+    <body>
+    {{-- ✅ ALERT SUBSCRIPTION EXPIRED (Sudah Habis) --}}
+    @if(isset($IsSubscriptionExpired) && $IsSubscriptionExpired)
+    <div class="alert alert-danger alert-dismissible fade show m-0 rounded-0 border-0" role="alert" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white;">
+        <div class="container-fluid">
+            <div class="d-flex align-items-center">
+                <i class="ti ti-alert-circle fs-1 me-3"></i>
+                <div class="flex-grow-1">
+                    <h5 class="mb-1 fw-bold">️ Subscription Anda Telah Habis!</h5>
+                    <p class="mb-0 small">
+                        Masa berlangganan tenant <strong>{{ $CurrentTenant->Nama }}</strong> telah berakhir pada
+                        <strong>{{ $CurrentTenant->TanggalAkhirSubscription }}</strong>.
+                        Silakan hubungi admin untuk memperpanjang subscription.
+                    </p>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    {{-- ✅ ALERT SUBSCRIPTION AKAN HABIS (7 Hari Lagi) --}}
+    @if(isset($IsSubscriptionExpiringSoon) && $IsSubscriptionExpiringSoon && !$IsSubscriptionExpired)
+    <div class="alert alert-warning alert-dismissible fade show m-0 rounded-0 border-0" role="alert" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); color: #000;">
+        <div class="container-fluid">
+            <div class="d-flex align-items-center">
+                <i class="ti ti-clock fs-1 me-3"></i>
+                <div class="flex-grow-1">
+                    <h5 class="mb-1 fw-bold"> Subscription Akan Habis dalam {{ $SubscriptionRemainingDays }} Hari!</h5>
+                    <p class="mb-0 small">
+                        Masa berlangganan tenant <strong>{{ $CurrentTenant->Nama }}</strong> akan berakhir pada
+                        <strong>{{ \Carbon\Carbon::parse($CurrentTenant->TanggalAkhirSubscription)->translatedFormat('d F Y') }}</strong>.
+                        Segera lakukan pembayaran untuk menghindari gangguan layanan.
+                    </p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    {{-- ... (Konten layout lainnya) ... --}}
 <div class="app-wrapper">
 
     {{-- ==================== HEADER / NAVBAR ==================== --}}

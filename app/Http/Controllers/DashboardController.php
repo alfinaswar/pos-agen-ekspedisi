@@ -7,6 +7,9 @@ use App\Models\Reimbursement;
 use App\Models\Absensi;
 use App\Models\User;
 use App\Models\Ekspedisi;
+use App\Models\PendaftaranTenant;
+use App\Models\TagihanPembayaran;
+use App\Models\Tenant;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -155,8 +158,77 @@ class DashboardController extends Controller
             'selectedBulan' // Sekarang variabel ini sudah terdefinisi
         ));
     }
-public function indexTenant()
-{
-    return view('dashboard.manajemen-tenant');
-}
+    public function IndexTenant()
+    {
+        $Now = Carbon::now();
+
+        // 1. Total Tenant
+        $TotalTenant = Tenant::count();
+        $TenantAktif = Tenant::where('StatusSubscription', 'Aktif')->count();
+        $TenantExpired = Tenant::where('StatusSubscription', 'Expired')->count();
+        $TenantNonaktif = Tenant::where('StatusSubscription', 'Nonaktif')->count();
+
+        // 2. Pendapatan
+        $TotalPendapatan = TagihanPembayaran::where('StatusPembayaran', 'Lunas')->sum('JumlahTagihan');
+        $PendapatanBulanIni = TagihanPembayaran::where('StatusPembayaran', 'Lunas')
+            ->whereYear('TanggalPembayaran', $Now->year)
+            ->whereMonth('TanggalPembayaran', $Now->month)
+            ->sum('JumlahTagihan');
+
+        // 3. Tagihan
+        $TotalTagihanBelumBayar = TagihanPembayaran::where('StatusPembayaran', 'Belum Bayar')->count();
+        $NominalBelumBayar = TagihanPembayaran::where('StatusPembayaran', 'Belum Bayar')->sum('JumlahTagihan');
+        $TotalTagihanTerlambat = TagihanPembayaran::where('StatusPembayaran', 'Terlambat')->count();
+
+        // 4. Pendaftaran Pending
+        $PendaftaranPending = PendaftaranTenant::where('Status', 'N/A')->count();
+        $PendaftaranHariIni = PendaftaranTenant::whereDate('created_at', $Now->toDateString())->count();
+
+        // 5. Subscription Akan Habis (7 hari)
+        $SubscriptionAkanHabis = Tenant::where('StatusSubscription', 'Aktif')
+            ->whereBetween('TanggalAkhirSubscription', [$Now, $Now->copy()->addDays(7)])
+            ->count();
+
+        // 6. Pertumbuhan Tenant (6 bulan terakhir)
+        $PertumbuhanTenant = [];
+        for ($Index = 5; $Index >= 0; $Index--) {
+            $Month = $Now->copy()->subMonths($Index);
+            $Count = Tenant::whereYear('created_at', $Month->year)
+                ->whereMonth('created_at', $Month->month)
+                ->count();
+            $PertumbuhanTenant[] = [
+                'Month' => $Month->format('M Y'),
+                'Count' => $Count
+            ];
+        }
+
+        // 7. Top 5 Tenant by Revenue
+        $TopTenant = TagihanPembayaran::select('TenantId', DB::raw('SUM(JumlahTagihan) as TotalRevenue'))
+            ->where('StatusPembayaran', 'Lunas')
+            ->groupBy('TenantId')
+            ->orderBy('TotalRevenue', 'desc')
+            ->limit(5)
+            ->with('Tenant')
+            ->get();
+
+        // ✅ GROUP SEMUA VARIABEL KE DALAM ARRAY $Data AGAR COCOK DENGAN VIEW
+        $Data = [
+            'TotalTenant' => $TotalTenant,
+            'TenantAktif' => $TenantAktif,
+            'TenantExpired' => $TenantExpired,
+            'TenantNonaktif' => $TenantNonaktif,
+            'TotalPendapatan' => $TotalPendapatan,
+            'PendapatanBulanIni' => $PendapatanBulanIni,
+            'TotalTagihanBelumBayar' => $TotalTagihanBelumBayar,
+            'NominalBelumBayar' => $NominalBelumBayar,
+            'TotalTagihanTerlambat' => $TotalTagihanTerlambat,
+            'PendaftaranPending' => $PendaftaranPending,
+            'PendaftaranHariIni' => $PendaftaranHariIni,
+            'SubscriptionAkanHabis' => $SubscriptionAkanHabis,
+            'PertumbuhanTenant' => $PertumbuhanTenant,
+            'TopTenant' => $TopTenant,
+        ];
+
+        return view('dashboard-manajemen-tenant', compact('Data'));
+    }
 }
