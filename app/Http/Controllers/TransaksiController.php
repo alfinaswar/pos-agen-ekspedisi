@@ -321,10 +321,10 @@ class TransaksiController extends Controller
 
         return redirect()->route('transaksi.index')->with('success', 'Transaksi berhasil diperbarui.');
     }
-    public function export(Request $request)
+    public function Export(Request $Request)
     {
-        // 1. Ambil data dengan filter yang sama seperti DataTable
-        $query = Transaksi::with('ekspedisi','userCreate')
+        // 1. Buat Query Builder (JANGAN di ->get() dulu agar ringan)
+        $Query = Transaksi::with('ekspedisi', 'userCreate')
             ->select([
                 'id',
                 'KodeTransaksi',
@@ -341,39 +341,38 @@ class TransaksiController extends Controller
             ])
             ->orderBy('created_at', 'desc');
 
-        $filterInfo = "Semua Data";
-        $params = [];
+        $FilterInfo = "Semua Data";
+        $Params = [];
 
-        // Terapkan filter
-        if ($request->filled('tanggal_awal')) {
-            $query->whereDate('Tanggal', '>=', $request->input('tanggal_awal'));
-            $params['tanggal_awal'] = $request->input('tanggal_awal');
-            $filterInfo = "Periode: " . Carbon::parse($request->tanggal_awal)->isoFormat('D MMMM YYYY');
+        // 2. Terapkan Filter
+        if ($Request->filled('tanggal_awal')) {
+            $Query->whereDate('Tanggal', '>=', $Request->tanggal_awal);
+            $Params['tanggal_awal'] = $Request->tanggal_awal;
+            $FilterInfo = "Periode: " . Carbon::parse($Request->tanggal_awal)->isoFormat('D MMMM YYYY');
         }
-        if ($request->filled('tanggal_akhir')) {
-            $query->whereDate('Tanggal', '<=', $request->input('tanggal_akhir'));
-            $params['tanggal_akhir'] = $request->input('tanggal_akhir');
-            $filterInfo .= " s/d " . Carbon::parse($request->tanggal_akhir)->isoFormat('D MMMM YYYY');
+        if ($Request->filled('tanggal_akhir')) {
+            $Query->whereDate('Tanggal', '<=', $Request->tanggal_akhir);
+            $Params['tanggal_akhir'] = $Request->tanggal_akhir;
+            $FilterInfo .= " s/d " . Carbon::parse($Request->tanggal_akhir)->isoFormat('D MMMM YYYY');
         }
-        if ($request->filled('metode')) {
-            $query->where('Metode', $request->input('metode'));
-            $params['metode'] = $request->input('metode');
-            $filterInfo .= " | Metode: " . $request->metode;
+        if ($Request->filled('metode')) {
+            $Query->where('Metode', $Request->metode);
+            $Params['metode'] = $Request->metode;
+            $FilterInfo .= " | Metode: " . $Request->metode;
         }
 
-        $data = $query->get();
-        $totalPendapatan = $data->sum('Pendapatan');
-        $totalDiskon = $data->sum('Diskon');
-        $totalPendapatanBersih = $data->sum('PendapatanBersih');
+        // 3. Hitung Total secara efisien TANPA memuat semua data ke memori (menggunakan clone query)
+        $TotalPendapatan = (clone $Query)->sum('Pendapatan');
+        $TotalDiskon = (clone $Query)->sum('Diskon');
+        $TotalPendapatanBersih = (clone $Query)->sum('PendapatanBersih');
 
+        // 4. Generate filename
+        $Filename = "Laporan_Transaksi_" . Carbon::now()->format('Y-m-d_His') . ".xlsx";
 
-        // 2. Generate filename dengan timestamp
-        $filename = "Laporan_Transaksi_" . Carbon::now()->format('Y-m-d_His') . ".xlsx";
-
-        // 3. Kirim ke Export Class
+        // 5. Kirim Query Builder (bukan Collection) ke Export Class
         return Excel::download(
-            new TransaksiExport($data, $totalPendapatan, $filterInfo, $params,$totalDiskon, $totalPendapatanBersih),
-            $filename
+            new TransaksiExport($Query, $TotalPendapatan, $TotalDiskon, $TotalPendapatanBersih, $FilterInfo),
+            $Filename
         );
     }
     public function updateStatus(Request $request, Transaksi $transaksi)
