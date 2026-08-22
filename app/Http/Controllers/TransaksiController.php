@@ -37,7 +37,8 @@ class TransaksiController extends Controller
                     'DicekPada',
                     'Status',
                     'BuktiBayar',
-                    'Catatan' // <-- TAMBAHKAN 'Catatan'
+                    'Catatan',
+                    'TanggalJatuhTempo' // <-- TAMBAHKAN 'Catatan'
                 ])
                 ->orderBy('id', 'desc');
 
@@ -166,6 +167,22 @@ class TransaksiController extends Controller
                     }
                     return $kodeBayar . ' ' . $buktiLink;
                 })
+                // ✅ TAMBAHKAN KOLOM "Tagihan" untuk menampilkan status tagihan jika metode pembayaran adalah "Tagihan"
+                ->addColumn('Tagihan', function ($row) {
+                    if (isset($row->Metode) && $row->Metode === 'Tagihan') {
+                        $jatuhTempo = $row->TanggalJatuhTempo
+                            ? \Carbon\Carbon::parse($row->TanggalJatuhTempo)->format('d-m-Y')
+                            : '<span class="text-muted">-</span>';
+
+                        return '<div>
+                            <div><i class="ti ti-calendar-event"></i> Jatuh Tempo: ' . $jatuhTempo . '</div>
+                        </div>';
+                    } else {
+                        return '<span class="text-muted">-</span>';
+                    }
+                })
+
+
                 ->with([
                     'total_pendapatan' => number_format($totalPendapatan, 0, ',', '.'),
                     'total_diskon' => number_format($totalDiskon, 0, ',', '.'),

@@ -366,45 +366,62 @@
                     { data: 'Tanggal', name: 'Tanggal', render: (data) => data ? new Date(data).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-' },
                     { data: 'Ekspedisi', name: 'Ekspedisi', render: (data) => data ? `<span class="fw-semibold">${data}</span>` : '<span class="text-muted">-</span>' },
                     { data: 'NoResi', name: 'NoResi', render: (data) => data ? `<span class="font-monospace small">${data}</span>` : '<span class="text-muted">-</span>' },
-                    { data: 'Metode', name: 'Metode', render: (data) => {
-                        if (!data) return '<span class="badge bg-secondary">-</span>';
-                        let badgeClass = '';
-                        let icon = '';
-                        let label = data;
+                    {
+                        data: null,
+                        name: 'Metode',
+                        render: (row) => {
+                            const data = row.Metode;
+                            if (!data) return '<span class="badge bg-secondary">-</span>';
+                            let badgeClass = '';
+                            let icon = '';
+                            let label = data;
 
-                        // Tentukan warna badge dan ikon berdasarkan metode
-                        switch (data) {
-                            case 'Tunai':
-                                badgeClass = 'bg-success';
-                                icon = 'ti ti-cash';
-                                break;
-                            case 'Non-Tunai':
-                                badgeClass = 'bg-info text-dark';
-                                icon = 'ti ti-credit-card';
-                                break;
-                            case 'COD':
-                                badgeClass = 'bg-warning text-dark';
-                                icon = 'ti ti-truck';
-                                break;
-                            case 'Tagihan':
-                                badgeClass = 'bg-primary';
-                                icon = 'ti ti-file-invoice';
-                                break;
-                            case 'Qris':
-                                badgeClass = 'bg-danger';
-                                icon = 'ti ti-qrcode';
-                                break;
-                            case 'Transfer':
-                                badgeClass = 'bg-purple text-dark';
-                                icon = 'ti ti-exchange';
-                                break;
+                            // Tentukan warna badge dan ikon berdasarkan metode
+                            switch (data) {
+                                case 'Tunai':
+                                    badgeClass = 'bg-success';
+                                    icon = 'ti ti-cash';
+                                    break;
+                                case 'Non-Tunai':
+                                    badgeClass = 'bg-info text-dark';
+                                    icon = 'ti ti-credit-card';
+                                    break;
+                                case 'COD':
+                                    badgeClass = 'bg-warning text-dark';
+                                    icon = 'ti ti-truck';
+                                    break;
+                                case 'Tagihan':
+                                    badgeClass = 'bg-primary';
+                                    icon = 'ti ti-file-invoice';
+                                    break;
+                                case 'Qris':
+                                    badgeClass = 'bg-danger';
+                                    icon = 'ti ti-qrcode';
+                                    break;
+                                case 'Transfer':
+                                    badgeClass = 'bg-purple text-dark';
+                                    icon = 'ti ti-exchange';
+                                    break;
 
-                            default:
-                                badgeClass = 'bg-secondary';
-                                icon = '';
+                                default:
+                                    badgeClass = 'bg-secondary';
+                                    icon = '';
+                            }
+
+                            let extra = '';
+                            if (data === 'Tagihan' && row.TanggalJatuhTempo) {
+                                // Tampilkan tanggal jatuh tempo di bawah badge, dengan format tanggal Indo
+                                try {
+                                    const tglTempo = new Date(row.TanggalJatuhTempo);
+                                    const formattedDate = tglTempo.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+                                    extra = `<br><span class="badge bg-light text-dark border border-primary border-1 mt-1" style="font-size:11px"><i class="ti ti-calendar-event"></i> Jatuh Tempo: ${formattedDate}</span>`;
+                                } catch {}
+                            }
+
+                            return `<span class="badge ${badgeClass}">${icon ? `<i class="${icon} me-1"></i>` : ''}${label}</span>${extra}`;
                         }
-                        return `<span class="badge ${badgeClass}">${icon ? `<i class="${icon} me-1"></i>` : ''}${label}</span>`;
-                    }},
+                    },
+
 
                     { data: 'Bayar', name: 'Bayar' },
                     { data: 'Pendapatan', name: 'Pendapatan', render: (data) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(data || 0) },
