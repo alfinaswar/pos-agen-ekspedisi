@@ -16,12 +16,11 @@ class PekerjaanKurirController extends Controller
     public function Index(Request $Request)
     {
         if ($Request->ajax()) {
-            if (in_array(Auth::user()->Role, ['Admin', 'Leader','Superadmin'])) {
+            if (in_array(Auth::user()->role, ['Admin', 'Leader', 'Superadmin'])) {
                 $Query = PekerjaanKurir::latest();
             } else {
                 $Query = PekerjaanKurir::where('IdUser', Auth::id())->latest();
             }
-
 
             // ✅ TAMBAHAN: Logika Filter
             if ($Request->filled('TanggalAwal')) {
@@ -31,7 +30,7 @@ class PekerjaanKurirController extends Controller
                 $Query->whereDate('Tanggal', '<=', $Request->TanggalAkhir);
             }
             if ($Request->filled('UserId')) {
-                $Query->where('UserId', $Request->UserId); // Asumsi ada kolom UserId, atau ganti 'UserCreate' jika menggunakan string nama
+                $Query->where('UserId', $Request->UserId);  // Asumsi ada kolom UserId, atau ganti 'UserCreate' jika menggunakan string nama
             }
 
             return DataTables::of($Query)
@@ -86,7 +85,6 @@ class PekerjaanKurirController extends Controller
                 ->editColumn('NamaKurir', function ($Row) {
                     return $Row->getKurir->name ?? '-';
                 })
-
                 ->editColumn('JumlahPaket', function ($Row) {
                     return $Row->JumlahPaket !== null ? $Row->JumlahPaket . ' Paket' : '-';
                 })
@@ -95,7 +93,6 @@ class PekerjaanKurirController extends Controller
                 })
                 ->rawColumns(['Tanggal', 'Pekerjaan', 'Status', 'BuktiFoto', 'action'])
                 ->make(true);
-
         }
 
         // ✅ TAMBAHAN: Kirim data user ke view untuk dropdown filter
@@ -107,6 +104,7 @@ class PekerjaanKurirController extends Controller
     {
         return view('pekerjaan-kurir.create');
     }
+
     public function BulkVerify(Request $Request)
     {
         $Request->validate([
@@ -139,6 +137,7 @@ class PekerjaanKurirController extends Controller
             'message' => "Berhasil memverifikasi {$UpdatedCount} laporan pekerjaan kurir."
         ]);
     }
+
     public function store(Request $Request)
     {
         // Custom validation, following migration structure (nullable for most fields except required)
@@ -156,16 +155,16 @@ class PekerjaanKurirController extends Controller
 
         // Prepare data for insertion, capitalize keys according to migration definition
         $Data = [
-            'Tanggal'      => $Request->input('Tanggal'),
-            'Jam'          => $Request->input('Jam'),
-            'Pekerjaan'    => $Request->input('Pekerjaan'),
-            'DariLokasi'   => $Request->input('DariLokasi'),
-            'Tujuan'       => $Request->input('Tujuan'),
-            'JumlahPaket'  => $Request->input('JumlahPaket', 0),
-            'Durasi'       => $Request->input('Durasi'),
-            'Keterangan'   => $Request->input('Keterangan'),
-            'IdUser'       => Auth::id(),
-            'UserCreate'   => Auth::user()->name ?? 'System',
+            'Tanggal' => $Request->input('Tanggal'),
+            'Jam' => $Request->input('Jam'),
+            'Pekerjaan' => $Request->input('Pekerjaan'),
+            'DariLokasi' => $Request->input('DariLokasi'),
+            'Tujuan' => $Request->input('Tujuan'),
+            'JumlahPaket' => $Request->input('JumlahPaket', 0),
+            'Durasi' => $Request->input('Durasi'),
+            'Keterangan' => $Request->input('Keterangan'),
+            'IdUser' => Auth::id(),
+            'UserCreate' => Auth::user()->name ?? 'System',
             // 'Tenant'       => Auth::user()->tenant ?? null,
         ];
 
@@ -221,7 +220,7 @@ class PekerjaanKurirController extends Controller
         // dd($id);
         // 0. Cari datanya dulu
         $PekerjaanKurir = PekerjaanKurir::findOrFail($id);
-// dd($PekerjaanKurir);
+        // dd($PekerjaanKurir);
         // 1. Hapus file bukti foto dari storage jika ada
         if ($PekerjaanKurir->BuktiFoto && Storage::disk('public')->exists($PekerjaanKurir->BuktiFoto)) {
             Storage::disk('public')->delete($PekerjaanKurir->BuktiFoto);
@@ -240,6 +239,7 @@ class PekerjaanKurirController extends Controller
             'message' => 'Data laporan aktivitas berhasil dihapus.'
         ]);
     }
+
     public function Export(Request $Request)
     {
         $Query = PekerjaanKurir::latest();
@@ -258,8 +258,8 @@ class PekerjaanKurirController extends Controller
         $Data = $Query->get();
 
         // Format String Info Filter untuk ditampilkan di Excel
-        $FilterInfo = 'Periode: ' . ($Request->TanggalAwal ? $Request->TanggalAwal : 'Semua') .
-            ' s/d ' . ($Request->TanggalAkhir ? $Request->TanggalAkhir : 'Semua');
+        $FilterInfo = 'Periode: ' . ($Request->TanggalAwal ? $Request->TanggalAwal : 'Semua')
+            . ' s/d ' . ($Request->TanggalAkhir ? $Request->TanggalAkhir : 'Semua');
 
         if ($Request->filled('UserId')) {
             $UserName = User::find($Request->UserId)?->name ?? 'Unknown';
