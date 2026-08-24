@@ -7,12 +7,12 @@ use App\Models\Ekspedisi;
 use App\Models\Transaksi;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
-use Yajra\DataTables\Facades\DataTables;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Carbon;
 use Maatwebsite\Excel\Facades\Excel;
+use Yajra\DataTables\Facades\DataTables;
 
 class TransaksiController extends Controller
 {
@@ -38,7 +38,7 @@ class TransaksiController extends Controller
                     'Status',
                     'BuktiBayar',
                     'Catatan',
-                    'TanggalJatuhTempo' // <-- TAMBAHKAN 'Catatan'
+                    'TanggalJatuhTempo'  // <-- TAMBAHKAN 'Catatan'
                 ])
                 ->orderBy('id', 'desc');
 
@@ -124,7 +124,6 @@ class TransaksiController extends Controller
                         ? \Illuminate\Support\Str::limit($row->userCreate->name, 15)
                         : '<span class="text-muted">-</span>';
                 })
-
                 // ✅ MODIFIKASI KOLOM StatusInfo: Tambahkan ikon pesan jika ada Catatan
                 ->addColumn('StatusInfo', function ($row) {
                     $badgeClass = 'bg-light text-dark';
@@ -149,7 +148,6 @@ class TransaksiController extends Controller
                                     <i class="ti ti-message" style="font-size: 0.9rem;"></i>
                                   </button>';
                     }
-
 
                     $dicekPada = $row->DicekPada
                         ? '<br><small class="text-muted"><i class="ti ti-clock"></i> ' . \Carbon\Carbon::parse($row->DicekPada)->format('d-m-Y H:i') . '</small>'
@@ -181,8 +179,6 @@ class TransaksiController extends Controller
                         return '<span class="text-muted">-</span>';
                     }
                 })
-
-
                 ->with([
                     'total_pendapatan' => number_format($totalPendapatan, 0, ',', '.'),
                     'total_diskon' => number_format($totalDiskon, 0, ',', '.'),
@@ -204,28 +200,27 @@ class TransaksiController extends Controller
 
     public function create()
     {
-        $ekspedisis = Ekspedisi::get(); // Uncomment jika model Ekspedisi sudah ada
-        return view('transaksi.create',compact('ekspedisis'));
+        $ekspedisis = Ekspedisi::get();  // Uncomment jika model Ekspedisi sudah ada
+        return view('transaksi.create', compact('ekspedisis'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
             'KodeTransaksi' => 'nullable|string|unique:transaksis,KodeTransaksi',
-            'Tanggal'       => 'required|date',
-            'Ekspedisi'     => 'required|string|max:255',
-            'NoResi'        => 'required|string|max:255',
-            'Metode'        => 'required|in:Tunai,Non-Tunai,COD,Tagihan,Qris,Transfer,',
-            'Pendapatan'    => 'required|numeric|min:0',
+            'Tanggal' => 'required|date',
+            'Ekspedisi' => 'required|string|max:255',
+            'NoResi' => 'required|string|max:255',
+            'Metode' => 'required|in:Tunai,Non-Tunai,COD,Tagihan,Qris,Transfer,',
+            'Pendapatan' => 'required|numeric|min:0',
             // 'KodeBayar'     => 'required_if:Metode,Non-Tunai|nullable|string|max:255',
             'NamaPengirim' => 'required|string|max:255',
-            'BuktiBayar'    => 'required_if:Metode,Non-Tunai|file|mimes:jpg,jpeg,png,pdf|max:2348', // Wajib kalau Non-Tunai, maks 2MB
-            'Keterangan'    => 'nullable|string',
+            'BuktiBayar' => 'required_if:Metode,Qris,Transfer|file|mimes:jpg,jpeg,png,pdf|max:2348',  // Wajib kalau Qris atau Transfer, maks 2MB
+            'Keterangan' => 'nullable|string',
             'TanggalJatuhTempo' => 'required_if:Metode,Tagihan|nullable|date',
-
         ]);
 
-// dd($request->all());
+        // dd($request->all());
         $data = $request->except(['BuktiBayar']);
         $data['Divisi'] = auth()->user()->divisi ?? '-';
 
@@ -250,13 +245,15 @@ class TransaksiController extends Controller
     public function edit(Transaksi $transaksi)
     {
         $ekspedisis = Ekspedisi::get();
-        return view('transaksi.edit', compact('transaksi','ekspedisis'));
+        return view('transaksi.edit', compact('transaksi', 'ekspedisis'));
     }
+
     public function show(Transaksi $transaksi)
     {
         $transaksi->load('ekspedisi');
         return view('transaksi.show', compact('transaksi'));
     }
+
     public function approve(Request $request, Absensi $absensi)
     {
         // Hanya Admin dan Leader yang boleh melakukan ini
@@ -276,9 +273,11 @@ class TransaksiController extends Controller
             'DisetujuiPada' => now(),
         ]);
 
-        return redirect()->route('absensi.show', $absensi->id)
+        return redirect()
+            ->route('absensi.show', $absensi->id)
             ->with('success', 'Status persetujuan absensi berhasil diperbarui.');
     }
+
     public function update(Request $request, Transaksi $transaksi)
     {
         // 1. Validasi (abaikan unique untuk ID saat ini)
@@ -295,7 +294,6 @@ class TransaksiController extends Controller
             'Keterangan' => 'nullable|string',
             'TanggalJatuhTempo' => 'required_if:Metode,Tagihan|nullable|date',
         ]);
-
 
         $data = $request->except(['BuktiBayar']);
         $data['UserUpdate'] = auth()->id();
@@ -321,6 +319,7 @@ class TransaksiController extends Controller
 
         return redirect()->route('transaksi.index')->with('success', 'Transaksi berhasil diperbarui.');
     }
+
     public function Export(Request $Request)
     {
         // 1. Buat Query Builder (JANGAN di ->get() dulu agar ringan)
@@ -341,24 +340,24 @@ class TransaksiController extends Controller
             ])
             ->orderBy('created_at', 'desc');
 
-        $FilterInfo = "Semua Data";
+        $FilterInfo = 'Semua Data';
         $Params = [];
 
         // 2. Terapkan Filter
         if ($Request->filled('tanggal_awal')) {
             $Query->whereDate('Tanggal', '>=', $Request->tanggal_awal);
             $Params['tanggal_awal'] = $Request->tanggal_awal;
-            $FilterInfo = "Periode: " . Carbon::parse($Request->tanggal_awal)->isoFormat('D MMMM YYYY');
+            $FilterInfo = 'Periode: ' . Carbon::parse($Request->tanggal_awal)->isoFormat('D MMMM YYYY');
         }
         if ($Request->filled('tanggal_akhir')) {
             $Query->whereDate('Tanggal', '<=', $Request->tanggal_akhir);
             $Params['tanggal_akhir'] = $Request->tanggal_akhir;
-            $FilterInfo .= " s/d " . Carbon::parse($Request->tanggal_akhir)->isoFormat('D MMMM YYYY');
+            $FilterInfo .= ' s/d ' . Carbon::parse($Request->tanggal_akhir)->isoFormat('D MMMM YYYY');
         }
         if ($Request->filled('metode')) {
             $Query->where('Metode', $Request->metode);
             $Params['metode'] = $Request->metode;
-            $FilterInfo .= " | Metode: " . $Request->metode;
+            $FilterInfo .= ' | Metode: ' . $Request->metode;
         }
 
         // 3. Hitung Total secara efisien TANPA memuat semua data ke memori (menggunakan clone query)
@@ -367,7 +366,7 @@ class TransaksiController extends Controller
         $TotalPendapatanBersih = (clone $Query)->sum('PendapatanBersih');
 
         // 4. Generate filename
-        $Filename = "Laporan_Transaksi_" . Carbon::now()->format('Y-m-d_His') . ".xlsx";
+        $Filename = 'Laporan_Transaksi_' . Carbon::now()->format('Y-m-d_His') . '.xlsx';
 
         // 5. Kirim Query Builder (bukan Collection) ke Export Class
         return Excel::download(
@@ -375,6 +374,7 @@ class TransaksiController extends Controller
             $Filename
         );
     }
+
     public function updateStatus(Request $request, Transaksi $transaksi)
     {
         $request->validate([
@@ -387,6 +387,7 @@ class TransaksiController extends Controller
         $transaksi->save();
         return redirect()->back()->with('success', 'Status transaksi berhasil diperbarui.');
     }
+
     public function bulkUpdateStatus(Request $request)
     {
         $request->validate([
@@ -409,7 +410,6 @@ class TransaksiController extends Controller
                     'DicekPada' => $now,
                 ]);
                 $updatedCount++;
-
             }
         }
 
@@ -418,6 +418,7 @@ class TransaksiController extends Controller
             'message' => "Berhasil memverifikasi {$updatedCount} transaksi."
         ]);
     }
+
     public function destroy(Transaksi $transaksi)
     {
         try {
