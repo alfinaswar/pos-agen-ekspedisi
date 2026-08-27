@@ -91,13 +91,15 @@ class AbsensiController extends Controller
                     $btn = '<div class="d-flex gap-1 justify-content-center">';
 
                     if ($canShow) {
-                        $btn .= '<a href="' . route('absensi.show', $row->id) . '" class="btn btn-info btn-sm text-white" title="Lihat Detail">';
+                        $btn .= '<a href="' . route('absensi.show', $row->id) . '" class="btn btn-info btn-sm text-white" title="Lihat Detail" target="_blank">';
                         $btn .= '<i class="ti ti-eye"></i></a> ';
                     }
+
                     if ($canEdit) {
-                        $btn .= '<a href="' . route('absensi.edit', $row->id) . '" class="btn btn-warning btn-sm text-white" title="Edit">';
+                        $btn .= '<a href="' . route('absensi.edit', $row->id) . '" class="btn btn-warning btn-sm text-white" title="Edit" target="_blank">';
                         $btn .= '<i class="ti ti-edit"></i></a> ';
                     }
+
                     if ($canDelete) {
                         $namaUser = htmlspecialchars($row->getUser->name ?? $row->Nama);
                         $btn .= '<button type="button" class="btn btn-danger btn-sm btn-delete" data-id="' . $row->id . '" data-nama="' . $namaUser . '" title="Hapus">';
