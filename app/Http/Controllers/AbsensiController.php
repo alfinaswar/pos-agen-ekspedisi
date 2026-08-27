@@ -433,7 +433,7 @@ class AbsensiController extends Controller
             $FileNameKeluar = time() . '_keluar_' . uniqid() . '.' . $FileKeluar->getClientOriginalExtension();
             $FileKeluar->storeAs('absensi', $FileNameKeluar, 'public');
             $Data['FotoAbsenKeluar'] = 'absensi/' . $FileNameKeluar;
-        }n
+        }
 
         // 5. Update Data ke Database
         $Absensi->update($Data);

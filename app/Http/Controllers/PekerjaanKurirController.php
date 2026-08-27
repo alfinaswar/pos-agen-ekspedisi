@@ -16,23 +16,14 @@ class PekerjaanKurirController extends Controller
     public function Index(Request $Request)
     {
         if ($Request->ajax()) {
-<<<<<<< HEAD
             // Query base
             if (in_array(Auth::user()->Role, ['Admin', 'Leader', 'Superadmin'])) {
                 $Query = PekerjaanKurir::query();
-=======
-            if (in_array(Auth::user()->role, ['Admin', 'Leader', 'Superadmin'])) {
-                $Query = PekerjaanKurir::latest();
->>>>>>> c852f6013f8a89bbf6b780acc849a54d57ac1d21
             } else {
                 $Query = PekerjaanKurir::where('IdUser', Auth::id());
             }
 
-<<<<<<< HEAD
             // Logika Filter
-=======
-            // ✅ TAMBAHAN: Logika Filter
->>>>>>> c852f6013f8a89bbf6b780acc849a54d57ac1d21
             if ($Request->filled('TanggalAwal')) {
                 $Query->whereDate('Tanggal', '>=', $Request->TanggalAwal);
             }
@@ -40,11 +31,7 @@ class PekerjaanKurirController extends Controller
                 $Query->whereDate('Tanggal', '<=', $Request->TanggalAkhir);
             }
             if ($Request->filled('UserId')) {
-<<<<<<< HEAD
                 $Query->where('IdUser', $Request->UserId);
-=======
-                $Query->where('UserId', $Request->UserId);  // Asumsi ada kolom UserId, atau ganti 'UserCreate' jika menggunakan string nama
->>>>>>> c852f6013f8a89bbf6b780acc849a54d57ac1d21
             }
 
             // Urutan default by terbaru
