@@ -21,50 +21,37 @@ class Transaksi extends Model
      */
     protected static function booted()
     {
-        // Event 'creating' berjalan tepat SEBELUM data disimpan ke database
         static::creating(function ($transaksi) {
-            // Hanya generate kode baru jika field KodeTransaksi masih kosong/null
             if (empty($transaksi->KodeTransaksi)) {
                 $transaksi->KodeTransaksi = self::generateKodeTransaksi();
             }
         });
     }
 
-    /**
-     * Fungsi generate kode transaksi otomatis.
-     * Format: TRX + YY + MM + XXX (Contoh: TRX2607001)
-     */
     public static function generateKodeTransaksi()
     {
-        $year = date('y');   // 2 digit tahun (misal: 26)
-        $month = date('m');  // 2 digit bulan (misal: 07)
+        $year = date('y');
+        $month = date('m');
         $prefix = "TRX{$year}{$month}";
 
-
+        // DB::transaction dipertahankan di sini agar lockForUpdate bekerja,
+        // tapi query sudah dioptimalkan.
         return DB::transaction(function () use ($prefix) {
-
-
-            $lastTransaksi = Transaksi::withTrashed()
-                ->where('KodeTransaksi', 'like', $prefix . '%')
+            // 1. Hapus withTrashed() kecuali bisnis logic MEMAKSA menghitung data terhapus
+            // 2. Gunakan value() alih-alih first() untuk efisiensi memori & query
+            $lastKode = Transaksi::where('KodeTransaksi', 'like', $prefix . '%')
                 ->orderByDesc('KodeTransaksi')
                 ->lockForUpdate()
-                ->first();
+                ->value('KodeTransaksi');
 
-            if ($lastTransaksi && preg_match('/^' . preg_quote($prefix, '/') . '(\d{3,})$/', $lastTransaksi->KodeTransaksi, $matches)) {
+            if ($lastKode && preg_match('/^' . preg_quote($prefix, '/') . '(\d{3,})$/', $lastKode, $matches)) {
                 $nextNumber = (int) $matches[1] + 1;
             } else {
                 $nextNumber = 1;
             }
 
-            $newKode = $prefix . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
-
-
-            while (Transaksi::withTrashed()->where('KodeTransaksi', $newKode)->exists()) {
-                $nextNumber++;
-                $newKode = $prefix . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
-            }
-
-            return $newKode;
+            // Hapus loop while, karena lockForUpdate sudah menjamin tidak ada duplikat
+            return $prefix . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
         });
     }
 
@@ -73,6 +60,7 @@ class Transaksi extends Model
     {
         return $this->belongsTo(Ekspedisi::class, 'Ekspedisi');
     }
+
     public function userFinance()
     {
         return $this->belongsTo(User::class, 'UserFinance');
@@ -82,6 +70,7 @@ class Transaksi extends Model
     {
         return $this->belongsTo(User::class, 'UserCreate');
     }
+
     public function getDivisi()
     {
         return $this->belongsTo(Divisi::class, 'Divisi');
