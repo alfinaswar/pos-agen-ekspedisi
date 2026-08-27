@@ -17,7 +17,7 @@ class PekerjaanKurirController extends Controller
     {
         if ($Request->ajax()) {
             // Query base
-            if (in_array(Auth::user()->Role, ['Admin', 'Leader', 'Superadmin'])) {
+            if (in_array(Auth::user()->role, ['Admin', 'Leader', 'Superadmin'])) {
                 $Query = PekerjaanKurir::query();
             } else {
                 $Query = PekerjaanKurir::where('IdUser', Auth::id());
