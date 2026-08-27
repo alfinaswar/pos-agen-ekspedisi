@@ -4,6 +4,7 @@ use App\Http\Controllers\AbsensiController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DivisiController;
 use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\MasterPaketHargaController;
 use App\Http\Controllers\PekerjaanKurirController;
 use App\Http\Controllers\PendaftaranTenantController;
 use App\Http\Controllers\PengumumanController;
@@ -30,7 +31,7 @@ Route::get('/', function () {
 });
 Route::get('/landing-page', function () {
     return view('landing-page.index');
-});
+})->name('landing-page');
 Route::get('/daftar', function () {
     return view('landing-page.pendaftaran');
 })->name('daftar');
@@ -75,6 +76,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('tenant', TenantController::class);
     Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
     Route::resource('users', UserController::class);
+    Route::resource('master-paket-harga', MasterPaketHargaController::class);
     Route::get('/laporan/export', [LaporanController::class, 'exportExcel'])->name('laporan.export');
 
     // ROUTE UNTUK MANAJEMEN TENANT\

@@ -32,23 +32,24 @@
                         <h5 class="mb-0 fw-bold text-primary"><i class="ti ti-clock-hour-9 me-2"></i>Form Tambah Absensi</h5>
                     </div>
                     <div class="card-body p-4">
-                        <form action="{{ route('absensi.store') }}" method="POST">
+                        <!-- ✅ TAMBAHKAN enctype="multipart/form-data" DI SINI -->
+                        <form action="{{ route('absensi.store') }}" method="POST" enctype="multipart/form-data" id="FormAbsensi">
                             @csrf
                             <div class="row">
                                 <!-- Kolom Kiri: Data Karyawan -->
                                 <div class="col-md-6">
                                     <div class="mb-4">
-                                        <label for="Nama" class="form-label fw-semibold">
+                                        <label for="NamaDisplay" class="form-label fw-semibold">
                                             <i class="ti ti-user me-1 text-primary"></i> Nama <span class="text-danger">*</span>
                                         </label>
-                                        <select class="form-select @error('Nama') is-invalid @enderror" id="Nama" name="Nama" required autofocus style="pointer-events: none; background-color: #e9ecef;">
+                                        <!-- Display Only -->
+                                        <select class="form-select" id="NamaDisplay" disabled style="background-color: #e9ecef;">
                                             <option value="{{ auth()->user()->id }}">
                                                 {{ auth()->user()->name }}
                                             </option>
                                         </select>
-
+                                        <!-- Hidden Input untuk dikirim ke database (Perbaikan dari name="Nama" ganda) -->
                                         <input type="hidden" name="Nama" value="{{ auth()->user()->id }}">
-
 
                                         @error('Nama')
                                             <div class="invalid-feedback d-block error-fade-in">
@@ -56,7 +57,6 @@
                                             </div>
                                         @enderror
                                     </div>
-
 
                                     <div class="mb-4">
                                         <label for="Divisi" class="form-label fw-semibold">
@@ -69,8 +69,6 @@
                                                 </option>
                                             @endforeach
                                         </select>
-
-
                                         @error('Divisi')
                                             <div class="invalid-feedback d-block error-fade-in">
                                                 <i class="ti ti-alert-circle me-1"></i>{{ $message }}
@@ -96,11 +94,9 @@
                                             </div>
                                         @enderror
                                     </div>
-
-
                                 </div>
 
-                                <!-- Kolom Kanan: Data Absensi -->
+                                <!-- Kolom Kanan: Data Absensi & Foto -->
                                 <div class="col-md-6">
                                     <div class="mb-4">
                                         <label for="Tanggal" class="form-label fw-semibold"><i class="ti ti-calendar me-1 text-primary"></i> Tanggal <span class="text-danger">*</span></label>
@@ -130,6 +126,42 @@
                                             <input type="time" class="form-control @error('JamPulang') is-invalid @enderror" id="JamPulang" name="JamPulang" value="{{ old('JamPulang') }}">
                                             @error('JamPulang') <div class="invalid-feedback d-block error-fade-in"><i class="ti ti-alert-circle me-1"></i>{{ $message }}</div> @enderror
                                         </div>
+                                    </div>
+
+                                    <!-- ✅ FOTO ABSEN MASUK -->
+                                    <div class="mb-4">
+                                        <label for="FotoAbsenMasuk" class="form-label fw-semibold">
+                                            <i class="ti ti-camera me-1 text-primary"></i> Foto Absen Masuk <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="file" class="form-control @error('FotoAbsenMasuk') is-invalid @enderror" id="FotoAbsenMasuk" name="FotoAbsenMasuk" accept="image/*" required>
+                                        <div class="form-text text-warning mt-1 fw-semibold d-flex align-items-start">
+                                            <i class="ti ti-alert-triangle me-1 mt-1"></i>
+                                            <span>Foto wajib menggunakan <strong>GPS Map Camera</strong>, supaya terlihat lokasi, tanggal, dan jam saat absensi.</span>
+                                        </div>
+                                        <div id="PreviewMasuk" class="mt-2 d-none">
+                                            <img id="ImgPreviewMasuk" src="#" alt="Preview Masuk" class="img-thumbnail shadow-sm" style="max-height: 200px; max-width: 100%;">
+                                        </div>
+                                        @error('FotoAbsenMasuk')
+                                            <div class="invalid-feedback d-block error-fade-in"><i class="ti ti-alert-circle me-1"></i>{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <!-- ✅ FOTO ABSEN KELUAR -->
+                                    <div class="mb-4">
+                                        <label for="FotoAbsenKeluar" class="form-label fw-semibold">
+                                            <i class="ti ti-camera-off me-1 text-primary"></i> Foto Absen Keluar <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="file" class="form-control @error('FotoAbsenKeluar') is-invalid @enderror" id="FotoAbsenKeluar" name="FotoAbsenKeluar" accept="image/*" required>
+                                        <div class="form-text text-warning mt-1 fw-semibold d-flex align-items-start">
+                                            <i class="ti ti-alert-triangle me-1 mt-1"></i>
+                                            <span>Foto wajib menggunakan <strong>GPS Map Camera</strong>, supaya terlihat lokasi, tanggal, dan jam saat absensi.</span>
+                                        </div>
+                                        <div id="PreviewKeluar" class="mt-2 d-none">
+                                            <img id="ImgPreviewKeluar" src="#" alt="Preview Keluar" class="img-thumbnail shadow-sm" style="max-height: 200px; max-width: 100%;">
+                                        </div>
+                                        @error('FotoAbsenKeluar')
+                                            <div class="invalid-feedback d-block error-fade-in"><i class="ti ti-alert-circle me-1"></i>{{ $message }}</div>
+                                        @enderror
                                     </div>
 
                                     <div class="mb-4">
@@ -184,36 +216,78 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const lemburSelect = document.getElementById('Lembur');
-        const lemburDetails = document.getElementById('LemburDetails');
-        const inputMulai = document.getElementById('MulaiLembur');
-        const inputSelesai = document.getElementById('SelesaiLembur');
-        const inputAlasan = document.getElementById('AlasanLembur');
+        // 1. Logic Toggle Lembur
+        const LemburSelect = document.getElementById('Lembur');
+        const LemburDetails = document.getElementById('LemburDetails');
+        const InputMulai = document.getElementById('MulaiLembur');
+        const InputSelesai = document.getElementById('SelesaiLembur');
+        const InputAlasan = document.getElementById('AlasanLembur');
 
-        function toggleLembur() {
-            if (lemburSelect.value === 'Y') {
-                lemburDetails.style.display = 'block';
-                inputMulai.setAttribute('required', 'required');
-                inputSelesai.setAttribute('required', 'required');
-                if (inputAlasan) inputAlasan.setAttribute('required', 'required');
+        function ToggleLembur() {
+            if (LemburSelect.value === 'Y') {
+                LemburDetails.style.display = 'block';
+                InputMulai.setAttribute('required', 'required');
+                InputSelesai.setAttribute('required', 'required');
+                if (InputAlasan) InputAlasan.setAttribute('required', 'required');
             } else {
-                lemburDetails.style.display = 'none';
-                inputMulai.removeAttribute('required');
-                inputSelesai.removeAttribute('required');
-                inputMulai.value = '';
-                inputSelesai.value = '';
-                if (inputAlasan) {
-                    inputAlasan.removeAttribute('required');
-                    inputAlasan.value = '';
+                LemburDetails.style.display = 'none';
+                InputMulai.removeAttribute('required');
+                InputSelesai.removeAttribute('required');
+                InputMulai.value = '';
+                InputSelesai.value = '';
+                if (InputAlasan) {
+                    InputAlasan.removeAttribute('required');
+                    InputAlasan.value = '';
                 }
             }
         }
 
-        // Jalankan saat load (untuk handle old input)
-        toggleLembur();
+        ToggleLembur();
+        LemburSelect.addEventListener('change', ToggleLembur);
 
-        // Jalankan saat user mengganti pilihan
-        lemburSelect.addEventListener('change', toggleLembur);
+        // 2. Logic Preview Foto Absen Masuk
+        const FotoAbsenMasuk = document.getElementById('FotoAbsenMasuk');
+        const PreviewMasuk = document.getElementById('PreviewMasuk');
+        const ImgPreviewMasuk = document.getElementById('ImgPreviewMasuk');
+
+        if (FotoAbsenMasuk) {
+            FotoAbsenMasuk.addEventListener('change', function(Event) {
+                const File = this.files[0];
+                if (File) {
+                    const ReaderMasuk = new FileReader();
+                    ReaderMasuk.onload = function(ReaderEvent) {
+                        ImgPreviewMasuk.src = ReaderEvent.target.result;
+                        PreviewMasuk.classList.remove('d-none');
+                    }
+                    ReaderMasuk.readAsDataURL(File);
+                } else {
+                    PreviewMasuk.classList.add('d-none');
+                    ImgPreviewMasuk.src = '#';
+                }
+            });
+        }
+
+        // 3. Logic Preview Foto Absen Keluar
+        const FotoAbsenKeluar = document.getElementById('FotoAbsenKeluar');
+        const PreviewKeluar = document.getElementById('PreviewKeluar');
+        const ImgPreviewKeluar = document.getElementById('ImgPreviewKeluar');
+
+        if (FotoAbsenKeluar) {
+            FotoAbsenKeluar.addEventListener('change', function(Event) {
+                const File = this.files[0];
+                if (File) {
+                    const ReaderKeluar = new FileReader();
+                    ReaderKeluar.onload = function(ReaderEvent) {
+                        ImgPreviewKeluar.src = ReaderEvent.target.result;
+                        PreviewKeluar.classList.remove('d-none');
+                    }
+                    ReaderKeluar.readAsDataURL(File);
+                } else {
+                    PreviewKeluar.classList.add('d-none');
+                    ImgPreviewKeluar.src = '#';
+                }
+            });
+        }
     });
 </script>
 @endsection

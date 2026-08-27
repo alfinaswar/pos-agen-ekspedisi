@@ -32,24 +32,28 @@
                         <h5 class="mb-0 fw-bold text-primary"><i class="ti ti-clock-hour-9 me-2"></i>Form Edit Absensi</h5>
                     </div>
                     <div class="card-body p-4">
-                        <form action="{{ route('absensi.update', $absensi->id) }}" method="POST">
+                        <!-- ✅ TAMBAHKAN enctype="multipart/form-data" DI SINI -->
+                        <form action="{{ route('absensi.update', $absensi->id) }}" method="POST" enctype="multipart/form-data" id="FormAbsensiEdit">
                             @csrf
                             @method('PUT')
                             <div class="row">
                                 <!-- Kolom Kiri: Data Karyawan -->
                                 <div class="col-md-6">
                                     <div class="mb-4">
-                                        <label for="Nama" class="form-label fw-semibold"><i class="ti ti-user me-1 text-primary"></i> Nama <span class="text-danger">*</span></label>
-                                        <select class="form-select @error('Nama') is-invalid @enderror" id="Nama" name="Nama" required autofocus style="pointer-events: none; background-color: #e9ecef; color: #6c757d;">
-                                            <option value="">-- Pilih Nama Karyawan --</option>
+                                        <label for="NamaDisplay" class="form-label fw-semibold"><i class="ti ti-user me-1 text-primary"></i> Nama <span class="text-danger">*</span></label>
+                                        <!-- Display Only -->
+                                        <select class="form-select" id="NamaDisplay" disabled style="background-color: #e9ecef; color: #6c757d;">
                                             @foreach($user as $u)
-                                                <option value="{{ $u->id }}" {{ old('Nama', $absensi->Nama) == $u->id ? 'selected' : '' }}>{{ $u->name }}</option>
+                                                @if($u->id == old('UserId', $absensi->Nama))
+                                                    <option value="{{ $u->id }}" selected>{{ $u->name }}</option>
+                                                @endif
                                             @endforeach
                                         </select>
+                                        <!-- Hidden Input untuk dikirim ke database (Perbaikan dari name="Nama") -->
+                                        <input type="hidden" name="Nama" value="{{ old('Nama', $absensi->Nama) }}">
 
                                         @error('Nama') <div class="invalid-feedback d-block error-fade-in"><i class="ti ti-alert-circle me-1"></i>{{ $message }}</div> @enderror
                                     </div>
-
 
                                     <div class="mb-4">
                                         <label for="Divisi" class="form-label fw-semibold"><i class="ti ti-building me-1 text-primary"></i> Divisi <span class="text-danger">*</span></label>
@@ -60,18 +64,17 @@
                                                 </option>
                                             @endforeach
                                         </select>
-
                                         @error('Divisi') <div class="invalid-feedback d-block error-fade-in"><i class="ti ti-alert-circle me-1"></i>{{ $message }}</div> @enderror
                                     </div>
 
                                     <div class="mb-4">
                                         <label for="NoHp" class="form-label fw-semibold"><i class="ti ti-phone me-1 text-primary"></i> No. HP <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control @error('NoHp') is-invalid @enderror" id="NoHp" name="NoHp" value="{{ old('NoHp', $absensi->NoHp) }}" placeholder="08xxxxxxxxxx" required>
+                                        <input type="text" class="form-control @error('NoHp') is-invalid @enderror" id="NoHp" name="NoHp" value="{{ old('NoHp', $absensi->NoHp) }}" placeholder="08xxxxxxxxxx" readonly required>
                                         @error('NoHp') <div class="invalid-feedback d-block error-fade-in"><i class="ti ti-alert-circle me-1"></i>{{ $message }}</div> @enderror
                                     </div>
                                 </div>
 
-                                <!-- Kolom Kanan: Data Absensi -->
+                                <!-- Kolom Kanan: Data Absensi & Foto -->
                                 <div class="col-md-6">
                                     <div class="mb-4">
                                         <label for="Tanggal" class="form-label fw-semibold"><i class="ti ti-calendar me-1 text-primary"></i> Tanggal <span class="text-danger">*</span></label>
@@ -93,14 +96,64 @@
                                     <div class="row">
                                         <div class="col-6 mb-4">
                                             <label for="JamHadir" class="form-label fw-semibold"><i class="ti ti-login me-1 text-primary"></i> Jam Hadir</label>
-                                            <input type="time" class="form-control @error('JamHadir') is-invalid @enderror" id="JamHadir" name="JamHadir" value="{{ old('JamHadir', $absensi->JamHadir) }}">
+                                            <input type="time" class="form-control @error('JamHadir') is-invalid @enderror" id="JamHadir" name="JamHadir" value="{{ old('JamHadir', $absensi->JamHadir ? substr($absensi->JamHadir, 0, 5) : '') }}">
                                             @error('JamHadir') <div class="invalid-feedback d-block error-fade-in"><i class="ti ti-alert-circle me-1"></i>{{ $message }}</div> @enderror
                                         </div>
                                         <div class="col-6 mb-4">
                                             <label for="JamPulang" class="form-label fw-semibold"><i class="ti ti-logout me-1 text-primary"></i> Jam Pulang</label>
-                                            <input type="time" class="form-control @error('JamPulang') is-invalid @enderror" id="JamPulang" name="JamPulang" value="{{ old('JamPulang', $absensi->JamPulang) }}">
+                                            <input type="time" class="form-control @error('JamPulang') is-invalid @enderror" id="JamPulang" name="JamPulang" value="{{ old('JamPulang', $absensi->JamPulang ? substr($absensi->JamPulang, 0, 5) : '') }}">
                                             @error('JamPulang') <div class="invalid-feedback d-block error-fade-in"><i class="ti ti-alert-circle me-1"></i>{{ $message }}</div> @enderror
                                         </div>
+                                    </div>
+
+                                    <!-- ✅ FOTO ABSEN MASUK -->
+                                    <div class="mb-4">
+                                        <label for="FotoAbsenMasuk" class="form-label fw-semibold"><i class="ti ti-camera me-1 text-primary"></i> Foto Absen Masuk</label>
+
+                                        @if(!empty($absensi->FotoAbsenMasuk))
+                                            <div class="mb-2">
+                                                <small class="text-muted d-block mb-1">Foto Saat Ini:</small>
+                                                <a href="{{ asset('storage/' . $absensi->FotoAbsenMasuk) }}" target="_blank">
+                                                    <img src="{{ asset('storage/' . $absensi->FotoAbsenMasuk) }}" alt="Foto Absen Masuk" class="img-thumbnail shadow-sm" style="max-height: 100px;">
+                                                </a>
+                                            </div>
+                                        @endif
+
+                                        <input type="file" class="form-control @error('FotoAbsenMasuk') is-invalid @enderror" id="FotoAbsenMasuk" name="FotoAbsenMasuk" accept="image/*">
+                                        <div class="form-text text-warning mt-1 fw-semibold d-flex align-items-start">
+                                            <i class="ti ti-alert-triangle me-1 mt-1"></i>
+                                            <span>Foto wajib menggunakan <strong>GPS Map Camera</strong>, supaya terlihat lokasi, tanggal, dan jam saat absensi.</span>
+                                        </div>
+                                        <div id="PreviewMasuk" class="mt-2 d-none">
+                                            <small class="text-primary fw-semibold d-block mb-1">Preview Foto Baru:</small>
+                                            <img id="ImgPreviewMasuk" src="#" alt="Preview Masuk" class="img-thumbnail shadow-sm" style="max-height: 100px; max-width: 100%;">
+                                        </div>
+                                        @error('FotoAbsenMasuk') <div class="invalid-feedback d-block error-fade-in"><i class="ti ti-alert-circle me-1"></i>{{ $message }}</div> @enderror
+                                    </div>
+
+                                    <!-- ✅ FOTO ABSEN KELUAR -->
+                                    <div class="mb-4">
+                                        <label for="FotoAbsenKeluar" class="form-label fw-semibold"><i class="ti ti-camera-off me-1 text-primary"></i> Foto Absen Keluar</label>
+
+                                        @if(!empty($absensi->FotoAbsenKeluar))
+                                            <div class="mb-2">
+                                                <small class="text-muted d-block mb-1">Foto Saat Ini:</small>
+                                                <a href="{{ asset('storage/' . $absensi->FotoAbsenKeluar) }}" target="_blank">
+                                                    <img src="{{ asset('storage/' . $absensi->FotoAbsenKeluar) }}" alt="Foto Absen Keluar" class="img-thumbnail shadow-sm" style="max-height: 100px;">
+                                                </a>
+                                            </div>
+                                        @endif
+
+                                        <input type="file" class="form-control @error('FotoAbsenKeluar') is-invalid @enderror" id="FotoAbsenKeluar" name="FotoAbsenKeluar" accept="image/*">
+                                        <div class="form-text text-warning mt-1 fw-semibold d-flex align-items-start">
+                                            <i class="ti ti-alert-triangle me-1 mt-1"></i>
+                                            <span>Foto wajib menggunakan <strong>GPS Map Camera</strong>, supaya terlihat lokasi, tanggal, dan jam saat absensi.</span>
+                                        </div>
+                                        <div id="PreviewKeluar" class="mt-2 d-none">
+                                            <small class="text-primary fw-semibold d-block mb-1">Preview Foto Baru:</small>
+                                            <img id="ImgPreviewKeluar" src="#" alt="Preview Keluar" class="img-thumbnail shadow-sm" style="max-height: 100px; max-width: 100%;">
+                                        </div>
+                                        @error('FotoAbsenKeluar') <div class="invalid-feedback d-block error-fade-in"><i class="ti ti-alert-circle me-1"></i>{{ $message }}</div> @enderror
                                     </div>
 
                                     <div class="mb-4">
@@ -117,20 +170,22 @@
                                         <div class="row">
                                             <div class="col-6 mb-4">
                                                 <label for="MulaiLembur" class="form-label fw-semibold"><i class="ti ti-play me-1 text-primary"></i> Mulai Lembur</label>
-                                                <input type="text" class="form-control @error('MulaiLembur') is-invalid @enderror" id="MulaiLembur" name="MulaiLembur" value="{{ old('MulaiLembur', $absensi->MulaiLembur) }}" placeholder="Cth: 17:00">
+                                                <!-- ✅ DIUBAH MENJADI type="time" -->
+                                                <input type="time" class="form-control @error('MulaiLembur') is-invalid @enderror" id="MulaiLembur" name="MulaiLembur" value="{{ old('MulaiLembur', $absensi->MulaiLembur ? substr($absensi->MulaiLembur, 0, 5) : '') }}">
                                                 @error('MulaiLembur') <div class="invalid-feedback d-block error-fade-in"><i class="ti ti-alert-circle me-1"></i>{{ $message }}</div> @enderror
                                             </div>
                                             <div class="col-6 mb-4">
                                                 <label for="SelesaiLembur" class="form-label fw-semibold"><i class="ti ti-stop me-1 text-primary"></i> Selesai Lembur</label>
-                                                <input type="text" class="form-control @error('SelesaiLembur') is-invalid @enderror" id="SelesaiLembur" name="SelesaiLembur" value="{{ old('SelesaiLembur', $absensi->SelesaiLembur) }}" placeholder="Cth: 20:00">
+                                                <!-- ✅ DIUBAH MENJADI type="time" -->
+                                                <input type="time" class="form-control @error('SelesaiLembur') is-invalid @enderror" id="SelesaiLembur" name="SelesaiLembur" value="{{ old('SelesaiLembur', $absensi->SelesaiLembur ? substr($absensi->SelesaiLembur, 0, 5) : '') }}">
                                                 @error('SelesaiLembur') <div class="invalid-feedback d-block error-fade-in"><i class="ti ti-alert-circle me-1"></i>{{ $message }}</div> @enderror
                                             </div>
                                         </div>
                                         <div class="mb-4">
                                             <label for="AlasanLembur" class="form-label fw-semibold">
-                                                <i class="ti ti-message-circle me-1 text-primary"></i> Alasan Lembur <span class="text-danger">*</span>
+                                                <i class="ti ti-message-2 me-1 text-primary"></i> Alasan Lembur <span class="text-danger">*</span>
                                             </label>
-                                            <textarea class="form-control @error('AlasanLembur') is-invalid @enderror" id="AlasanLembur" name="AlasanLembur" rows="2" placeholder="Masukkan alasan lembur">{{ old('AlasanLembur', $absensi->AlasanLembur) }}</textarea>
+                                            <textarea class="form-control @error('AlasanLembur') is-invalid @enderror" id="AlasanLembur" name="AlasanLembur" rows="2" placeholder="Jelaskan alasan lembur...">{{ old('AlasanLembur', $absensi->AlasanLembur) }}</textarea>
                                             @error('AlasanLembur') <div class="invalid-feedback d-block error-fade-in"><i class="ti ti-alert-circle me-1"></i>{{ $message }}</div> @enderror
                                         </div>
                                     </div>
@@ -155,34 +210,81 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const lemburSelect = document.getElementById('Lembur');
-        const lemburDetails = document.getElementById('LemburDetails');
-        const inputMulai = document.getElementById('MulaiLembur');
-        const inputSelesai = document.getElementById('SelesaiLembur');
-        const alasanLembur = document.getElementById('AlasanLembur');
+        // 1. Logic Toggle Lembur (Strict PASCAL CASE)
+        const LemburSelect = document.getElementById('Lembur');
+        const LemburDetails = document.getElementById('LemburDetails');
+        const InputMulai = document.getElementById('MulaiLembur');
+        const InputSelesai = document.getElementById('SelesaiLembur');
+        const AlasanLembur = document.getElementById('AlasanLembur');
 
-        function toggleLembur() {
-            if (lemburSelect.value === 'Y') {
-                lemburDetails.style.display = 'block';
-                inputMulai.setAttribute('required', 'required');
-                inputSelesai.setAttribute('required', 'required');
-                alasanLembur.setAttribute('required', 'required');
+        function ToggleLembur() {
+            if (LemburSelect.value === 'Y') {
+                LemburDetails.style.display = 'block';
+                InputMulai.setAttribute('required', 'required');
+                InputSelesai.setAttribute('required', 'required');
+                if (AlasanLembur) AlasanLembur.setAttribute('required', 'required');
             } else {
-                lemburDetails.style.display = 'none';
-                inputMulai.removeAttribute('required');
-                inputSelesai.removeAttribute('required');
-                alasanLembur.removeAttribute('required');
-                inputMulai.value = '';
-                inputSelesai.value = '';
-                alasanLembur.value = '';
+                LemburDetails.style.display = 'none';
+                InputMulai.removeAttribute('required');
+                InputSelesai.removeAttribute('required');
+                InputMulai.value = '';
+                InputSelesai.value = '';
+                if (AlasanLembur) {
+                    AlasanLembur.removeAttribute('required');
+                    AlasanLembur.value = '';
+                }
             }
         }
 
-        // Jalankan saat load (untuk handle old input dan/atau edit value)
-        toggleLembur();
+        // Jalankan saat load (untuk handle old input dan edit value)
+        ToggleLembur();
 
         // Jalankan saat user mengganti pilihan
-        lemburSelect.addEventListener('change', toggleLembur);
+        LemburSelect.addEventListener('change', ToggleLembur);
+
+        // 2. Logic Preview Foto Absen Masuk
+        const FotoAbsenMasuk = document.getElementById('FotoAbsenMasuk');
+        const PreviewMasuk = document.getElementById('PreviewMasuk');
+        const ImgPreviewMasuk = document.getElementById('ImgPreviewMasuk');
+
+        if (FotoAbsenMasuk) {
+            FotoAbsenMasuk.addEventListener('change', function(Event) {
+                const File = this.files[0];
+                if (File) {
+                    const ReaderMasuk = new FileReader();
+                    ReaderMasuk.onload = function(ReaderEvent) {
+                        ImgPreviewMasuk.src = ReaderEvent.target.result;
+                        PreviewMasuk.classList.remove('d-none');
+                    }
+                    ReaderMasuk.readAsDataURL(File);
+                } else {
+                    PreviewMasuk.classList.add('d-none');
+                    ImgPreviewMasuk.src = '#';
+                }
+            });
+        }
+
+        // 3. Logic Preview Foto Absen Keluar
+        const FotoAbsenKeluar = document.getElementById('FotoAbsenKeluar');
+        const PreviewKeluar = document.getElementById('PreviewKeluar');
+        const ImgPreviewKeluar = document.getElementById('ImgPreviewKeluar');
+
+        if (FotoAbsenKeluar) {
+            FotoAbsenKeluar.addEventListener('change', function(Event) {
+                const File = this.files[0];
+                if (File) {
+                    const ReaderKeluar = new FileReader();
+                    ReaderKeluar.onload = function(ReaderEvent) {
+                        ImgPreviewKeluar.src = ReaderEvent.target.result;
+                        PreviewKeluar.classList.remove('d-none');
+                    }
+                    ReaderKeluar.readAsDataURL(File);
+                } else {
+                    PreviewKeluar.classList.add('d-none');
+                    ImgPreviewKeluar.src = '#';
+                }
+            });
+        }
     });
 </script>
 @endsection

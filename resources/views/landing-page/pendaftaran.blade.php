@@ -362,7 +362,7 @@ header{position:sticky;top:0;z-index:60;background:#fff;border-bottom:1px solid 
       <div class="side-card plan" data-rv style="--d:.08s">
         <h3>Spesifikasi</h3>
         <p class="sub">Paket paling populer untuk agen ekspedisi berkembang.</p>
-        <div class="price"><b>Rp 149.000</b><span>/ bulan</span></div>
+        <div class="price"><b>Rp 125.000</b><span>/ bulan</span></div>
         <ul>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Transaksi &amp; seller tanpa batas</li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Upload bukti Transfer &amp; QRIS</li>
@@ -371,9 +371,22 @@ header{position:sticky;top:0;z-index:60;background:#fff;border-bottom:1px solid 
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Support WhatsApp 7 hari</li>
         </ul>
         <hr class="divider">
-        <div class="total"><span>Total Tagihan</span><span class="mono">Rp 149.000</span></div>
+        <div class="total"><span>Total Tagihan</span><span class="mono">Rp 125.000</span></div>
       </div>
-
+      <div class="side-card plan" data-rv style="--d:.08s">
+        <h3>Spesifikasi</h3>
+        <p class="sub">Paket tahunan hemat untuk agen ekspedisi berkembang.</p>
+        <div class="price"><b>Rp 1.250.000</b><span>/ tahun</span></div>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Transaksi &amp; seller tanpa batas</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Upload bukti Transfer &amp; QRIS</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Rekap harian &amp; laporan ekspor</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Multi-admin hingga 5 pengguna</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Support WhatsApp 7 hari</li>
+        </ul>
+        <hr class="divider">
+        <div class="total"><span>Total Tagihan</span><span class="mono">Rp 1.250.000</span></div>
+      </div>
       <div class="side-card after" data-rv style="--d:.16s">
         <h3>Setelah Mendaftar</h3>
         <p class="sub">Prosesnya cepat dan dibantu tim kami.</p>
@@ -405,7 +418,7 @@ header{position:sticky;top:0;z-index:60;background:#fff;border-bottom:1px solid 
         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Tim onboarding kami akan menghubungi WhatsApp PIC.</li>
       </ul>
       <div class="btn-row">
-        <a class="btn btn-blue" href="index.html">Kembali ke Beranda</a>
+        <a class="btn btn-blue" href="{{ route('landing-page') }}">Kembali ke Beranda</a>
         <a class="btn btn-outline" href="#">Cek Status Pendaftaran</a>
       </div>
     </div>

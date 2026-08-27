@@ -16,14 +16,14 @@ class PekerjaanKurirController extends Controller
     public function Index(Request $Request)
     {
         if ($Request->ajax()) {
-            if (in_array(Auth::user()->Role, ['Admin', 'Leader','Superadmin'])) {
-                $Query = PekerjaanKurir::latest();
+            // Query base
+            if (in_array(Auth::user()->Role, ['Admin', 'Leader', 'Superadmin'])) {
+                $Query = PekerjaanKurir::query();
             } else {
-                $Query = PekerjaanKurir::where('IdUser', Auth::id())->latest();
+                $Query = PekerjaanKurir::where('IdUser', Auth::id());
             }
 
-
-            // ✅ TAMBAHAN: Logika Filter
+            // Logika Filter
             if ($Request->filled('TanggalAwal')) {
                 $Query->whereDate('Tanggal', '>=', $Request->TanggalAwal);
             }
@@ -31,8 +31,11 @@ class PekerjaanKurirController extends Controller
                 $Query->whereDate('Tanggal', '<=', $Request->TanggalAkhir);
             }
             if ($Request->filled('UserId')) {
-                $Query->where('UserId', $Request->UserId); // Asumsi ada kolom UserId, atau ganti 'UserCreate' jika menggunakan string nama
+                $Query->where('IdUser', $Request->UserId);
             }
+
+            // Urutan default by terbaru
+            $Query->orderByDesc('Tanggal')->orderByDesc('id');
 
             return DataTables::of($Query)
                 ->addIndexColumn()
@@ -43,7 +46,8 @@ class PekerjaanKurirController extends Controller
                     $Badge = match ($Row->Pekerjaan) {
                         'Ambil Paket' => 'bg-info text-dark',
                         'Antar Paket' => 'bg-success',
-                        'Lain-lain' => 'bg-secondary'
+                        'Lain-lain' => 'bg-secondary',
+                        default => 'bg-secondary'
                     };
                     return '<span class="badge ' . $Badge . '">' . $Row->Pekerjaan . '</span>';
                 })
@@ -78,7 +82,6 @@ class PekerjaanKurirController extends Controller
                 })
                 ->addColumn('action', function ($Row) {
                     $Btn = '<div class="d-flex gap-1 justify-content-center">';
-                    // Tidak ada tombol Edit, hanya tombol Hapus jika ingin tetap bisa menghapus
                     $Btn .= '<button type="button" class="btn btn-danger btn-sm btn-delete" data-id="' . $Row->id . '" data-tanggal="' . $Row->Tanggal . '" title="Hapus"><i class="ti ti-trash"></i></button>';
                     $Btn .= '</div>';
                     return $Btn;
@@ -86,19 +89,35 @@ class PekerjaanKurirController extends Controller
                 ->editColumn('NamaKurir', function ($Row) {
                     return $Row->getKurir->name ?? '-';
                 })
-
                 ->editColumn('JumlahPaket', function ($Row) {
                     return $Row->JumlahPaket !== null ? $Row->JumlahPaket . ' Paket' : '-';
                 })
                 ->editColumn('Durasi', function ($Row) {
                     return $Row->Durasi !== null ? $Row->Durasi . ' Menit' : '-';
                 })
+                ->filter(function ($query) use ($Request) {
+                    // Custom filter pencarian global DataTables
+                    if ($search = $Request->get('search')['value'] ?? false) {
+                        $query->where(function ($q) use ($search) {
+                            $q->where('Tanggal', 'like', '%' . $search . '%')
+                                ->orWhere('Jam', 'like', '%' . $search . '%')
+                                ->orWhere('Pekerjaan', 'like', '%' . $search . '%')
+                                ->orWhere('DariLokasi', 'like', '%' . $search . '%')
+                                ->orWhere('Tujuan', 'like', '%' . $search . '%')
+                                ->orWhere('JumlahPaket', 'like', '%' . $search . '%')
+                                ->orWhere('Durasi', 'like', '%' . $search . '%')
+                                ->orWhere('Keterangan', 'like', '%' . $search . '%')
+                                ->orWhereHas('getKurir', function ($qq) use ($search) {
+                                    $qq->where('name', 'like', '%' . $search . '%');
+                                });
+                        });
+                    }
+                })
                 ->rawColumns(['Tanggal', 'Pekerjaan', 'Status', 'BuktiFoto', 'action'])
                 ->make(true);
-
         }
 
-        // ✅ TAMBAHAN: Kirim data user ke view untuk dropdown filter
+        // Kirim data user ke view untuk dropdown filter
         $Users = User::select('id', 'name')->orderBy('name', 'asc')->get();
         return view('pekerjaan-kurir.index', compact('Users'));
     }
@@ -252,7 +271,7 @@ class PekerjaanKurirController extends Controller
             $Query->whereDate('Tanggal', '<=', $Request->TanggalAkhir);
         }
         if ($Request->filled('UserId')) {
-            $Query->where('UserId', $Request->UserId);
+            $Query->where('IdUser', $Request->UserId);
         }
 
         $Data = $Query->get();

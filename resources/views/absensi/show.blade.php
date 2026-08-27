@@ -3,6 +3,47 @@
 @section('title', 'Detail Absensi')
 
 @section('content')
+<style>
+    /* Efek Hover Profesional untuk Foto */
+    .foto-absen-wrapper {
+        position: relative;
+        overflow: hidden;
+        border-radius: 0.5rem;
+        cursor: zoom-in;
+    }
+    .foto-absen-wrapper img {
+        transition: transform 0.3s ease, filter 0.3s ease;
+        width: 100%;
+        max-height: 350px;
+        object-fit: cover;
+    }
+    .foto-absen-wrapper:hover img {
+        transform: scale(1.03);
+        filter: brightness(0.85);
+    }
+    .foto-absen-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.6);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .foto-absen-wrapper:hover .foto-absen-overlay {
+        opacity: 1;
+    }
+</style>
+
 <div class="content-header pb-2">
     <div class="container-fluid">
         <div class="row mb-2">
@@ -41,43 +82,56 @@
                             <i class="ti ti-clock-hour-9 me-2"></i>Data Absensi
                         </h5>
                         @php
-                            $statusBadge = match($absensi->Status ?? 'N/A') {
-                                'Y' => 'bg-success',
-                                'N' => 'bg-danger',
+                            // ✅ DIPERBAIKI: Menyesuaikan dengan status absensi (H, I, S, TK)
+                            $StatusBadge = match($absensi->Status ?? 'N/A') {
+                                'H' => 'bg-success',
+                                'I' => 'bg-info text-dark',
+                                'S' => 'bg-warning text-dark',
+                                'TK' => 'bg-danger',
                                 default => 'bg-secondary'
                             };
-                            $statusText = match($absensi->Status ?? 'N/A') {
-                                'Y' => 'Disetujui (Y)',
-                                'N' => 'Ditolak (N)',
-                                default => 'Belum Diverifikasi (N/A)'
+                            $StatusText = match($absensi->Status ?? 'N/A') {
+                                'H' => 'Hadir',
+                                'I' => 'Izin',
+                                'S' => 'Sakit',
+                                'TK' => 'Tanpa Keterangan',
+                                default => 'N/A'
                             };
                         @endphp
-                        <span class="badge {{ $statusBadge }} px-3 py-2 fs-6">
-                            <i class="ti {{ $absensi->Status === 'Y' ? 'ti-check' : ($absensi->Status === 'N' ? 'ti-x' : 'ti-clock') }} me-1"></i>
-                            {{ $statusText }}
+                        <span class="badge {{ $StatusBadge }} px-3 py-2 fs-6 ms-auto" style="float: right;">
+                            <i class="ti {{ $absensi->Status === 'H' ? 'ti-check' : 'ti-alert-circle' }} me-1"></i>
+                            {{ $StatusText }}
                         </span>
+
                     </div>
 
                     <div class="card-body p-4">
                         <div class="row g-4">
-                            <!-- Kolom Kiri: Info Karyawan & Waktu -->
+                            <!-- Kolom Kiri: Info Karyawan -->
                             <div class="col-md-6">
                                 <h6 class="text-uppercase text-muted fw-semibold mb-3" style="font-size: 0.75rem; letter-spacing: 1px;">
                                     <i class="ti ti-user me-1"></i> Informasi Karyawan
                                 </h6>
                                 <div class="mb-3">
                                     <label class="text-muted small mb-1 d-block">Nama</label>
-                                    <div class="fw-semibold text-dark fs-5">{{ $absensi->getUser->name ?? $absensi->Nama }}</div>
+                                    <div class="fw-semibold text-dark fs-5">{{ $absensi->getUser->name ?? $absensi->Nama ?? '-' }}</div>
                                 </div>
                                 <div class="mb-3">
                                     <label class="text-muted small mb-1 d-block">Divisi</label>
                                     <div class="fw-semibold text-dark">
                                         <i class="ti ti-building me-1 text-primary"></i>
-                                        {{ $absensi->getDivisi->Nama ?? ($absensi->getDivisi->Nama ?? '-') }}
+                                        {{ $absensi->getDivisi->Nama ?? '-' }}
                                     </div>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="text-muted small mb-1 d-block">Tanggal</label>
+                                    <label class="text-muted small mb-1 d-block">No. HP</label>
+                                    <div class="fw-semibold text-dark">
+                                        <i class="ti ti-phone me-1 text-primary"></i>
+                                        {{ $absensi->NoHp ?? '-' }}
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-muted small mb-1 d-block">Tanggal Absensi</label>
                                     <div class="fw-semibold text-dark">
                                         <i class="ti ti-calendar me-1 text-primary"></i>
                                         {{ \Carbon\Carbon::parse($absensi->Tanggal)->isoFormat('dddd, D MMMM YYYY') }}
@@ -111,9 +165,9 @@
                                             <span class="badge bg-warning text-dark">Ya</span>
                                             <span class="ms-2 text-muted small">({{ $absensi->MulaiLembur ?: '-' }} s/d {{ $absensi->SelesaiLembur ?: '-' }})</span>
                                             @if(!empty($absensi->AlasanLembur))
-                                                <div class="mt-2">
-                                                    <label class="text-muted small mb-1 d-block">Alasan Lembur</label>
-                                                    <div class="fw-normal text-dark fst-italic">
+                                                <div class="mt-2 p-2 bg-light rounded border-start border-3 border-warning">
+                                                    <label class="text-muted small mb-1 d-block fw-bold">Alasan Lembur:</label>
+                                                    <div class="text-dark fst-italic small">
                                                         "{{ $absensi->AlasanLembur }}"
                                                     </div>
                                                 </div>
@@ -125,17 +179,62 @@
                                 </div>
                             </div>
 
-                            {{-- <!-- Full Width: Catatan Finance/Leader (Jika Ada) -->
-                            @if($absensi->Catatan)
+                            <!-- ✅ FULL WIDTH: Bukti Foto Absensi (Dipisah agar lebih profesional) -->
                             <div class="col-12 mt-4 pt-3 border-top">
-                                <div class="p-3 bg-light rounded border-start border-4 border-warning">
-                                    <label class="text-warning-emphasis small mb-1 d-block fw-bold">
-                                        <i class="ti ti-message me-1"></i> Catatan Persetujuan:
-                                    </label>
-                                    <div class="text-dark fst-italic">"{{ $absensi->Catatan }}"</div>
+                                <h6 class="text-uppercase text-muted fw-semibold mb-3" style="font-size: 0.75rem; letter-spacing: 1px;">
+                                    <i class="ti ti-camera me-1"></i> Bukti Foto Absensi (GPS Map Camera)
+                                </h6>
+                                <div class="row g-4">
+                                    <!-- Foto Masuk -->
+                                    <div class="col-md-6">
+                                        <div class="card border shadow-sm h-100">
+                                            <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
+                                                <span class="fw-semibold text-primary"><i class="ti ti-login me-1"></i> Foto Absen Masuk</span>
+                                            </div>
+                                            <div class="card-body p-2 text-center bg-dark bg-opacity-10">
+                                                @if(!empty($absensi->FotoAbsenMasuk))
+                                                    <a href="{{ asset('storage/' . $absensi->FotoAbsenMasuk) }}" target="_blank" class="foto-absen-wrapper d-block">
+                                                        <img src="{{ asset('storage/' . $absensi->FotoAbsenMasuk) }}" alt="Foto Absen Masuk">
+                                                        <div class="foto-absen-overlay">
+                                                            <i class="ti ti-zoom-in"></i> Klik untuk memperbesar
+                                                        </div>
+                                                    </a>
+                                                @else
+                                                    <div class="py-5 text-muted">
+                                                        <i class="ti ti-photo-off" style="font-size: 3rem; opacity: 0.3;"></i>
+                                                        <p class="mt-2 mb-0 small">Foto tidak tersedia</p>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                    </div>
+
+                                    <!-- Foto Pulang -->
+                                    <div class="col-md-6">
+                                        <div class="card border shadow-sm h-100">
+                                            <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
+                                                <span class="fw-semibold text-danger"><i class="ti ti-logout me-1"></i> Foto Absen Pulang</span>
+                                            </div>
+                                            <div class="card-body p-2 text-center bg-dark bg-opacity-10">
+                                                @if(!empty($absensi->FotoAbsenKeluar))
+                                                    <a href="{{ asset('storage/' . $absensi->FotoAbsenKeluar) }}" target="_blank" class="foto-absen-wrapper d-block">
+                                                        <img src="{{ asset('storage/' . $absensi->FotoAbsenKeluar) }}" alt="Foto Absen Pulang">
+                                                        <div class="foto-absen-overlay">
+                                                            <i class="ti ti-zoom-in"></i> Klik untuk memperbesar
+                                                        </div>
+                                                    </a>
+                                                @else
+                                                    <div class="py-5 text-muted">
+                                                        <i class="ti ti-photo-off" style="font-size: 3rem; opacity: 0.3;"></i>
+                                                        <p class="mt-2 mb-0 small">Foto tidak tersedia</p>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            @endif --}}
+                            <!-- ✅ AKHIR FULL WIDTH: Bukti Foto -->
 
                             <!-- ✅ BAGIAN AKSI PERSETUJUAN LEADER (Hanya untuk Admin & Leader) -->
                             @if(in_array(auth()->user()->role, ['Admin', 'Leader']))
@@ -146,20 +245,20 @@
                                             <i class="ti ti-shield-check fs-5 me-2"></i>
                                             Aksi Persetujuan Leader
                                         </h6>
-                                        <small class="text-muted">Ubah status untuk mengunci (Acc) atau membuka kunci (Revisi) data bagi Kasir.</small>
+                                        <small class="text-muted">Ubah status untuk mengunci (Acc) atau membuka kunci (Revisi) data.</small>
                                     </div>
                                     <div class="card-body p-3">
                                         <form action="{{ route('absensi.approve', $absensi->id) }}" method="POST">
                                             @csrf
                                             <div class="row g-3 align-items-center justify-content-center">
                                                 <div class="col-md-4 d-flex flex-column justify-content-center">
-                                                    <label for="Status" class="form-label fw-semibold small text-uppercase text-muted mb-1">
+                                                    <label for="StatusVerif" class="form-label fw-semibold small text-uppercase text-muted mb-1">
                                                         Status Verifikasi <span class="text-danger">*</span>
                                                     </label>
-                                                    <select name="Status" id="Status" class="form-select form-select-sm fw-semibold" required>
-                                                        <option value="N/A" {{ ($absensi->StatusVerif ?? 'N/A') === 'N/A' ? 'selected' : '' }}>N/A (Belum Diverifikasi / Buka Kunci)</option>
-                                                        <option value="Y" {{ ($absensi->StatusVerif ?? 'N/A') === 'Y' ? 'selected' : '' }}>Y (Disetujui / Acc & Kunci)</option>
-                                                        <option value="N" {{ ($absensi->StatusVerif ?? 'N/A') === 'N' ? 'selected' : '' }}>N (Ditolak / Revisi & Buka Kunci)</option>
+                                                    <select name="Status" id="StatusVerif" class="form-select form-select-sm fw-semibold" required>
+                                                        <option value="N/A" {{ ($absensi->Status ?? 'N/A') === 'N/A' ? 'selected' : '' }}>N/A (Belum Diverifikasi)</option>
+                                                        <option value="Y" {{ ($absensi->Status ?? 'N/A') === 'Y' ? 'selected' : '' }}>Y (Disetujui / Acc)</option>
+                                                        <option value="N" {{ ($absensi->Status ?? 'N/A') === 'N' ? 'selected' : '' }}>N (Ditolak / Revisi)</option>
                                                     </select>
                                                 </div>
                                                 <div class="col-md-6">
@@ -174,13 +273,12 @@
                                                     </button>
                                                 </div>
                                             </div>
-
                                         </form>
 
                                         @if($absensi->DisetujuiPada)
                                         <div class="mt-3 pt-2 border-top border-warning border-opacity-25">
                                             <small class="text-muted">
-                                                <i class="ti ti-user-check me-1"></i> Diverifikasi terakhir oleh: <strong>{{ $absensi->UserLeader }}</strong>
+                                                <i class="ti ti-user-check me-1"></i> Diverifikasi terakhir oleh: <strong>{{ $absensi->UserLeader ?? '-' }}</strong>
                                                 pada {{ \Carbon\Carbon::parse($absensi->DisetujuiPada)->isoFormat('D MMMM YYYY, HH:mm') }}
                                             </small>
                                         </div>
@@ -200,11 +298,11 @@
                             <a href="{{ route('absensi.index') }}" class="btn btn-light text-muted px-4 d-flex align-items-center border fw-semibold">
                                 <i class="ti ti-arrow-left me-2"></i>Kembali
                             </a>
-                            @if(in_array(auth()->user()->role, ['Admin', 'Leader', 'Kasir']) && ($absensi->Status ?? 'N/A') !== 'Y')
+                            {{-- @if(in_array(auth()->user()->role, ['Admin', 'Leader', 'Kasir']) && ($absensi->Status ?? 'N/A') !== 'Y')
                             <a href="{{ route('absensi.edit', $absensi->id) }}" class="btn btn-warning text-white px-4 d-flex align-items-center fw-semibold">
                                 <i class="ti ti-edit me-2"></i>Edit Data
                             </a>
-                            @endif
+                            @endif --}}
                         </div>
                     </div>
                 </div>

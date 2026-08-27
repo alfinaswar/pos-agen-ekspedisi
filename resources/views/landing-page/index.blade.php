@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/x-icon" href="{{ asset('img/favicon_io/favicon.ico') }}">
 <style>
 /* ================= TOKEN & DASAR ================= */
 :root{
@@ -353,22 +354,25 @@ footer ul a:hover{color:#fff;padding-left:4px}
 <header id="header">
   <div class="container head-in">
     <a class="logo" href="#beranda">
-      <span class="logo-badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V6l8 8 8-8v14"/></svg></span>
-      Maurekap
+      <span class="logo-badge" style="background:#fff;">
+        <img src="{{ asset('img/logo/maurekap-icon-hd-transparent.png') }}" alt="Logo Maurekap" width="44" height="44" style="display:block;">
+      </span>
+      MAUREKAP
     </a>
     <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-label="Buka menu">
     <label for="nav-toggle" class="burger" aria-label="Toggle menu"><span></span><span></span><span></span></label>
-    <nav class="nav">
-      <a href="#beranda">Beranda</a>
-      <a href="#keunggulan">Keunggulan</a>
-      <a href="#masalah">Masalah</a>
-      <a href="#cara-kerja">Cara Kerja</a>
-      <a href="#testimoni">Testimoni</a>
-      <div class="nav-cta">
-        <a href="#" class="btn btn-outline btn-sm">Login</a>
-        <a href="{{ route('daftar') }}" class="btn btn-blue btn-sm">Coba Gratis</a>
-      </div>
-    </nav>
+   <nav class="nav">
+  <a href="#beranda">Beranda</a>
+  <a href="#keunggulan">Keunggulan</a>
+  <a href="#masalah">Masalah</a>
+  <a href="#harga">Harga</a>
+  <a href="#cara-kerja">Cara Kerja</a>
+  <a href="#testimoni">Testimoni</a>
+  <div class="nav-cta">
+    <a href="#" class="btn btn-outline btn-sm">Login</a>
+    <a href="{{ route('daftar') }}" class="btn btn-blue btn-sm">Coba Gratis</a>
+  </div>
+</nav>
   </div>
 </header>
 
@@ -652,7 +656,158 @@ footer ul a:hover{color:#fff;padding-left:4px}
     </div>
   </div>
 </section>
+<!-- ============ HARGA ============ -->
+<section class="sec" id="harga">
+  <div class="container">
+    <div class="sec-head" data-rv>
+      <span class="sec-tag">Pilihan Paket</span>
+      <h2>Pilih Paket yang Cocok untuk Agen Anda</h2>
+      <p>Mulai lebih rapi dengan promo spesial untuk periode terbatas. Coba gratis 7 hari dan rasakan sendiri kemudahannya.</p>
+      <p style="margin-top:8px;font-size:.88rem;color:var(--blue);font-weight:600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Promo tersedia untuk periode terbatas</p>
+    </div>
 
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:24px;max-width:900px;margin:0 auto" data-rv>
+      <!-- Paket Bulanan -->
+      <div style="background:#fff;border:2px solid var(--line);border-radius:20px;padding:32px 28px;box-shadow:var(--shadow-sm);position:relative;transition:.25s">
+        <div style="position:absolute;top:-12px;left:28px;background:var(--blue-50);border:1px solid var(--blue-100);color:var(--blue-700);font-size:.7rem;font-weight:800;padding:6px 14px;border-radius:20px;display:flex;align-items:center;gap:6px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Bulanan
+        </div>
+
+        <div style="position:absolute;top:-12px;right:28px;background:linear-gradient(135deg,#FFE4E6,#FEE2E2);color:#DC2626;font-size:.75rem;font-weight:800;padding:6px 14px;border-radius:20px;display:flex;align-items:center;gap:6px;box-shadow:0 4px 12px rgba(220,38,38,.15)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          PROMO SPESIAL 50%
+        </div>
+
+        <div style="margin-top:24px">
+          <p style="text-decoration:line-through;color:var(--muted);font-size:.9rem;margin-bottom:4px">Rp249.000/bulan</p>
+          <div style="display:flex;align-items:flex-start;gap:4px;margin-bottom:12px">
+            <span style="font-size:2.8rem;font-weight:800;color:var(--blue);line-height:1">Rp125.000</span>
+            <span style="color:var(--muted);font-weight:600;margin-top:8px">/bulan</span>
+          </div>
+          <p style="background:var(--blue-50);color:var(--blue-700);font-size:.8rem;font-weight:600;padding:8px 12px;border-radius:8px;display:inline-block;margin-bottom:16px">Harga promo untuk 3 bulan pertama</p>
+          <p style="font-size:.85rem;color:var(--muted)">Setelah promo: <b style="color:var(--ink)">Rp249.000/bulan</b></p>
+        </div>
+
+        <div style="border-top:1px solid var(--line);margin:24px 0;padding-top:24px">
+          <ul style="display:grid;gap:12px">
+            <li style="display:flex;gap:10px;align-items:flex-start;font-size:.9rem;color:#33415C;font-weight:600">
+              <span style="width:20px;height:20px;background:var(--blue);border-radius:50%;display:grid;place-items:center;flex:none;margin-top:2px">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+              Rekap transaksi & verifikasi
+            </li>
+            <li style="display:flex;gap:10px;align-items:flex-start;font-size:.9rem;color:#33415C;font-weight:600">
+              <span style="width:20px;height:20px;background:var(--blue);border-radius:50%;display:grid;place-items:center;flex:none;margin-top:2px">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+              Multi-admin & multi-outlet
+            </li>
+            <li style="display:flex;gap:10px;align-items:flex-start;font-size:.9rem;color:#33415C;font-weight:600">
+              <span style="width:20px;height:20px;background:var(--blue);border-radius:50%;display:grid;place-items:center;flex:none;margin-top:2px">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+              Laporan harian & bulanan
+            </li>
+            <li style="display:flex;gap:10px;align-items:flex-start;font-size:.9rem;color:#33415C;font-weight:600">
+              <span style="width:20px;height:20px;background:var(--blue);border-radius:50%;display:grid;place-items:center;flex:none;margin-top:2px">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+              Absensi, reimburse, pekerjaan kurir
+            </li>
+          </ul>
+        </div>
+
+        <a href="#" class="btn btn-blue" style="width:100%;justify-content:center;margin-top:8px">Coba Gratis 7 Hari</a>
+      </div>
+
+      <!-- Paket Tahunan -->
+      <div style="background:#fff;border:2px solid var(--blue);border-radius:20px;padding:32px 28px;box-shadow:0 20px 50px rgba(37,99,235,.15);position:relative;transition:.25s">
+        <div style="position:absolute;top:-12px;left:28px;background:var(--blue);color:#fff;font-size:.7rem;font-weight:800;padding:6px 14px;border-radius:20px;display:flex;align-items:center;gap:6px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Tahunan
+        </div>
+
+        <div style="position:absolute;top:-12px;right:28px;background:linear-gradient(135deg,#DCFCE7,#BBF7D0);color:var(--green);font-size:.75rem;font-weight:800;padding:6px 14px;border-radius:20px;display:flex;align-items:center;gap:6px;box-shadow:0 4px 12px rgba(22,163,74,.15)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          PALING HEMAT
+        </div>
+
+        <div style="margin-top:24px">
+          <p style="text-decoration:line-through;color:var(--muted);font-size:.9rem;margin-bottom:4px">Rp2.490.000/tahun</p>
+          <div style="display:flex;align-items:flex-start;gap:4px;margin-bottom:12px">
+            <span style="font-size:2.8rem;font-weight:800;color:var(--blue);line-height:1">Rp1.250.000</span>
+            <span style="color:var(--muted);font-weight:600;margin-top:8px">/tahun</span>
+          </div>
+          <p style="background:var(--green-50);color:var(--green);font-size:.85rem;font-weight:700;padding:8px 12px;border-radius:8px;display:inline-block;margin-bottom:12px">Hemat Rp1.240.000 per tahun</p>
+          <p style="font-size:.9rem;color:var(--muted)">Setara <b style="color:var(--ink);font-size:1.05rem">Rp104.000/bulan</b></p>
+        </div>
+
+        <div style="border-top:1px solid var(--line);margin:24px 0;padding-top:24px">
+          <ul style="display:grid;gap:12px">
+            <li style="display:flex;gap:10px;align-items:flex-start;font-size:.9rem;color:#33415C;font-weight:600">
+              <span style="width:20px;height:20px;background:var(--blue);border-radius:50%;display:grid;place-items:center;flex:none;margin-top:2px">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+              Rekap transaksi & verifikasi
+            </li>
+            <li style="display:flex;gap:10px;align-items:flex-start;font-size:.9rem;color:#33415C;font-weight:600">
+              <span style="width:20px;height:20px;background:var(--blue);border-radius:50%;display:grid;place-items:center;flex:none;margin-top:2px">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+              Multi-admin & multi-outlet
+            </li>
+            <li style="display:flex;gap:10px;align-items:flex-start;font-size:.9rem;color:#33415C;font-weight:600">
+              <span style="width:20px;height:20px;background:var(--blue);border-radius:50%;display:grid;place-items:center;flex:none;margin-top:2px">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+              Laporan harian & bulanan
+            </li>
+            <li style="display:flex;gap:10px;align-items:flex-start;font-size:.9rem;color:#33415C;font-weight:600">
+              <span style="width:20px;height:20px;background:var(--blue);border-radius:50%;display:grid;place-items:center;flex:none;margin-top:2px">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+              Absensi, reimburse, pekerjaan kurir
+            </li>
+          </ul>
+        </div>
+
+        <a href="#" class="btn btn-blue" style="width:100%;justify-content:center;margin-top:8px;box-shadow:0 8px 24px rgba(37,99,235,.35)">Pilih Paket Tahunan</a>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:28px" data-rv style="--d:.2s">
+      <p style="display:inline-flex;align-items:center;gap:8px;background:var(--blue-50);color:var(--blue-700);padding:10px 18px;border-radius:30px;font-size:.85rem;font-weight:600">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+        Aman, transparan, dan dirancang untuk mendukung operasional agen ekspedisi.
+      </p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:800px;margin:32px auto 0;text-align:center" data-rv style="--d:.28s">
+      <div style="padding:20px">
+        <div style="width:48px;height:48px;background:var(--blue-50);border-radius:12px;display:grid;place-items:center;margin:0 auto 12px;color:var(--blue)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+        <h4 style="font-size:.95rem;font-weight:800;margin-bottom:6px;color:var(--navy)">Gratis coba 7 hari</h4>
+        <p style="font-size:.85rem;color:var(--muted);line-height:1.5">Coba semua fitur Maurekap selama 7 hari penuh.</p>
+      </div>
+      <div style="padding:20px">
+        <div style="width:48px;height:48px;background:var(--blue-50);border-radius:12px;display:grid;place-items:center;margin:0 auto 12px;color:var(--blue)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <h4 style="font-size:.95rem;font-weight:800;margin-bottom:6px;color:var(--navy)">Semua fitur aktif</h4>
+        <p style="font-size:.85rem;color:var(--muted);line-height:1.5">Nikmati semua fitur terbaik tanpa pembatasan.</p>
+      </div>
+      <div style="padding:20px">
+        <div style="width:48px;height:48px;background:var(--blue-50);border-radius:12px;display:grid;place-items:center;margin:0 auto 12px;color:var(--blue)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+        </div>
+        <h4 style="font-size:.95rem;font-weight:800;margin-bottom:6px;color:var(--navy)">Bisa dibatalkan kapan saja</h4>
+        <p style="font-size:.85rem;color:var(--muted);line-height:1.5">Batalkan kapan saja tanpa biaya atau komitmen tambahan.</p>
+      </div>
+    </div>
+  </div>
+</section>
 <!-- ============ TESTIMONI ============ -->
 <section class="sec" id="testimoni">
   <div class="container">
