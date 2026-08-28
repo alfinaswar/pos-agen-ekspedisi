@@ -3,6 +3,7 @@
 use App\Http\Controllers\AbsensiController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DivisiController;
+use App\Http\Controllers\LandingPageController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\MasterPaketHargaController;
 use App\Http\Controllers\PekerjaanKurirController;
@@ -29,13 +30,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
-Route::get('/landing-page', function () {
-    return view('landing-page.index');
-})->name('landing-page');
-Route::get('/daftar', function () {
-    return view('landing-page.pendaftaran');
-})->name('daftar');
-Route::post('/pendaftaran-tenant/kirim', [App\Http\Controllers\PendaftaranTenantController::class, 'store'])->name('pendaftaran-tenant.store');
+Route::get('/landing-page', [LandingPageController::class, 'index'])->name('landing-page');
+Route::get('/daftar', [LandingPageController::class, 'daftar'])->name('daftar');
+Route::post('/pendaftaran-tenant/kirim', [PendaftaranTenantController::class, 'store'])->name('pendaftaran-tenant.store');
 
 Auth::routes();
 

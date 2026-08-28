@@ -14,8 +14,7 @@
   --blue:#2563EB; --blue-600:#1D4ED8; --blue-700:#1E40AF;
   --blue-50:#EFF6FF; --blue-100:#DBEAFE;
   --navy:#0F1B33; --ink:#0F172A; --muted:#5B6B84; --line:#E5EAF3;
-  --orange:#F97316; --orange-600:#EA580C;
-  --green:#16A34A; --green-50:#DCFCE7;
+  --orange:#F97316; --green:#16A34A; --green-50:#DCFCE7;
   --red:#EF4444;
   --bg:#F6F8FC; --card:#FFFFFF;
   --shadow:0 10px 30px rgba(15,27,51,.08);
@@ -63,7 +62,7 @@ header{position:sticky;top:0;z-index:60;background:#fff;border-bottom:1px solid 
 .crumb a:hover{color:var(--blue)}
 .crumb b{color:var(--blue)}
 .page-head h1{font-size:clamp(1.7rem,1.2rem + 2.4vw,2.5rem);font-weight:800;margin-bottom:10px}
-.page-head>p, .page-head .container>p{color:var(--muted);max-width:62ch;font-size:clamp(.92rem,.88rem + .2vw,1rem)}
+.page-head .container>p{color:var(--muted);max-width:62ch;font-size:clamp(.92rem,.88rem + .2vw,1rem)}
 .mini-steps{display:flex;gap:10px 26px;flex-wrap:wrap;margin-top:26px}
 .mini-steps li{display:flex;align-items:center;gap:10px;font-size:.85rem;font-weight:700;color:#33415C}
 .mini-steps .n{width:26px;height:26px;border-radius:50%;background:#fff;border:2px solid var(--blue);color:var(--blue);font-size:.75rem;font-weight:800;display:grid;place-items:center;flex:none}
@@ -88,15 +87,15 @@ header{position:sticky;top:0;z-index:60;background:#fff;border-bottom:1px solid 
 .field{display:flex;flex-direction:column;gap:7px;min-width:0}
 .field label{font-size:.85rem;font-weight:700;color:#28354C}
 .req::after{content:" *";color:var(--red)}
-.field input,.field textarea{border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;font-family:var(--font);
+.field input,.field textarea,.field select{border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;font-family:var(--font);
   font-size:.92rem;color:var(--ink);background:#fff;width:100%;transition:border-color .2s,box-shadow .2s}
+.field select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235B6B84' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
 .field textarea{resize:vertical;min-height:88px}
-.field input::placeholder,.field textarea::placeholder{color:#A8B3C5}
-.field input:focus,.field textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 4px rgba(37,99,235,.12)}
-.field input:disabled{background:#F1F5F9;color:#8A97AB}
-.hint{font-size:.74rem;color:var(--muted)}
+.field input::placeholder,.field textarea::placeholder,.field select.placeholder{color:#A8B3C5}
+.field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 4px rgba(37,99,235,.12)}
+.field input:disabled,.field select:disabled{background:#F1F5F9;color:#8A97AB}
 .err{font-size:.74rem;color:var(--red);font-weight:600;display:none}
-.field.invalid input,.field.invalid textarea{border-color:var(--red);box-shadow:0 0 0 4px rgba(239,68,68,.1)}
+.field.invalid input,.field.invalid textarea,.field.invalid select{border-color:var(--red);box-shadow:0 0 0 4px rgba(239,68,68,.1)}
 .field.invalid .err{display:block}
 .same-row{display:flex;align-items:center;gap:9px;margin-top:2px}
 .same-row input{width:16px;height:16px;accent-color:var(--blue);cursor:pointer}
@@ -111,7 +110,7 @@ header{position:sticky;top:0;z-index:60;background:#fff;border-bottom:1px solid 
 
 /* dropzone */
 .drop{border:2px dashed #B9C8E8;background:#FAFCFF;border-radius:14px;padding:30px 20px;text-align:center;cursor:pointer;transition:.2s}
-.drop:hover,.drop.drag{border-color:var(--blue);background:var(--blue-50)}
+.drop:hover,.drop.drag,.drop.hover{border-color:var(--blue);background:var(--blue-50)}
 .drop-ic{width:52px;height:52px;margin:0 auto 14px;border-radius:50%;background:var(--blue-100);color:var(--blue);display:grid;place-items:center}
 .drop-ic svg{width:24px;height:24px}
 .drop b{display:block;font-size:.95rem;color:var(--navy);margin-bottom:4px}
@@ -138,20 +137,30 @@ header{position:sticky;top:0;z-index:60;background:#fff;border-bottom:1px solid 
 .secure-note{display:flex;align-items:center;gap:8px;font-size:.78rem;color:var(--muted)}
 .secure-note svg{width:15px;height:15px;color:var(--green);flex:none}
 
-/* ================= SIDEBAR ================= */
+/* ================= SIDEBAR & PAKET ================= */
 .reg-side{display:flex;flex-direction:column;gap:20px;position:sticky;top:88px}
 .side-card{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-sm);padding:24px;overflow:hidden;position:relative}
 .side-card h3{font-size:1rem;font-weight:800;margin-bottom:6px}
 .side-card .sub{font-size:.83rem;color:var(--muted)}
+
 .plan{border-top:4px solid var(--blue)}
-.plan .price{display:flex;align-items:baseline;gap:6px;margin:14px 0 4px}
-.plan .price b{font-size:1.7rem;font-weight:800;color:var(--blue)}
-.plan .price span{font-size:.85rem;color:var(--muted)}
+.plan-header{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.badge{font-size:.6rem;font-weight:800;letter-spacing:.06em;padding:4px 9px;border-radius:6px;white-space:nowrap}
+.badge-red{background:#FDECEC;color:#DC2626}
+.badge-green{background:var(--green-50);color:var(--green)}
+
+.price-block{margin:14px 0 4px}
+.price-strike{display:block;font-size:.85rem;color:var(--muted);text-decoration:line-through;margin-bottom:2px}
+.price-main{display:flex;align-items:baseline;gap:6px}
+.price-main b{font-size:1.7rem;font-weight:800;color:var(--blue)}
+.price-main span{font-size:.85rem;color:var(--muted)}
+
 .plan ul{margin-top:14px;display:grid;gap:10px}
 .plan ul li{display:flex;gap:10px;font-size:.85rem;color:#33415C;align-items:flex-start}
 .plan ul svg{width:16px;height:16px;flex:none;color:var(--green);margin-top:3px}
 .plan .divider{border:0;border-top:1px dashed var(--line);margin:16px 0 12px}
 .plan .total{display:flex;justify-content:space-between;font-size:.88rem;font-weight:700;color:var(--navy)}
+
 .after ol{margin-top:14px;display:grid;gap:14px;counter-reset:st}
 .after ol li{display:flex;gap:12px;font-size:.85rem;color:#33415C;counter-increment:st}
 .after ol li::before{content:counter(st);width:24px;height:24px;flex:none;border-radius:50%;background:var(--blue-50);color:var(--blue);font-size:.72rem;font-weight:800;display:grid;place-items:center;border:1.5px solid var(--blue-100)}
@@ -212,16 +221,14 @@ header{position:sticky;top:0;z-index:60;background:#fff;border-bottom:1px solid 
 <!-- ============ HEADER ============ -->
 <header>
   <div class="container head-in">
-    <a class="logo" href="index.html">
-      <span class="">
-        <!-- Logo Ku SVG -->
-        <img src="{{ asset('img/logo/maurekap-icon-hd-transparent.png') }}" alt="Logo Maurekap" width="54" height="54" style="display:block;">
-
+    <a class="logo" href="{{ url('/') }}">
+      <span class="logo-badge">
+        <img src="{{ asset('img/logo/maurekap-icon-hd-transparent.png') }}" alt="Logo Maurekap" width="20" height="20" style="filter: brightness(0) invert(1);">
       </span>
       MAUREKAP
     </a>
     <div class="head-right">
-      <a class="back-link" href="index.html"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5m0 0l6-6m-6 6l6 6"/></svg><span>Kembali ke Beranda</span></a>
+      <a class="back-link" href="{{ url('/') }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5m0 0l6-6m-6 6l6 6"/></svg><span>Kembali ke Beranda</span></a>
       <a class="btn btn-outline btn-sm" href="#">Butuh Bantuan?</a>
     </div>
   </div>
@@ -230,7 +237,7 @@ header{position:sticky;top:0;z-index:60;background:#fff;border-bottom:1px solid 
 <!-- ============ PAGE HEAD ============ -->
 <section class="page-head">
   <div class="container">
-    <p class="crumb" data-rv><a href="index.html">Beranda</a> &nbsp;/&nbsp; <b>Pendaftaran Mitra</b></p>
+    <p class="crumb" data-rv><a href="{{ url('/') }}">Beranda</a> &nbsp;/&nbsp; <b>Pendaftaran Mitra</b></p>
     <h1 data-rv style="--d:.06s">Formulir Pendaftaran Mitra</h1>
     <p data-rv style="--d:.12s">Lengkapi data di bawah untuk aktivasi akun Maurekap Anda. Pastikan data sesuai dengan bukti pembayaran yang dikirim.</p>
     <ul class="mini-steps" data-rv style="--d:.18s">
@@ -249,28 +256,56 @@ header{position:sticky;top:0;z-index:60;background:#fff;border-bottom:1px solid 
     <form id="regForm" class="reg-card" novalidate data-rv enctype="multipart/form-data" method="POST" action="{{ route('pendaftaran-tenant.store') }}">
       @csrf
 
+      <!-- 0. PILIH PAKET -->
+      <div class="form-sec">
+        <span class="sec-num">0</span>
+        <div>
+          <h2>Pilih Paket</h2>
+          <p>Pilih paket yang sesuai dengan kebutuhan usaha Anda.</p>
+        </div>
+      </div>
+      <div class="f-grid">
+        <div class="field span2 @error('Paket') invalid @enderror">
+          <label for="Paket" class="req">Paket Berlangganan</label>
+          <select id="Paket" name="Paket" data-validate="required">
+            <option value="">-- Pilih Paket --</option>
+            @foreach($Paket as $paket)
+              @php
+                $periode = strtolower($paket->Periode ?? $paket->periode ?? 'bulan');
+                $satuan = (str_contains($periode, 'tahun') || (isset($paket->DurasiBulan) && $paket->DurasiBulan == 12)) ? 'tahun' : 'bulan';
+              @endphp
+              <option value="{{ $paket->id }}" {{ old('Paket') == $paket->id ? 'selected' : '' }}>
+                {{ $paket->NamaPaket ?? 'Paket ' . $loop->iteration }}
+                — Rp{{ number_format($paket->Harga ?? 0, 0, ',', '.') }} / {{ $satuan }}
+              </option>
+            @endforeach
+          </select>
+          <span class="err">@error('Paket'){{ $message }}@else Silakan pilih salah satu paket.@enderror</span>
+        </div>
+      </div>
+
       <!-- 1. DATA USAHA -->
       <div class="form-sec">
         <span class="sec-num">1</span>
         <div><h2>Data Usaha</h2><p>Informasi utama usaha ekspedisi Anda.</p></div>
       </div>
       <div class="f-grid">
-        <div class="field">
-          <label for="Nama" class="req">Nama</label>
+        <div class="field @error('Nama') invalid @enderror">
+          <label for="Nama" class="req">Nama Usaha</label>
           <input id="Nama" name="Nama" type="text" placeholder="cth: Ekspedisi Jaya Makmur" data-validate="required" autocomplete="organization" value="{{ old('Nama') }}">
           <span class="err">@error('Nama'){{ $message }}@else Nama wajib diisi.@enderror</span>
         </div>
-        <div class="field">
+        <div class="field @error('Email') invalid @enderror">
           <label for="Email" class="req">Email</label>
           <input id="Email" name="Email" type="email" placeholder="nama@usaha.co.id" data-validate="email" autocomplete="email" value="{{ old('Email') }}">
           <span class="err">@error('Email'){{ $message }}@else Masukkan alamat email yang valid.@enderror</span>
         </div>
-        <div class="field">
+        <div class="field @error('Telepon') invalid @enderror">
           <label for="Telepon" class="req">Telepon</label>
           <input id="Telepon" name="Telepon" type="tel" placeholder="cth: 081234567890" data-validate="phone" autocomplete="tel" value="{{ old('Telepon') }}">
           <span class="err">@error('Telepon'){{ $message }}@else Nomor telepon tidak valid (min. 9 digit).@enderror</span>
         </div>
-        <div class="field span2">
+        <div class="field span2 @error('Alamat') invalid @enderror">
           <label for="Alamat" class="req">Alamat</label>
           <textarea id="Alamat" name="Alamat" rows="3" placeholder="Nama jalan, nomor, kecamatan, kota, kode pos" data-validate="required" autocomplete="street-address">{{ old('Alamat') }}</textarea>
           <span class="err">@error('Alamat'){{ $message }}@else Alamat wajib diisi.@enderror</span>
@@ -283,17 +318,17 @@ header{position:sticky;top:0;z-index:60;background:#fff;border-bottom:1px solid 
         <div><h2>Data PIC / Kontak Person Utama</h2><p>Orang yang kami hubungi untuk aktivasi &amp; onboarding.</p></div>
       </div>
       <div class="f-grid">
-        <div class="field">
+        <div class="field @error('NamaPIC') invalid @enderror">
           <label for="NamaPIC" class="req">Nama PIC</label>
           <input id="NamaPIC" name="NamaPIC" type="text" placeholder="cth: Budi Santoso" data-validate="required" autocomplete="name" value="{{ old('NamaPIC') }}">
           <span class="err">@error('NamaPIC'){{ $message }}@else Nama PIC wajib diisi.@enderror</span>
         </div>
-        <div class="field">
+        <div class="field @error('EmailPIC') invalid @enderror">
           <label for="EmailPIC" class="req">Email PIC</label>
           <input id="EmailPIC" name="EmailPIC" type="email" placeholder="budi@usaha.co.id" data-validate="email" autocomplete="email" value="{{ old('EmailPIC') }}">
           <span class="err">@error('EmailPIC'){{ $message }}@else Masukkan alamat email yang valid.@enderror</span>
         </div>
-        <div class="field">
+        <div class="field @error('TeleponPIC') invalid @enderror">
           <label for="TeleponPIC" class="req">Telepon PIC</label>
           <input id="TeleponPIC" name="TeleponPIC" type="tel" placeholder="cth: 081234567890" data-validate="phone" autocomplete="tel" value="{{ old('TeleponPIC') }}">
           <span class="err">@error('TeleponPIC'){{ $message }}@else Nomor telepon tidak valid (min. 9 digit).@enderror</span>
@@ -304,7 +339,7 @@ header{position:sticky;top:0;z-index:60;background:#fff;border-bottom:1px solid 
             <label for="sameAddr">Alamat PIC sama dengan alamat usaha</label>
           </div>
         </div>
-        <div class="field span2">
+        <div class="field span2 @error('AlamatPIC') invalid @enderror">
           <label for="AlamatPIC" class="req">Alamat PIC</label>
           <textarea id="AlamatPIC" name="AlamatPIC" rows="3" placeholder="Alamat lengkap kontak person" data-validate="required">{{ old('AlamatPIC') }}</textarea>
           <span class="err">@error('AlamatPIC'){{ $message }}@else Alamat PIC wajib diisi.@enderror</span>
@@ -322,28 +357,23 @@ header{position:sticky;top:0;z-index:60;background:#fff;border-bottom:1px solid 
         <p>Transfer ke <b>BCA <span class="mono">123-456-7890</span></b> a.n. <b>Maurekap Teknologi</b> — atau scan QRIS pada invoice Anda, lalu upload buktinya di bawah.</p>
       </div>
 
-      <div class="field" id="fileField">
+      <div class="field @error('BuktiPembayaran') invalid @enderror" id="fileField">
         <label for="buktibayar" class="req" style="margin-bottom:.5em;display:block;">Upload Bukti Pembayaran</label>
-        <div class="drop" id="drop" role="button" tabindex="0" aria-label="Upload bukti pembayaran" onclick="document.getElementById('buktibayar').click();" onkeydown="if(event.key==='Enter'){document.getElementById('buktibayar').click();}">
+        <div class="drop" id="drop" role="button" tabindex="0" aria-label="Upload bukti pembayaran">
           <div class="drop-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V5m0 0l-4 4m4-4l4 4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg></div>
           <b>Klik untuk pilih file <span>atau seret ke sini</span></b>
           <small>JPG, PNG, atau PDF · maks. 5 MB</small>
         </div>
-        <input id="buktibayar"
-               name="BuktiPembayaran"
-               type="file"
-               accept="image/jpeg,image/png,image/webp,application/pdf"
-               onchange="previewBuktiBayar(this)"
-               style="display:none">
+        <input id="buktibayar" name="BuktiPembayaran" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" style="display:none">
 
-        <div class="file-prev" id="filePrev" style="display: none;">
+        <div class="file-prev" id="filePrev">
           <img id="fThumb" alt="Pratinjau bukti bayar" hidden>
           <span class="pdf-ic" id="fPdf" hidden>PDF</span>
           <div class="f-meta"><b id="fName">—</b><span id="fSize">—</span></div>
           <svg class="ok-ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-          <button type="button" class="f-del" id="fDel" aria-label="Hapus file" onclick="hapusBuktiBayar()">✕</button>
+          <button type="button" class="f-del" id="fDel" aria-label="Hapus file">✕</button>
         </div>
-        <span class="err" id="buktiErr">@error('buktibayar'){{ $message }}@else Bukti pembayaran wajib diupload (JPG/PNG/PDF, maks. 5 MB).@enderror</span>
+        <span class="err" id="buktiErr">@error('BuktiPembayaran'){{ $message }}@else Bukti pembayaran wajib diupload (JPG/PNG/PDF, maks. 5 MB).@enderror</span>
       </div>
 
       <div class="terms" id="termsRow">
@@ -359,34 +389,66 @@ header{position:sticky;top:0;z-index:60;background:#fff;border-bottom:1px solid 
 
     <!-- ===== SIDEBAR ===== -->
     <aside class="reg-side">
-      <div class="side-card plan" data-rv style="--d:.08s">
-        <h3>Spesifikasi</h3>
-        <p class="sub">Paket paling populer untuk agen ekspedisi berkembang.</p>
-        <div class="price"><b>Rp 125.000</b><span>/ bulan</span></div>
-        <ul>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Transaksi &amp; seller tanpa batas</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Upload bukti Transfer &amp; QRIS</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Rekap harian &amp; laporan ekspor</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Multi-admin hingga 5 pengguna</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Support WhatsApp 7 hari</li>
-        </ul>
-        <hr class="divider">
-        <div class="total"><span>Total Tagihan</span><span class="mono">Rp 125.000</span></div>
-      </div>
-      <div class="side-card plan" data-rv style="--d:.08s">
-        <h3>Spesifikasi</h3>
-        <p class="sub">Paket tahunan hemat untuk agen ekspedisi berkembang.</p>
-        <div class="price"><b>Rp 1.250.000</b><span>/ tahun</span></div>
-        <ul>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Transaksi &amp; seller tanpa batas</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Upload bukti Transfer &amp; QRIS</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Rekap harian &amp; laporan ekspor</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Multi-admin hingga 5 pengguna</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Support WhatsApp 7 hari</li>
-        </ul>
-        <hr class="divider">
-        <div class="total"><span>Total Tagihan</span><span class="mono">Rp 1.250.000</span></div>
-      </div>
+      @forelse($Paket as $paket)
+        @php
+          $harga = $paket->Harga ?? 0;
+          // LOGIKA DUMMY HARGA CORET: Jika kolom HargaCoret tidak ada/null, buat dummy 1.5x dari harga
+          $hargaCoret = $paket->HargaCoret ?? ($harga > 0 ? $harga * 1.5 : 0);
+
+          $periode = strtolower($paket->Periode ?? $paket->periode ?? 'bulan');
+          $satuan = (str_contains($periode, 'tahun') || (isset($paket->DurasiBulan) && $paket->DurasiBulan == 12)) ? 'tahun' : 'bulan';
+
+          $fitur = $paket->Fitur ?? $paket->fitur ?? null;
+          if (is_string($fitur)) {
+            $fiturDecoded = json_decode($fitur, true);
+            $fiturList = (json_last_error() === JSON_ERROR_NONE && is_array($fiturDecoded)) ? $fiturDecoded : explode('|', $fitur);
+          } elseif (is_array($fitur)) {
+            $fiturList = $fitur;
+          } else {
+            $fiturList = ['Rekap transaksi & verifikasi', 'Multi-admin & multi-outlet', 'Laporan harian & bulanan'];
+          }
+        @endphp
+
+        <div class="side-card plan" data-rv style="--d:{{ $loop->index * 0.08 }}s">
+          <div class="plan-header">
+            <h3>{{ $paket->NamaPaket ?? 'Paket ' . $loop->iteration }}</h3>
+            @if($loop->first) <span class="badge badge-red">POPULER</span> @endif
+          </div>
+          <p class="sub">{{ $paket->Deskripsi ?? 'Solusi terbaik untuk agen ekspedisi yang ingin berkembang.' }}</p>
+
+          <div class="price-block">
+            @if($hargaCoret > $harga)
+              <span class="price-strike">Rp {{ number_format($hargaCoret, 0, ',', '.') }}</span>
+            @endif
+            <div class="price-main">
+              <b>Rp {{ number_format($harga, 0, ',', '.') }}</b>
+              <span>/ {{ $satuan }}</span>
+            </div>
+          </div>
+
+          @if(!empty($fiturList))
+            <ul>
+              @foreach($fiturList as $fiturItem)
+                <li>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                  {!! trim($fiturItem) !!}
+                </li>
+              @endforeach
+            </ul>
+          @endif
+
+          <hr class="divider">
+          <div class="total">
+            <span>Total Tagihan</span>
+            <span class="mono">Rp {{ number_format($harga, 0, ',', '.') }}</span>
+          </div>
+        </div>
+      @empty
+        <div class="side-card plan">
+          <p class="sub">Paket belum tersedia. Silakan hubungi tim support kami.</p>
+        </div>
+      @endforelse
+
       <div class="side-card after" data-rv style="--d:.16s">
         <h3>Setelah Mendaftar</h3>
         <p class="sub">Prosesnya cepat dan dibantu tim kami.</p>
@@ -418,181 +480,11 @@ header{position:sticky;top:0;z-index:60;background:#fff;border-bottom:1px solid 
         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Tim onboarding kami akan menghubungi WhatsApp PIC.</li>
       </ul>
       <div class="btn-row">
-        <a class="btn btn-blue" href="{{ route('landing-page') }}">Kembali ke Beranda</a>
+        <a class="btn btn-blue" href="{{ url('/') }}">Kembali ke Beranda</a>
         <a class="btn btn-outline" href="#">Cek Status Pendaftaran</a>
       </div>
     </div>
   </div>
-  <!-- SweetAlert2 CDN (or you can use your own assets if you wish) -->
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-  <script>
-    // Konfirmasi SweetAlert sebelum submit form
-    document.addEventListener('DOMContentLoaded', function() {
-      var regForm = document.getElementById('regForm');
-      if (regForm) {
-        regForm.addEventListener('submit', function(e){
-          e.preventDefault();
-          Swal.fire({
-            title: 'Konfirmasi Kirim Data?',
-            text: "Pastikan data sudah benar sebelum disubmit.",
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#aaa',
-            confirmButtonText: 'Ya, Kirim',
-            cancelButtonText: 'Batal'
-          }).then((result) => {
-            if (result.isConfirmed) {
-              regForm.submit();
-            }
-          });
-        }, false);
-      }
-    });
-
-    // Tampilkan panel sukses jika berhasil daftar & kode registrasi ada di flash session
-    document.addEventListener('DOMContentLoaded', function() {
-      @if(session('success'))
-        // Ambil data dari session
-        var kodeReg = @json(session('success.kode') ?? '');
-        // Tampilkan box sukses, sembunyikan form (asumsikan ada elemen formBox)
-        var successBox = document.getElementById('successBox');
-        var regCode = document.getElementById('regCode');
-        var formBox = document.getElementById('formBox');
-        if (successBox && regCode) {
-          successBox.hidden = false;
-          regCode.textContent = kodeReg || '—';
-        }
-        if (formBox) {
-          formBox.style.display = 'none';
-        }
-        // SweetAlert sukses!
-        Swal.fire({
-          icon: 'success',
-          title: 'Pendaftaran tersimpan!',
-          text: 'Terimakasih, data Anda berhasil terkirim. Simpan nomor registrasi Anda.',
-          timer: 3500,
-          showConfirmButton: false
-        });
-        // Scroll ke sukses panel
-        setTimeout(function(){
-          successBox.scrollIntoView({behavior: 'smooth'});
-        }, 300);
-      @endif
-    });
-  </script>
-
-  <script>
-    // Preview bukti bayar di UI (file field)
-    function previewBuktiBayar(input) {
-      var fileField = document.getElementById('fileField');
-      var filePrev = document.getElementById('filePrev');
-      var thumb = document.getElementById('fThumb');
-      var pdfIc = document.getElementById('fPdf');
-      var fName = document.getElementById('fName');
-      var fSize = document.getElementById('fSize');
-      var buktiErr = document.getElementById('buktiErr');
-      var file = input.files && input.files[0] ? input.files[0] : null;
-      if (!file) {
-        filePrev.style.display = 'none';
-        thumb.hidden = true;
-        pdfIc.hidden = true;
-        fName.textContent = '—';
-        fSize.textContent = '—';
-        buktiErr.textContent = 'Bukti pembayaran wajib diupload (JPG/PNG/PDF, maks. 5 MB).';
-        fileField.classList.remove('invalid');
-        return;
-      }
-      var OK_TYPES = [
-        'image/jpeg',
-        'image/png',
-        'image/webp',
-        'application/pdf'
-      ];
-      var MAX = 5 * 1024 * 1024;
-      if (OK_TYPES.indexOf(file.type) === -1 || file.size > MAX) {
-        filePrev.style.display = 'none';
-        buktiErr.textContent = 'Format atau ukuran file tidak sesuai (JPG/PNG/PDF · maks. 5 MB).';
-        fileField.classList.add('invalid');
-        Swal.fire({
-          icon: 'error',
-          title: 'File tidak valid!',
-          text: 'Format atau ukuran file tidak sesuai (JPG/PNG/PDF · maks. 5 MB).'
-        });
-        return;
-      }
-      fileField.classList.remove('invalid');
-      filePrev.style.display = '';
-      fName.textContent = file.name;
-      fSize.textContent = (file.size < 1024*1024 ? (file.size/1024).toFixed(0)+' KB' : (file.size/1024/1024).toFixed(2)+' MB') + ' · siap diverifikasi';
-      if (file.type === 'application/pdf') {
-        thumb.hidden = true;
-        pdfIc.hidden = false;
-      } else {
-        // Untuk image
-        var reader = new FileReader();
-        reader.onload = function (e) {
-          thumb.src = e.target.result;
-          thumb.hidden = false;
-          pdfIc.hidden = true;
-        };
-        reader.readAsDataURL(file);
-      }
-      buktiErr.textContent = '';
-    }
-
-    // Hapus file preview & file input
-    function hapusBuktiBayar() {
-      var fileInput = document.getElementById('buktibayar');
-      Swal.fire({
-        title: 'Hapus file?',
-        text: "File bukti pembayaran ini akan dihapus.",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Hapus',
-        cancelButtonText: 'Batal',
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#aaa'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          fileInput.value = '';
-          previewBuktiBayar(fileInput);
-        }
-      });
-    }
-
-    // Drag and Drop untuk area drop
-    (function(){
-      var drop = document.getElementById('drop');
-      var fileInput = document.getElementById('buktibayar');
-      if (!drop || !fileInput) return;
-
-      drop.addEventListener('dragover', function(e) {
-        e.preventDefault();
-        drop.classList.add('hover');
-      });
-      drop.addEventListener('dragleave', function(e) {
-        drop.classList.remove('hover');
-      });
-      drop.addEventListener('drop', function(e) {
-        e.preventDefault();
-        drop.classList.remove('hover');
-        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
-          fileInput.files = e.dataTransfer.files;
-          previewBuktiBayar(fileInput);
-        }
-      });
-    })();
-
-    // Init preview if value already exists (for old input on validation error)
-    window.addEventListener('DOMContentLoaded', function () {
-      var fileInput = document.getElementById('buktibayar');
-      if (fileInput && fileInput.files && fileInput.files.length) {
-        previewBuktiBayar(fileInput);
-      }
-    });
-  </script>
 </main>
 
 <!-- ============ FOOTER MINI ============ -->
@@ -603,66 +495,103 @@ header{position:sticky;top:0;z-index:60;background:#fff;border-bottom:1px solid 
   </div>
 </footer>
 
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
 (function(){
   var $ = function(s){ return document.querySelector(s); };
 
-  /* reveal on scroll */
+  /* 1. REVEAL ON SCROLL */
   var io = new IntersectionObserver(function(es){
     es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('on'); io.unobserve(e.target);} });
   },{threshold:.1});
   document.querySelectorAll('[data-rv]').forEach(function(el){ io.observe(el); });
 
-  /* ---- filter karakter telepon ---- */
-  ['telepon','teleponpic'].forEach(function(id){
+  /* 2. FLASH SUKSES DARI SESSION */
+  @if(session('success'))
+  (function(){
+    var successBox = $('#successBox'), regCode = $('#regCode'),
+        form = $('#regForm'), side = document.querySelector('.reg-side');
+    if(successBox && regCode){
+      successBox.hidden = false;
+      regCode.textContent = @json(session('success.kode') ?? '') || '—';
+    }
+    if(form) form.style.display = 'none';
+    if(side) side.style.display = 'none';
+
+    Swal.fire({ icon:'success', title:'Pendaftaran tersimpan!',
+      text:'Terima kasih, data Anda berhasil terkirim. Simpan nomor registrasi Anda.',
+      timer:3500, showConfirmButton:false });
+    setTimeout(function(){ successBox && successBox.scrollIntoView({behavior:'smooth'}); }, 300);
+  })();
+  @endif
+
+  /* 3. FILTER TELEPON */
+  ['Telepon','TeleponPIC'].forEach(function(id){
     var el = document.getElementById(id);
-    el.addEventListener('input', function(){ el.value = el.value.replace(/[^\d+\-\s]/g,''); });
+    if(el) el.addEventListener('input', function(){ el.value = el.value.replace(/[^\d+\-\s]/g,''); });
   });
 
-  /* ---- alamat PIC sama dengan usaha ---- */
-  var same = $('#sameAddr'), alamat = $('#alamat'), alamatPic = $('#alamatpic');
-  same.addEventListener('change', function(){
-    if(same.checked){ alamatPic.value = alamat.value; alamatPic.disabled = true; }
-    else{ alamatPic.disabled = false; }
-  });
-  alamat.addEventListener('input', function(){ if(same.checked) alamatPic.value = alamat.value; });
+  /* 4. ALAMAT PIC = ALAMAT USAHA */
+  var same = $('#sameAddr'), alamat = $('#Alamat'), alamatPic = $('#AlamatPIC');
+  if(same && alamat && alamatPic){
+    same.addEventListener('change', function(){
+      if(same.checked){ alamatPic.value = alamat.value; alamatPic.disabled = true; }
+      else{ alamatPic.disabled = false; }
+    });
+    alamat.addEventListener('input', function(){ if(same.checked) alamatPic.value = alamat.value; });
+  }
 
-  /* ---- upload bukti bayar ---- */
+  /* 5. PREVIEW BUKTI BAYAR */
   var drop = $('#drop'), fileInput = $('#buktibayar'), prev = $('#filePrev'),
       thumb = $('#fThumb'), pdfIc = $('#fPdf'), fName = $('#fName'), fSize = $('#fSize'),
-      fileField = $('#fileField'), storedFile = null;
+      fileField = $('#fileField'), buktiErr = $('#buktiErr');
   var OK_TYPES = ['image/jpeg','image/png','image/webp','application/pdf'];
   var MAX = 5 * 1024 * 1024;
 
   function fmtSize(b){ return b < 1024*1024 ? (b/1024).toFixed(0)+' KB' : (b/1024/1024).toFixed(2)+' MB'; }
-  function setFile(f){
-    if(!f) return;
-    if(OK_TYPES.indexOf(f.type) === -1 || f.size > MAX){
-      fileField.classList.add('invalid'); return;
+  function previewBuktiBayar(){
+    var file = fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
+    if(!file){ prev.classList.remove('show'); fileField.classList.remove('invalid'); return; }
+    if(OK_TYPES.indexOf(file.type) === -1 || file.size > MAX){
+      prev.classList.remove('show');
+      buktiErr.textContent = 'Format atau ukuran file tidak sesuai (JPG/PNG/PDF · maks. 5 MB).';
+      fileField.classList.add('invalid');
+      return;
     }
-    storedFile = f;
     fileField.classList.remove('invalid');
-    fName.textContent = f.name;
-    fSize.textContent = fmtSize(f.size) + ' · siap diverifikasi';
-    var isPdf = f.type === 'application/pdf';
+    fName.textContent = file.name;
+    fSize.textContent = fmtSize(file.size) + ' · siap diverifikasi';
+    var isPdf = file.type === 'application/pdf';
     pdfIc.hidden = !isPdf; thumb.hidden = isPdf;
-    if(!isPdf){ thumb.src = URL.createObjectURL(f); }
+    if(!isPdf){
+      var reader = new FileReader();
+      reader.onload = function(e){ thumb.src = e.target.result; };
+      reader.readAsDataURL(file);
+    }
     prev.classList.add('show');
-    drop.style.display = 'none';
   }
-  function clearFile(){
-    storedFile = null; fileInput.value = '';
-    prev.classList.remove('show'); drop.style.display = '';
-  }
+
   drop.addEventListener('click', function(){ fileInput.click(); });
   drop.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); fileInput.click(); } });
   ['dragover','dragenter'].forEach(function(ev){ drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.add('drag'); }); });
   ['dragleave','drop'].forEach(function(ev){ drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.remove('drag'); }); });
-  drop.addEventListener('drop', function(e){ setFile(e.dataTransfer.files[0]); });
-  fileInput.addEventListener('change', function(){ setFile(fileInput.files[0]); });
-  $('#fDel').addEventListener('click', clearFile);
+  drop.addEventListener('drop', function(e){
+    if(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length){
+      fileInput.files = e.dataTransfer.files; previewBuktiBayar();
+    }
+  });
+  fileInput.addEventListener('change', previewBuktiBayar);
 
-  /* ---- validasi & submit ---- */
+  $('#fDel').addEventListener('click', function(){
+    Swal.fire({ title:'Hapus file?', text:'File bukti pembayaran akan dihapus.', icon:'warning',
+      showCancelButton:true, confirmButtonText:'Hapus', cancelButtonText:'Batal',
+      confirmButtonColor:'#d33', cancelButtonColor:'#aaa'
+    }).then(function(res){ if(res.isConfirmed){ fileInput.value=''; previewBuktiBayar(); } });
+  });
+
+  /* 6. VALIDASI & SWEETALERT KONFIRMASI (DIGABUNG) */
   var form = $('#regForm');
   function checkField(input){
     var rule = input.dataset.validate, v = input.value.trim(), ok = true;
@@ -672,36 +601,52 @@ header{position:sticky;top:0;z-index:60;background:#fff;border-bottom:1px solid 
     input.closest('.field').classList.toggle('invalid', !ok);
     return ok;
   }
+
   form.querySelectorAll('[data-validate]').forEach(function(inp){
     inp.addEventListener('input', function(){ inp.closest('.field').classList.remove('invalid'); });
-    inp.addEventListener('blur', function(){ if(inp.value.trim() !== '') checkField(inp); });
   });
 
   form.addEventListener('submit', function(e){
-    e.preventDefault();
+    e.preventDefault(); // Tahan dulu untuk validasi
+
     var valid = true;
     form.querySelectorAll('[data-validate]').forEach(function(inp){ if(!checkField(inp)) valid = false; });
-    if(!storedFile){ fileField.classList.add('invalid'); valid = false; }
+
+    var file = fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
+    if(!(file && OK_TYPES.indexOf(file.type) !== -1 && file.size <= MAX)){
+      fileField.classList.add('invalid'); valid = false;
+    }
+
     var termsOk = $('#terms').checked;
     $('#termsRow').classList.toggle('invalid', !termsOk);
     if(!termsOk) valid = false;
+
     if(!valid){
       var firstBad = document.querySelector('.field.invalid, .terms.invalid');
       if(firstBad) firstBad.scrollIntoView({behavior:'smooth', block:'center'});
+      Swal.fire({ icon:'error', title:'Periksa kembali', text:'Masih ada isian yang belum lengkap atau tidak valid.' });
       return;
     }
-    /* sukses — ganti form dengan panel konfirmasi */
-    var code = 'MRK-2026-' + String(Math.floor(1000 + Math.random()*9000));
-    $('#regCode').textContent = code;
-    form.style.display = 'none';
-    document.querySelector('.reg-side').style.display = 'none';
-    var box = $('#successBox');
-    box.hidden = false;
-    box.querySelector('.success').setAttribute('data-rv','');
-    requestAnimationFrame(function(){ box.querySelector('.success').classList.add('on'); });
-    window.scrollTo({top:0, behavior:'smooth'});
-    /* Di sini hubungkan ke backend Anda, cth:
-       new FormData(form) + storedFile → fetch('/api/register', {...}) */
+
+    /* Jika semua valid, tampilkan SweetAlert Konfirmasi */
+    var paketSelect = $('#Paket');
+    var paketNama = paketSelect.options[paketSelect.selectedIndex].text;
+
+    Swal.fire({
+      title: 'Konfirmasi Kirim Data?',
+      html: 'Anda memilih: <b>' + paketNama + '</b><br>Pastikan data sudah benar sebelum dikirim.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#2563EB',
+      cancelButtonColor: '#aaa',
+      confirmButtonText: 'Ya, Kirim',
+      cancelButtonText: 'Periksa Kembali'
+    }).then(function(result){
+      if(result.isConfirmed){
+        // Submit form secara native (melewati event listener ini)
+        form.submit();
+      }
+    });
   });
 })();
 </script>
