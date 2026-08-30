@@ -19,6 +19,11 @@ class PendaftaranTenant extends Model
      */
     protected $guarded = ['id'];
 
+    public function getPaket()
+    {
+        return $this->belongsTo(MasterPaketHarga::class, 'Paket');
+    }
+
     /**
      * Generate a new registration code with format REG00000001
      *

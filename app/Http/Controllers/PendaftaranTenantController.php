@@ -85,21 +85,22 @@ class PendaftaranTenantController extends Controller
     {
         // dd($request->all());
         $validated = $request->validate([
-            'Nama'           => 'required|string|max:255',
-            'Email'          => 'required|email|max:255',
-            'Telepon'        => 'required|string|min:9|max:20',
-            'Alamat'         => 'required|string|max:500',
-            'NamaPIC'        => 'required|string|max:255',
-            'EmailPIC'       => 'required|email|max:255',
-            'AlamatPIC'      => 'nullable|string|max:500',
-            'BuktiPembayaran'=> 'required|file|mimes:jpg,jpeg,png,pdf,webp|max:5120', // 5MB
+            'Nama' => 'required|string|max:255',
+            'Paket' => 'required|string|max:255',
+            'Email' => 'required|email|max:255',
+            'Telepon' => 'required|string|min:9|max:20',
+            'Alamat' => 'required|string|max:500',
+            'NamaPIC' => 'required|string|max:255',
+            'EmailPIC' => 'required|email|max:255',
+            'AlamatPIC' => 'nullable|string|max:500',
+            'BuktiPembayaran' => 'required|file|mimes:jpg,jpeg,png,pdf,webp|max:5120',  // 5MB
         ], [
             'required' => ':attribute wajib diisi.',
-            'email'    => ':attribute harus berupa email yang valid.',
-            'min'      => ':attribute minimal :min karakter.',
-            'max'      => ':attribute maksimal :max karakter.',
-            'file'     => ':attribute harus berupa file.',
-            'mimes'    => ':attribute harus JPG/PNG/PDF/WEBP.',
+            'email' => ':attribute harus berupa email yang valid.',
+            'min' => ':attribute minimal :min karakter.',
+            'max' => ':attribute maksimal :max karakter.',
+            'file' => ':attribute harus berupa file.',
+            'mimes' => ':attribute harus JPG/PNG/PDF/WEBP.',
         ]);
 
         // Handle file upload
@@ -111,14 +112,15 @@ class PendaftaranTenantController extends Controller
         }
         // Simpan data pendaftaran
         $pendaftaran = PendaftaranTenant::create([
-            'Nama'             => $validated['Nama'],
-            'Email'            => $validated['Email'],
-            'Alamat'           => $validated['Alamat'],
-            'NamaPIC'          => $validated['NamaPIC'],
-            'EmailPIC'         => $validated['EmailPIC'],
-            'AlamatPIC'        => $validated['AlamatPIC'] ?? null,
-            'BuktiPembayaran'  => $buktiPembayaranPath,
-            'Status'           => 'N/A',
+            'Nama' => $validated['Nama'],
+            'Paket' => $validated['Paket'],
+            'Email' => $validated['Email'],
+            'Alamat' => $validated['Alamat'],
+            'NamaPIC' => $validated['NamaPIC'],
+            'EmailPIC' => $validated['EmailPIC'],
+            'AlamatPIC' => $validated['AlamatPIC'] ?? null,
+            'BuktiPembayaran' => $buktiPembayaranPath,
+            'Status' => 'N/A',
         ]);
 
         return redirect()
@@ -127,7 +129,6 @@ class PendaftaranTenantController extends Controller
                 'message' => 'Pendaftaran berhasil dikirim! Proses pendaftaran akan diproses dalam 1 x 24 jam.',
                 'kode' => $pendaftaran->Kode,
             ]);
-
     }
 
     /**
@@ -145,7 +146,7 @@ class PendaftaranTenantController extends Controller
             'Status' => 'required|in:Y,N',
             'CatatanVerifikasi' => 'nullable|string|max:1000',
         ]);
-
+        // Mengambil data paket terkait dengan pendaftaran tenant
         DB::beginTransaction();
         try {
             // 1. Update Status Pendaftaran
@@ -174,7 +175,7 @@ class PendaftaranTenantController extends Controller
                     'TanggalJoin' => $TanggalJoin,
                     'StatusSubscription' => 'Aktif',
                     'TanggalMulaiSubscription' => $TanggalJoin,
-                    'TanggalAkhirSubscription' => $TanggalJoin->copy()->addDays(30),
+                    'TanggalAkhirSubscription' => $TanggalJoin->copy()->addMonth($PendaftaranTenant->getPaket->DurasiBulan),
                     'UserCreate' => Auth::user()->name ?? 'System',
                 ]);
 
@@ -191,7 +192,6 @@ class PendaftaranTenantController extends Controller
                     'user_create' => Auth::user()->name ?? 'System',
                 ]);
 
-
                 $PeriodeBulan = now()->format('Y-m');
                 $TanggalJatuhTempo = now()->addDays(7);
                 $buktiPembayaranBaru = null;
@@ -202,20 +202,20 @@ class PendaftaranTenantController extends Controller
                     $buktiPembayaranBaru = $targetPath;
                 }
                 TagihanPembayaran::create([
-                    'TenantId'            => $NewTenant->Kode,
-                    'PeriodeBulan'        => $PeriodeBulan,
-                    'TanggalJatuhTempo'   => $TanggalJatuhTempo,
-                    'JumlahTagihan'       => 149000,
-                    'StatusPembayaran'    => 'Lunas',
-                    'TanggalPembayaran'   => $TanggalJoin,
-                    'BerlakuHingga'   => $TanggalJoin->copy()->addDays(30),
-                    'BuktiPembayaran'     => $buktiPembayaranBaru,
-                    'Catatan'             => null,
-                    'Status'              => 'N/A',
-                    'CatatanVerifikasi'   => null,
-                    'VerifPada'           => null,
-                    'VerifOleh'           => null,
-                    'UserCreate'          => Auth::user()->name ?? 'System',
+                    'TenantId' => $NewTenant->Kode,
+                    'PeriodeBulan' => $PeriodeBulan,
+                    'TanggalJatuhTempo' => $TanggalJatuhTempo,
+                    'JumlahTagihan' => 149000,
+                    'StatusPembayaran' => 'Lunas',
+                    'TanggalPembayaran' => $TanggalJoin,
+                    'BerlakuHingga' => $TanggalJoin->copy()->addMonth($PendaftaranTenant->getPaket->DurasiBulan),
+                    'BuktiPembayaran' => $buktiPembayaranBaru,
+                    'Catatan' => null,
+                    'Status' => 'N/A',
+                    'CatatanVerifikasi' => null,
+                    'VerifPada' => null,
+                    'VerifOleh' => null,
+                    'UserCreate' => Auth::user()->name ?? 'System',
                 ]);
             }
 
@@ -238,13 +238,13 @@ class PendaftaranTenantController extends Controller
                 : 'Pendaftaran tenant ditolak.';
 
             return redirect()->route('pendaftaran-tenant.index')->with('success', $Pesan);
-
         } catch (\Exception $Exception) {
             dd($Exception);
             DB::rollBack();
             return redirect()->back()->with('error', 'Gagal memproses verifikasi: ' . $Exception->getMessage());
         }
     }
+
     /**
      * Show the form for editing the specified resource.
      */

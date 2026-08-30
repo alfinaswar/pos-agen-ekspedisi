@@ -9,11 +9,11 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Maatwebsite\Excel\Facades\Excel;
 use Intervention\Image\Facades\Image;
+use Maatwebsite\Excel\Facades\Excel;
+use Yajra\DataTables\Facades\DataTables;
 
 class AbsensiController extends Controller
 {
@@ -60,7 +60,6 @@ class AbsensiController extends Controller
                 if ($request->filled('status_verif'))
                     $query->where('StatusVerif', $request->status_verif);
             }
-
 
             return DataTables::of($query)
                 ->addIndexColumn()
@@ -149,8 +148,7 @@ class AbsensiController extends Controller
                     if (
                         !empty($row->Catatan) &&
                         (
-                            (auth()->check() && in_array(auth()->user()->role, ['Admin', 'Leader']))
-                            ||
+                            (auth()->check() && in_array(auth()->user()->role, ['Admin', 'Leader'])) ||
                             (auth()->check() && $row->getUser && $row->getUser->id == auth()->id())
                         )
                     ) {
@@ -160,7 +158,6 @@ class AbsensiController extends Controller
                                     <i class="ti ti-message" style="font-size: 0.9rem;"></i>
                                   </button>';
                     }
-
 
                     return $statusText;
                 })
@@ -172,15 +169,14 @@ class AbsensiController extends Controller
                     return '-';
                 })
                 ->rawColumns(['action', 'StatusInfo', 'Divisi', 'StatusVerif', 'Tanggal'])
-
                 ->make(true);
-
         }
 
         $users = User::get();
         $divisis = Divisi::orderBy('Nama', 'asc')->get();
         return view('absensi.index', compact('users', 'divisis'));
     }
+
     public function bulkApprove(Request $request)
     {
         // Hanya Admin dan Leader yang boleh
@@ -217,17 +213,20 @@ class AbsensiController extends Controller
             'message' => "Berhasil memverifikasi {$updatedCount} data absensi."
         ]);
     }
+
     public function create()
     {
         $user = User::get();
         $divisi = Divisi::get();
-        return view('absensi.create',compact('user','divisi'));
+        return view('absensi.create', compact('user', 'divisi'));
     }
+
     public function show(Absensi $absensi)
     {
         $absensi->load('getUser', 'getDivisi');
         return view('absensi.show', compact('absensi'));
     }
+
     public function approve(Request $request, Absensi $absensi)
     {
         // Hanya Admin dan Leader yang boleh melakukan ini
@@ -247,9 +246,11 @@ class AbsensiController extends Controller
             'DisetujuiPada' => now(),
         ]);
 
-        return redirect()->route('absensi.show', $absensi->id)
+        return redirect()
+            ->route('absensi.show', $absensi->id)
             ->with('success', 'Status persetujuan absensi berhasil diperbarui.');
     }
+
     public function Store(Request $Request)
     {
         // 1. Validasi Input (Disesuaikan dengan form baru)
@@ -264,8 +265,8 @@ class AbsensiController extends Controller
             'MulaiLembur' => 'required_if:Lembur,Y|nullable|date_format:H:i',
             'SelesaiLembur' => 'required_if:Lembur,Y|nullable|date_format:H:i',
             'AlasanLembur' => 'required_if:Lembur,Y|nullable|string|max:500',
-            'FotoAbsenMasuk' => 'required|image|mimes:jpeg,png,jpg,webp|max:5120', // Maks 5MB
-            'FotoAbsenKeluar' => 'required|image|mimes:jpeg,png,jpg,webp|max:5120', // Maks 5MB
+            'FotoAbsenMasuk' => 'required|image|mimes:jpeg,png,jpg,webp|max:5120',  // Maks 5MB
+            'FotoAbsenKeluar' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',  // Maks 5MB
         ]);
 
         // 2. Cek Duplikasi: User + Tanggal yang sama
@@ -274,7 +275,8 @@ class AbsensiController extends Controller
             ->first();
 
         if ($Existing) {
-            return redirect()->back()
+            return redirect()
+                ->back()
                 ->withInput()
                 ->withErrors(['Tanggal' => 'Anda sudah mengisi absensi untuk tanggal ini.']);
         }
@@ -317,6 +319,7 @@ class AbsensiController extends Controller
 
         return redirect()->route('absensi.index')->with('success', 'Data absensi berhasil ditambahkan.');
     }
+
     public function export(Request $request)
     {
         $query = Absensi::select([
@@ -369,11 +372,12 @@ class AbsensiController extends Controller
             $filename
         );
     }
+
     public function edit(Absensi $absensi)
     {
         $user = User::get();
         $divisi = Divisi::get();
-        return view('absensi.edit', compact('absensi','user','divisi'));
+        return view('absensi.edit', compact('absensi', 'user', 'divisi'));
     }
 
     public function Update(Request $Request, Absensi $Absensi)
@@ -391,8 +395,8 @@ class AbsensiController extends Controller
             'MulaiLembur' => 'required_if:Lembur,Y|nullable|date_format:H:i',
             'SelesaiLembur' => 'required_if:Lembur,Y|nullable|date_format:H:i',
             'AlasanLembur' => 'required_if:Lembur,Y|nullable|string|max:500',
-            'FotoAbsenMasuk' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120', // Maks 5MB
-            'FotoAbsenKeluar' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120', // Maks 5MB
+            'FotoAbsenMasuk' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',  // Maks 5MB
+            'FotoAbsenKeluar' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',  // Maks 5MB
         ]);
         // 2. Siapkan Data Dasar (Kecualikan file agar tidak error saat mass assignment)
         $Data = $Request->only([
