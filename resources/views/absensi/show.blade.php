@@ -15,7 +15,9 @@
         transition: transform 0.3s ease, filter 0.3s ease;
         width: 100%;
         max-height: 350px;
+        min-height: 250px; /* ✅ DITAMBAHKAN: Mencegah layout bergeser saat lazy loading */
         object-fit: cover;
+        background-color: #f8f9fa; /* ✅ DITAMBAHKAN: Placeholder warna abu saat gambar belum muncul */
     }
     .foto-absen-wrapper:hover img {
         transform: scale(1.03);
@@ -82,7 +84,6 @@
                             <i class="ti ti-clock-hour-9 me-2"></i>Data Absensi
                         </h5>
                         @php
-                            // ✅ DIPERBAIKI: Menyesuaikan dengan status absensi (H, I, S, TK)
                             $StatusBadge = match($absensi->Status ?? 'N/A') {
                                 'H' => 'bg-success',
                                 'I' => 'bg-info text-dark',
@@ -102,7 +103,6 @@
                             <i class="ti {{ $absensi->Status === 'H' ? 'ti-check' : 'ti-alert-circle' }} me-1"></i>
                             {{ $StatusText }}
                         </span>
-
                     </div>
 
                     <div class="card-body p-4">
@@ -179,7 +179,7 @@
                                 </div>
                             </div>
 
-                            <!-- ✅ FULL WIDTH: Bukti Foto Absensi (Dipisah agar lebih profesional) -->
+                            <!-- FULL WIDTH: Bukti Foto Absensi (Dipisah agar lebih profesional) -->
                             <div class="col-12 mt-4 pt-3 border-top">
                                 <h6 class="text-uppercase text-muted fw-semibold mb-3" style="font-size: 0.75rem; letter-spacing: 1px;">
                                     <i class="ti ti-camera me-1"></i> Bukti Foto Absensi (GPS Map Camera)
@@ -194,7 +194,11 @@
                                             <div class="card-body p-2 text-center bg-dark bg-opacity-10">
                                                 @if(!empty($absensi->FotoAbsenMasuk))
                                                     <a href="{{ asset('storage/' . $absensi->FotoAbsenMasuk) }}" target="_blank" class="foto-absen-wrapper d-block">
-                                                        <img src="{{ asset('storage/' . $absensi->FotoAbsenMasuk) }}" alt="Foto Absen Masuk">
+                                                        <!-- ✅ DITAMBAHKAN: loading="lazy" dan decoding="async" -->
+                                                        <img src="{{ asset('storage/' . $absensi->FotoAbsenMasuk) }}"
+                                                             alt="Foto Absen Masuk"
+                                                             loading="lazy"
+                                                             decoding="async">
                                                         <div class="foto-absen-overlay">
                                                             <i class="ti ti-zoom-in"></i> Klik untuk memperbesar
                                                         </div>
@@ -207,7 +211,7 @@
                                                 @endif
                                             </div>
                                         </div>
-                    </div>
+                                    </div>
 
                                     <!-- Foto Pulang -->
                                     <div class="col-md-6">
@@ -218,7 +222,11 @@
                                             <div class="card-body p-2 text-center bg-dark bg-opacity-10">
                                                 @if(!empty($absensi->FotoAbsenKeluar))
                                                     <a href="{{ asset('storage/' . $absensi->FotoAbsenKeluar) }}" target="_blank" class="foto-absen-wrapper d-block">
-                                                        <img src="{{ asset('storage/' . $absensi->FotoAbsenKeluar) }}" alt="Foto Absen Pulang">
+                                                        <!-- ✅ DITAMBAHKAN: loading="lazy" dan decoding="async" -->
+                                                        <img src="{{ asset('storage/' . $absensi->FotoAbsenKeluar) }}"
+                                                             alt="Foto Absen Pulang"
+                                                             loading="lazy"
+                                                             decoding="async">
                                                         <div class="foto-absen-overlay">
                                                             <i class="ti ti-zoom-in"></i> Klik untuk memperbesar
                                                         </div>
@@ -234,9 +242,9 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- ✅ AKHIR FULL WIDTH: Bukti Foto -->
+                            <!-- AKHIR FULL WIDTH: Bukti Foto -->
 
-                            <!-- ✅ BAGIAN AKSI PERSETUJUAN LEADER (Hanya untuk Admin & Leader) -->
+                            <!-- BAGIAN AKSI PERSETUJUAN LEADER (Hanya untuk Admin & Leader) -->
                             @if(in_array(auth()->user()->role, ['Admin', 'Leader']))
                             <div class="col-12 mt-4">
                                 <div class="card border-0 shadow-sm bg-warning bg-opacity-10 border border-warning border-opacity-50">
@@ -287,7 +295,7 @@
                                 </div>
                             </div>
                             @endif
-                            <!-- ✅ AKHIR BAGIAN AKSI PERSETUJUAN LEADER -->
+                            <!-- AKHIR BAGIAN AKSI PERSETUJUAN LEADER -->
 
                         </div>
                     </div>
@@ -298,11 +306,6 @@
                             <a href="{{ route('absensi.index') }}" class="btn btn-light text-muted px-4 d-flex align-items-center border fw-semibold">
                                 <i class="ti ti-arrow-left me-2"></i>Kembali
                             </a>
-                            {{-- @if(in_array(auth()->user()->role, ['Admin', 'Leader', 'Kasir']) && ($absensi->Status ?? 'N/A') !== 'Y')
-                            <a href="{{ route('absensi.edit', $absensi->id) }}" class="btn btn-warning text-white px-4 d-flex align-items-center fw-semibold">
-                                <i class="ti ti-edit me-2"></i>Edit Data
-                            </a>
-                            @endif --}}
                         </div>
                     </div>
                 </div>
