@@ -466,13 +466,50 @@ footer ul a:hover{color:#fff;padding-left:4px}
               <div class="d-table">
                 <p class="lb">Transaksi Terbaru <em>Lihat →</em></p>
                 <table>
-                  <thead><tr><th>Waktu</th><th>Seller</th><th>Metode</th><th>Nominal</th><th>Status</th></tr></thead>
+                  <thead>
+                    <tr>
+                      <th>Waktu</th>
+                      <th>Seller</th>
+                      <th>Ekspedisi</th>
+                      <th>Metode</th>
+                      <th>Nominal</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
                   <tbody>
-                    <tr><td>07 Mei 10:48</td><td>Rina Konveksi</td><td>QRIS</td><td>Rp 85.000</td><td><span class="pill-st ok">Terverifikasi</span></td></tr>
-                    <tr><td>07 Mei 10:32</td><td>Rumah Kado</td><td>Transfer</td><td>Rp 120.000</td><td><span class="pill-st wait">Menunggu</span></td></tr>
-                    <tr><td>07 Mei 10:21</td><td>Dapur Mami</td><td>QRIS</td><td>Rp 63.000</td><td><span class="pill-st ok">Terverifikasi</span></td></tr>
+                    <tr>
+                      <td>07 Mei 10:48</td>
+                      <td>Rina Konveksi</td>
+                      <td>
+                        <span style="font-weight:bold; color:#bf0000;">JNE</span>
+                      </td>
+                      <td>QRIS</td>
+                      <td>Rp 85.000</td>
+                      <td><span class="pill-st ok">Terverifikasi</span></td>
+                    </tr>
+                    <tr>
+                      <td>07 Mei 10:32</td>
+                      <td>Rumah Kado</td>
+                      <td>
+                        <span style="font-weight:bold; color:#e20e19;">J&amp;T</span>
+                      </td>
+                      <td>Transfer</td>
+                      <td>Rp 120.000</td>
+                      <td><span class="pill-st wait">Menunggu</span></td>
+                    </tr>
+                    <tr>
+                      <td>07 Mei 10:21</td>
+                      <td>Dapur Mami</td>
+                      <td>
+                        <span style="font-weight:bold; color:#f36f21;">Lion Parcel</span>
+                      </td>
+                      <td>QRIS</td>
+                      <td>Rp 63.000</td>
+                      <td><span class="pill-st ok">Terverifikasi</span></td>
+                    </tr>
                   </tbody>
                 </table>
+
               </div>
             </div>
           </div>
