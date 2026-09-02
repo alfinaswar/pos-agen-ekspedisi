@@ -43,6 +43,7 @@
                                 </div>
 
                                 {{-- ✅ Filter Nama (BARU) --}}
+                                @if(in_array(auth()->user()->role, ['Admin', 'Superadmin']))
                                 <div class="col-md-3">
                                     <label for="FilterNama" class="form-label mb-1 fw-normal">Filter Nama</label>
                                     <select id="FilterNama" class="form-select form-select-sm">
@@ -52,6 +53,8 @@
                                         @endforeach
                                     </select>
                                 </div>
+                                @endif
+
 
                                 {{-- Filter Status --}}
                                 <div class="col-md-2">
