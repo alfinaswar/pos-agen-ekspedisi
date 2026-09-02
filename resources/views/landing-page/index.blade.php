@@ -363,10 +363,10 @@ footer ul a:hover{color:#fff;padding-left:4px}
     <label for="nav-toggle" class="burger" aria-label="Toggle menu"><span></span><span></span><span></span></label>
    <nav class="nav">
   <a href="#beranda">Beranda</a>
-  <a href="#keunggulan">Keunggulan</a>
   <a href="#masalah">Masalah</a>
-  <a href="#harga">Harga</a>
+  <a href="#manfaat">Solusi</a>
   <a href="#cara-kerja">Cara Kerja</a>
+  <a href="#harga">Harga</a>
   {{-- <a href="#testimoni">Testimoni</a> --}}
   <div class="nav-cta">
     <a href="#" class="btn btn-outline btn-sm">Login</a>
