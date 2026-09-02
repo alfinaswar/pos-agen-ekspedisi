@@ -33,39 +33,48 @@
                     </div>
 
                     <div class="card-body">
-                        {{-- LETAKKAN FILTER DISINI --}}
-                        <form id="filterForm" >
+                        {{-- FORM FILTER --}}
+                        <form id="FilterForm">
                             <div class="row g-2 align-items-end mb-3">
-                                <div class="col-md-4">
-                                    <label for="filterTanggal" class="form-label mb-1 fw-normal">Filter Tanggal</label>
-                                    <input type="text" id="filterTanggal" class="form-control form-control-sm" autocomplete="off" placeholder="Pilih rentang tanggal">
-                                </div>
+                                {{-- Filter Tanggal --}}
                                 <div class="col-md-3">
-                                    <label for="filterStatus" class="form-label mb-1 fw-normal">Filter Status</label>
-                                    <select id="filterStatus" class="form-select form-select-sm">
+                                    <label for="FilterTanggal" class="form-label mb-1 fw-normal">Filter Tanggal</label>
+                                    <input type="text" id="FilterTanggal" class="form-control form-control-sm" autocomplete="off" placeholder="Pilih rentang tanggal">
+                                </div>
+
+                                {{-- ✅ Filter Nama (BARU) --}}
+                                <div class="col-md-3">
+                                    <label for="FilterNama" class="form-label mb-1 fw-normal">Filter Nama</label>
+                                    <select id="FilterNama" class="form-select form-select-sm">
+                                        <option value="">Semua Nama</option>
+                                        @foreach($users as $User)
+                                            <option value="{{ $User->id }}">{{ $User->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                {{-- Filter Status --}}
+                                <div class="col-md-2">
+                                    <label for="FilterStatus" class="form-label mb-1 fw-normal">Filter Status</label>
+                                    <select id="FilterStatus" class="form-select form-select-sm">
                                         <option value="">Semua Status</option>
                                         <option value="Menunggu">Menunggu</option>
                                         <option value="Ditolak">Ditolak</option>
                                         <option value="Dibayar">Dibayar</option>
                                     </select>
                                 </div>
-                                <div class="col-md-5 d-flex align-items-end gap-2">
-                                    <button type="button" id="btnTampilkan" class="btn btn-primary btn-sm"><i class="ti ti-filter"></i> Tampilkan</button>
-                                    <button type="button" id="btnReset" class="btn btn-secondary btn-sm"><i class="ti ti-refresh"></i> Reset</button>
-                                    <button type="button" id="btnExport" class="btn btn-success btn-sm"><i class="ti ti-download"></i> Export</button>
+
+                                {{-- Action Buttons --}}
+                                <div class="col-md-4 d-flex align-items-end gap-2">
+                                    <button type="button" id="BtnTampilkan" class="btn btn-primary btn-sm"><i class="ti ti-filter"></i> Tampilkan</button>
+                                    <button type="button" id="BtnReset" class="btn btn-secondary btn-sm"><i class="ti ti-refresh"></i> Reset</button>
+                                    <button type="button" id="BtnExport" class="btn btn-success btn-sm"><i class="ti ti-download"></i> Export</button>
                                 </div>
                             </div>
                         </form>
 
-                        <!-- Show Entries Dropdown -->
-                        {{--
-                        Perbaikan:
-                        Hapus custom wrapper showEntriesWrapper.
-                        Biarkan DataTables mengatur penempatan dropdown "Show entries" secara default.
-                        --}}
-
                         <div class="table-responsive">
-                            <table class="table table-striped table-bordered dt-responsive nowrap align-middle mb-0" id="reimbursementTable" style="width: 100%;">
+                            <table class="table table-striped table-bordered dt-responsive nowrap align-middle mb-0" id="ReimbursementTable" style="width: 100%;">
                                 <thead class="table-light">
                                     <tr>
                                         <th style="width: 50px;" class="text-center">#</th>
@@ -82,10 +91,9 @@
                                 <tbody></tbody>
                             </table>
                         </div>
-                        <!-- Info and pagination moved out for custom placement -->
                         <div class="d-flex justify-content-between align-items-center mt-3">
-                            <div id="tableInfoWrapper"></div>
-                            <div id="tablePaginationWrapper"></div>
+                            <div id="TableInfoWrapper"></div>
+                            <div id="TablePaginationWrapper"></div>
                         </div>
                     </div>
                 </div>
@@ -103,7 +111,6 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
-    <!-- DataTables Buttons for Export -->
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
@@ -120,8 +127,8 @@
                 Toast.fire({ icon: 'success', title: '{{ session('success') }}' });
             @endif
 
-            // Init date range picker
-            $('#filterTanggal').daterangepicker({
+            // 1. Init Date Range Picker
+            $('#FilterTanggal').daterangepicker({
                 autoUpdateInput: false,
                 locale: {
                     cancelLabel: 'Reset',
@@ -130,109 +137,54 @@
                 }
             });
 
-            $('#filterTanggal').on('apply.daterangepicker', function(ev, picker) {
-                $(this).val(picker.startDate.format('YYYY-MM-DD') + ' s/d ' + picker.endDate.format('YYYY-MM-DD'));
+            $('#FilterTanggal').on('apply.daterangepicker', function(Event, Picker) {
+                $(this).val(Picker.startDate.format('YYYY-MM-DD') + ' s/d ' + Picker.endDate.format('YYYY-MM-DD'));
             });
 
-            $('#filterTanggal').on('cancel.daterangepicker', function(ev, picker) {
+            $('#FilterTanggal').on('cancel.daterangepicker', function(Event, Picker) {
                 $(this).val('');
             });
 
-            // Tombol Reset: reset semua filter
-            $('#btnReset').on('click', function() {
-                $('#filterTanggal').val('');
-                $('#filterStatus').val('');
-                // juga reset date picker ke keadaan default
-                $('#filterTanggal').data('daterangepicker').setStartDate(moment());
-                $('#filterTanggal').data('daterangepicker').setEndDate(moment());
-                $('#filterTanggal').data('daterangepicker').hide();
-                $('#reimbursementTable').DataTable().ajax.reload();
-            });
-
-            // Tombol Tampilkan: reload datatable berdasarkan filter
-            $('#btnTampilkan').on('click', function() {
-                $('#reimbursementTable').DataTable().ajax.reload();
-            });
-
-            // Tombol Export
-            $('#btnExport').on('click', function() {
-                $('#reimbursementTable').DataTable().button('.buttons-excel').trigger();
-            });
-
-            // Trigger reload juga ketika enter di dalam input date atau select status
-            $('#filterTanggal, #filterStatus').on('keyup', function(e) {
-                if (e.keyCode === 13) {
-                    $('#reimbursementTable').DataTable().ajax.reload();
-                }
-            });
-
-            $('body').on('click', '.btn-delete', function() {
-                const id = $(this).data('id');
-                const nama = $(this).data('nama');
-
-                Swal.fire({
-                    title: 'Hapus Pengajuan?',
-                    html: `Hapus data reimbursement atas nama:<br><strong class="text-primary">${nama}</strong>?`,
-                    icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Ya, Hapus!', cancelButtonText: 'Batal', reverseButtons: true
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        $.ajax({
-                            url: "{{ route('reimbursement.destroy', ':id') }}".replace(':id', id),
-                            type: 'DELETE',
-                            data: { _token: '{{ csrf_token() }}' },
-                            success: function(response) {
-                                if (response.status === 200 || response.success) {
-                                    Swal.fire({ icon: 'success', title: 'Berhasil!', text: response.message, timer: 2000, showConfirmButton: false });
-                                    $('#reimbursementTable').DataTable().ajax.reload(null, false);
-                                } else {
-                                    Swal.fire('Gagal!', response.message || 'Terjadi kesalahan', 'error');
-                                }
-                            },
-                            error: function(xhr) {
-                                Swal.fire('Gagal!', xhr.responseJSON?.message || 'Terjadi kesalahan.', 'error');
-                            }
-                        });
-                    }
-                });
-            });
-
-            let table = $('#reimbursementTable').DataTable({
+            // 2. DataTables Initialization
+            let Table = $('#ReimbursementTable').DataTable({
                 responsive: true,
                 serverSide: true,
                 processing: true,
                 destroy: true,
                 autoWidth: false,
-                // Perbaikan: dom default saja, biar show entries tidak hilang
                 dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
                      "rt" +
                      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
                 buttons: [
                     {
                         extend: "excelHtml5",
-                        className: "d-none buttons-excel", // Hide by default, triggered by Export button
+                        className: "d-none buttons-excel",
                         exportOptions: {
-                            columns: ':not(:last-child)' // Exclude aksi column
+                            columns: ':not(:last-child)'
                         }
                     }
                 ],
                 ajax: {
                     url: "{{ route('reimbursement.index') }}",
                     type: 'GET',
-                    data: function (d) {
-                        // Ambil filter tanggal
-                        let tanggal = $('#filterTanggal').val();
-                        let tanggal_awal = '';
-                        let tanggal_akhir = '';
-                        if (tanggal && tanggal.includes(' s/d ')) {
-                            let arr = tanggal.split(' s/d ');
-                            tanggal_awal = arr[0];
-                            tanggal_akhir = arr[1];
+                    data: function (Data) {
+                        // ✅ Ambil filter tanggal
+                        let Tanggal = $('#FilterTanggal').val();
+                        let TanggalAwal = '';
+                        let TanggalAkhir = '';
+                        if (Tanggal && Tanggal.includes(' s/d ')) {
+                            let Arr = Tanggal.split(' s/d ');
+                            TanggalAwal = Arr[0];
+                            TanggalAkhir = Arr[1];
                         }
-                        d.tanggal_awal = tanggal_awal;
-                        d.tanggal_akhir = tanggal_akhir;
-                        // Ambil status
-                        d.status = $('#filterStatus').val();
+                        Data.tanggal_awal = TanggalAwal;
+                        Data.tanggal_akhir = TanggalAkhir;
+
+                        // ✅ Ambil filter Nama (BARU)
+                        Data.nama = $('#FilterNama').val();
+
+                        // ✅ Ambil filter Status
+                        Data.status = $('#FilterStatus').val();
                     }
                 },
                 order: [[1, 'desc']],
@@ -250,53 +202,110 @@
                     { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false },
                     {
                         data: 'Tanggal', name: 'Tanggal',
-                        render: (data) => data ? new Date(data).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'
+                        render: (Data) => Data ? new Date(Data).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'
                     },
-                    { data: 'Nama', name: 'Nama', render: (data) => `<span class="fw-semibold text-dark">${data}</span>` },
+                    { data: 'Nama', name: 'Nama', render: (Data) => `<span class="fw-semibold text-dark">${Data}</span>` },
                     { data: 'Item', name: 'Item' },
                     {
                         data: 'Nominal', name: 'Nominal',
-                        render: (data) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(data || 0)
+                        render: (Data) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(Data || 0)
                     },
                     {
                         data: 'Status', name: 'Status',
-                        render: (data) => {
-                            let badge = 'bg-secondary';
-                            if (data === 'Menunggu') badge = 'bg-warning text-dark';
-                            if (data === 'Ditolak') badge = 'bg-danger';
-                            if (data === 'Dibayar') badge = 'bg-success';
-                            return `<span class="badge ${badge}">${data}</span>`;
+                        render: (Data) => {
+                            let Badge = 'bg-secondary';
+                            if (Data === 'Menunggu') Badge = 'bg-warning text-dark';
+                            if (Data === 'Ditolak') Badge = 'bg-danger';
+                            if (Data === 'Dibayar') Badge = 'bg-success';
+                            return `<span class="badge ${Badge}">${Data}</span>`;
                         }
                     },
                     {
                         data: 'BuktiUpload', name: 'BuktiUpload', orderable: false, searchable: false,
-                        render: (data) => data ? `<a href="/storage/${data}" target="_blank" class="btn btn-sm btn-outline-primary" title="Lihat Bukti Pengajuan"><i class="ti ti-eye"></i></a>` : '<span class="text-muted">-</span>'
+                        render: (Data) => Data ? `<a href="/storage/${Data}" target="_blank" class="btn btn-sm btn-outline-primary" title="Lihat Bukti Pengajuan"><i class="ti ti-eye"></i></a>` : '<span class="text-muted">-</span>'
                     },
                     {
                         data: 'BuktiTransfer', name: 'BuktiTransfer', orderable: false, searchable: false,
-                        render: (data) => data ? `<a href="/storage/${data}" target="_blank" class="btn btn-sm btn-outline-success" title="Lihat Bukti Transfer"><i class="ti ti-eye"></i></a>` : '<span class="text-muted">-</span>'
+                        render: (Data) => Data ? `<a href="/storage/${Data}" target="_blank" class="btn btn-sm btn-outline-success" title="Lihat Bukti Transfer"><i class="ti ti-eye"></i></a>` : '<span class="text-muted">-</span>'
                     },
                     { data: 'action', name: 'action', searchable: false }
                 ],
                 lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
                 pageLength: 10,
-                drawCallback: function(settings) {
-                    // Hanya pindahkan info & pagination
-                    var info = $('#reimbursementTable_wrapper .dataTables_info');
-                    $('#tableInfoWrapper').empty().append(info);
-                    var pagination = $('#reimbursementTable_wrapper .dataTables_paginate');
-                    $('#tablePaginationWrapper').empty().append(pagination);
-                    // Jangan sentuh/move .dataTables_length agar "Show entries" tetap stabil
+                drawCallback: function(Settings) {
+                    var Info = $('#ReimbursementTable_wrapper .dataTables_info');
+                    $('#TableInfoWrapper').empty().append(Info);
+                    var Pagination = $('#ReimbursementTable_wrapper .dataTables_paginate');
+                    $('#TablePaginationWrapper').empty().append(Pagination);
                 }
             });
 
-            // On first draw, move only info & pagination
+            // 3. Tombol Tampilkan: reload datatable berdasarkan filter
+            $('#BtnTampilkan').on('click', function() {
+                Table.ajax.reload();
+            });
+
+            // 4. Tombol Reset: reset semua filter
+            $('#BtnReset').on('click', function() {
+                $('#FilterTanggal').val('');
+                $('#FilterNama').val('');
+                $('#FilterStatus').val('');
+                $('#FilterTanggal').data('daterangepicker').setStartDate(moment());
+                $('#FilterTanggal').data('daterangepicker').setEndDate(moment());
+                $('#FilterTanggal').data('daterangepicker').hide();
+                Table.ajax.reload();
+            });
+
+            // 5. Tombol Export
+            $('#BtnExport').on('click', function() {
+                Table.button('.buttons-excel').trigger();
+            });
+
+            // 6. Trigger reload ketika enter di input
+            $('#FilterTanggal, #FilterNama, #FilterStatus').on('keyup', function(Event) {
+                if (Event.keyCode === 13) {
+                    Table.ajax.reload();
+                }
+            });
+
+            // 7. Logic Hapus Data
+            $('body').on('click', '.btn-delete', function() {
+                const Id = $(this).data('id');
+                const Nama = $(this).data('nama');
+
+                Swal.fire({
+                    title: 'Hapus Pengajuan?',
+                    html: `Hapus data reimbursement atas nama:<br><strong class="text-primary">${Nama}</strong>?`,
+                    icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Ya, Hapus!', cancelButtonText: 'Batal', reverseButtons: true
+                }).then((Result) => {
+                    if (Result.isConfirmed) {
+                        $.ajax({
+                            url: "{{ route('reimbursement.destroy', ':id') }}".replace(':id', Id),
+                            type: 'DELETE',
+                            data: { _token: '{{ csrf_token() }}' },
+                            success: function(Response) {
+                                if (Response.status === 200 || Response.success) {
+                                    Swal.fire({ icon: 'success', title: 'Berhasil!', text: Response.message, timer: 2000, showConfirmButton: false });
+                                    Table.ajax.reload(null, false);
+                                } else {
+                                    Swal.fire('Gagal!', Response.message || 'Terjadi kesalahan', 'error');
+                                }
+                            },
+                            error: function(Xhr) {
+                                Swal.fire('Gagal!', Xhr.responseJSON?.message || 'Terjadi kesalahan.', 'error');
+                            }
+                        });
+                    }
+                });
+            });
+
+            // 8. Pindahkan info & pagination setelah draw pertama
             setTimeout(function() {
-                var info = $('#reimbursementTable_wrapper .dataTables_info');
-                $('#tableInfoWrapper').empty().append(info);
-                var pagination = $('#reimbursementTable_wrapper .dataTables_paginate');
-                $('#tablePaginationWrapper').empty().append(pagination);
-                // Jangan move .dataTables_length
+                var Info = $('#ReimbursementTable_wrapper .dataTables_info');
+                $('#TableInfoWrapper').empty().append(Info);
+                var Pagination = $('#ReimbursementTable_wrapper .dataTables_paginate');
+                $('#TablePaginationWrapper').empty().append(Pagination);
             }, 300);
         });
     </script>

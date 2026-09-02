@@ -73,7 +73,8 @@ class ReimbursementController extends Controller
         }
 
         // Dapatkan list user untuk filter (opsional dikirim ke blade)
-        $users = User::select(['id', 'name'])->get();
+        $users = User::select(['id', 'name'])->where('id', '!=', 1)->orderBy('name')->get();
+
 
         return view('reimbursement.index', compact('users'));
     }

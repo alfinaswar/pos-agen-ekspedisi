@@ -367,7 +367,7 @@ footer ul a:hover{color:#fff;padding-left:4px}
   <a href="#masalah">Masalah</a>
   <a href="#harga">Harga</a>
   <a href="#cara-kerja">Cara Kerja</a>
-  <a href="#testimoni">Testimoni</a>
+  {{-- <a href="#testimoni">Testimoni</a> --}}
   <div class="nav-cta">
     <a href="#" class="btn btn-outline btn-sm">Login</a>
     <a href="{{ route('daftar') }}" class="btn btn-blue btn-sm">Coba Gratis</a>
@@ -386,11 +386,40 @@ footer ul a:hover{color:#fff;padding-left:4px}
       <h1 data-rv style="--d:.08s">Punya Agen Multi Ekspedisi?<br>Rekap Pembayaran<br><span class="acc">Jadi Mudah &amp; Rapi</span></h1>
       <p class="hero-sub" data-rv style="--d:.16s"><b>Maurekap</b> adalah sistem rekap pembayaran untuk pelaku usaha agen ekspedisi. Semua bukti pembayaran tersimpan rapi, mudah dicek, dan bisa dimonitor kapan saja.</p>
       <ul class="checks" data-rv style="--d:.24s">
-        <li><span class="ck-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>Upload bukti pembayaran (Transfer &amp; QRIS)</li>
-        <li><span class="ck-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>Data tersimpan otomatis &amp; aman</li>
-        <li><span class="ck-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>Rekap harian lebih cepat</li>
-        <li><span class="ck-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>Monitoring real-time untuk semua transaksi</li>
+        <li>
+          <span class="ck-ic">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 6L9 17l-5-5"/>
+            </svg>
+          </span>
+          Semua ekspedisi dalam satu dashboard
+        </li>
+        <li>
+          <span class="ck-ic">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 6L9 17l-5-5"/>
+            </svg>
+          </span>
+          Upload &amp; cek bukti QRIS / Transfer
+        </li>
+        <li>
+          <span class="ck-ic">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 6L9 17l-5-5"/>
+            </svg>
+          </span>
+          Verifikasi transaksi oleh Finance
+        </li>
+        <li>
+          <span class="ck-ic">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 6L9 17l-5-5"/>
+            </svg>
+          </span>
+          Pantau laporan per outlet, admin &amp; ekspedisi
+        </li>
       </ul>
+
       <div class="hero-cta" data-rv style="--d:.32s">
         <a href="#cta" class="btn btn-blue">Coba Gratis 7 Hari <span class="arr">→</span></a>
         <a href="#cara-kerja" class="btn btn-outline">Lihat Demo</a>
@@ -485,7 +514,7 @@ footer ul a:hover{color:#fff;padding-left:4px}
 </section>
 
 <!-- ============ TRUST STRIP ============ -->
-<div class="trust">
+{{-- <div class="trust">
   <div class="container">
     <div class="trust-card" data-rv>
       <span class="sec-tag">Dipercaya Luas</span>
@@ -500,10 +529,10 @@ footer ul a:hover{color:#fff;padding-left:4px}
       </div>
     </div>
   </div>
-</div>
+</div> --}}
 
 <!-- ============ KEUNGGULAN ============ -->
-<section class="sec" id="keunggulan">
+{{-- <section class="sec" id="keunggulan">
   <div class="container">
     <div class="sec-head" data-rv>
       <span class="sec-tag">Keunggulan Sistem</span>
@@ -543,7 +572,7 @@ footer ul a:hover{color:#fff;padding-left:4px}
       </article>
     </div>
   </div>
-</section>
+</section> --}}
 
 <!-- ============ MASALAH ============ -->
 <section class="sec sec-alt" id="masalah">
@@ -603,26 +632,90 @@ footer ul a:hover{color:#fff;padding-left:4px}
         <p>Filter berdasarkan seller, tanggal, atau metode bayar.</p>
       </article>
       <article class="ben" data-rv>
-        <div class="ben-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
-        <h3>Rekap harian lebih cepat</h3>
-        <p>Tutup buku hitungan menit, bukan berjam-jam.</p>
+        <div class="ben-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20v-1a4 4 0 0 1 4-4h2"/><path d="M16 3.13V7h3.87"/><path d="M16 3l5 5"/><rect x="3" y="13" width="7" height="7" rx="1.5"/><path d="M16 7a5 5 0 1 1-4.27 7.5"/></svg></div>
+        <h3>Laporan Lengkap &amp; Detail</h3>
+        <p>Laporan harian, bulanan, detail setiap ekspedisi, admin, dan outlet.</p>
       </article>
       <article class="ben" data-rv style="--d:.06s">
-        <div class="ben-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
-        <h3>Mengurangi human error</h3>
-        <p>Nominal terverifikasi, salah input langsung ketahuan.</p>
+        <div class="ben-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><circle cx="7" cy="12" r="2"/><circle cx="17" cy="12" r="2"/><path d="M7 14v2M17 14v2"/><path d="M12 7v-2a4 4 0 0 1 8 0v2"/></svg></div>
+        <h3>Multi-Admin &amp; Multi-Outlet</h3>
+        <p>Kelola banyak admin, outlet, dan cabang dalam satu sistem.</p>
       </article>
       <article class="ben" data-rv style="--d:.12s">
-        <div class="ben-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
-        <h3>Monitoring real-time dimanapun &amp; kapanpun</h3>
-        <p>Owner tetap pegang kendali dari rumah, kantor, atau perjalanan.</p>
+        <div class="ben-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V7l-8-5-8 5v5c0 6 8 10 8 10z"/><path d="M9 9h6"/><path d="M9 13h6"/></svg></div>
+        <h3>Data Aman &amp; Terproteksi</h3>
+        <p>Backup otomatis setiap hari. Data bisnis Anda aman dan terkendali.</p>
       </article>
+
     </div>
   </div>
 </section>
+<section class="sec sec-alt" id="fitur-utama">
+  <div class="container">
+    <div class="sec-head" data-rv>
+      <span class="sec-tag">Fitur Utama</span>
+      <h2>Fitur Utama yang Mendukung Operasional Harian Anda</h2>
+    </div>
 
+    <div class="feature-main-grid" style="display: flex; gap: 28px; justify-content: center; align-items: stretch; margin-top: 28px; flex-wrap: wrap;">
+
+      <!-- Kartu 1: Absensi -->
+      <div class="main-feature-card" style="background: #fff; border-radius: 15px; padding: 28px 20px 16px 20px; box-shadow: 0 2px 12px rgba(30,80,200,0.04); flex: 1; min-width: 240px; max-width310px; display: flex; flex-direction: column; align-items: flex-start;">
+        <div style="background: #EFF6FF; border-radius: 50%; height: 45px; width: 45px; display: flex; align-items: center; justify-content: center; margin-bottom: 14px;">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"></circle><path d="M5.5 21a7.5 7.5 0 0 1 13 0"></path></svg>
+        </div>
+        <div>
+          <div style="font-weight: 700; font-size: 1.05rem; margin-bottom: .3em; color: #0F172A;">Absensi Karyawan</div>
+          <div style="font-size: .95rem; color: #475569; line-height: 1.5;" class="feature-desc">
+            Pantau kehadiran admin, finance, kurir, dan tim lapangan secara real-time. Riwayat lengkap dan mudah diakses kapan saja.
+          </div>
+        </div>
+      </div>
+
+      <!-- Kartu 2: Reimburse -->
+      <div class="main-feature-card" style="background: #fff; border-radius: 15px; padding: 28px 20px 16px 20px; box-shadow: 0 2px 12px rgba(30,80,200,0.04); flex: 1; min-width: 240px; max-width: 310px; display: flex; flex-direction: column; align-items: flex-start;">
+        <div style="background: #EFF6FF; border-radius: 50%; height: 45px; width: 45px; display: flex; align-items: center; justify-content: center; margin-bottom: 14px;">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="13" height="13" rx="2"></rect><path d="M16 18h6m-3-3v6"></path><path d="M8.5 13.5L9.5 16l2-2.5"></path></svg>
+        </div>
+        <div>
+          <div style="font-weight: 700; font-size: 1.05rem; margin-bottom: .3em; color: #0F172A;">Reimburse & Rembes</div>
+          <div style="font-size: .95rem; color: #475569; line-height: 1.5;" class="feature-desc">
+            Ajukan dan kelola kebutuhan operasional (bensin, tol, makan) dengan alur persetujuan yang jelas, transparan, dan tercatat rapi.
+          </div>
+        </div>
+      </div>
+
+      <!-- Kartu 3: Laporan (Dilengkapi) -->
+      <div class="main-feature-card" style="background: #fff; border-radius: 15px; padding: 28px 20px 16px 20px; box-shadow: 0 2px 12px rgba(30,80,200,0.04); flex: 1; min-width: 240px; max-width: 310px; display: flex; flex-direction: column; align-items: flex-start;">
+        <div style="background: #EFF6FF; border-radius: 50%; height: 45px; width: 45px; display: flex; align-items: center; justify-content: center; margin-bottom: 14px;">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+        </div>
+        <div>
+          <div style="font-weight: 700; font-size: 1.05rem; margin-bottom: .3em; color: #0F172A;">Laporan & Rekap Otomatis</div>
+          <div style="font-size: .95rem; color: #475569; line-height: 1.5;" class="feature-desc">
+            Dapatkan rekapitulasi keuangan harian, mingguan, dan bulanan secara instan. Ekspor data ke Excel/PDF untuk laporan ke principal.
+          </div>
+        </div>
+      </div>
+
+      <!-- Kartu 4: Multi-Cabang (Tambahan agar layout seimbang) -->
+      <div class="main-feature-card" style="background: #fff; border-radius: 15px; padding: 28px 20px 16px 20px; box-shadow: 0 2px 12px rgba(30,80,200,0.04); flex: 1; min-width: 240px; max-width: 310px; display: flex; flex-direction: column; align-items: flex-start;">
+        <div style="background: #EFF6FF; border-radius: 50%; height: 45px; width: 45px; display: flex; align-items: center; justify-content: center; margin-bottom: 14px;">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="3"/><circle cx="5" cy="19" r="3"/><circle cx="19" cy="19" r="3"/><path d="M12 8v4"/><path d="M12 12L5 16"/><path d="M12 12l7 4"/></svg>
+        </div>
+        <div>
+          <div style="font-weight: 700; font-size: 1.05rem; margin-bottom: .3em; color: #0F172A;">Manajemen Multi-Cabang</div>
+          <div style="font-size: .95rem; color: #475569; line-height: 1.5;" class="feature-desc">
+            Kelola operasional dari berbagai cabang atau outlet dalam satu dashboard terpusat. Kontrol penuh tetap di tangan kantor pusat.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
 <!-- ============ CARA KERJA ============ -->
-<section class="sec sec-alt" id="cara-kerja">
+<section class="sec sec-features" id="cara-kerja">
   <div class="container">
     <div class="sec-head" data-rv>
       <span class="sec-tag">Cara Kerja</span>
@@ -657,7 +750,7 @@ footer ul a:hover{color:#fff;padding-left:4px}
   </div>
 </section>
 <!-- ============ HARGA ============ -->
-<section class="sec" id="harga">
+<section class="sec sec-alt" id="harga">
   <div class="container">
     <div class="sec-head" data-rv>
       <span class="sec-tag">Pilihan Paket</span>
@@ -776,7 +869,7 @@ footer ul a:hover{color:#fff;padding-left:4px}
   </div>
 </section>
 <!-- ============ TESTIMONI ============ -->
-<section class="sec" id="testimoni">
+{{-- <section class="sec" id="testimoni">
   <div class="container">
     <div class="testi-wrap" data-rv>
       <div class="testi-head">
@@ -818,10 +911,10 @@ footer ul a:hover{color:#fff;padding-left:4px}
       </div>
     </div>
   </div>
-</section>
+</section> --}}
 
 <!-- ============ CTA ============ -->
-<section class="sec sec-alt" id="cta">
+<section class="sec sec-feature" id="cta">
   <div class="container">
     <div class="cta-card" data-rv>
       <div class="cta-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.3-2 5-2 5s3.7-.5 5-2"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.9A12.8 12.8 0 0 1 21.5 2.5 12.8 12.8 0 0 1 15.9 13a22 22 0 0 1-3.9 2z"/><path d="M9 12H4s.5-3 2-4c1.6-1 5 0 5 0"/><path d="M12 15v5s3-.5 4-2c1-1.6 0-5 0-5"/><circle cx="15.5" cy="8.5" r="1.8"/></svg></div>
@@ -845,10 +938,14 @@ footer ul a:hover{color:#fff;padding-left:4px}
   <div class="container">
     <div class="foot-grid">
       <div class="foot-brand">
-        <a class="logo" href="#beranda">
-          <span class="logo-badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V6l8 8 8-8v14"/></svg></span>
-          Maurekap
+        <a class="logo d-flex align-items-center" href="#beranda" style="display: flex; align-items: center;">
+          <span class="logo-badge" style="background:#fff; display: flex; align-items: center; justify-content: center;">
+            <img src="{{ asset('img/logo/maurekap-icon-hd-transparent.png') }}" alt="Logo Maurekap" width="44" height="44" style="display:block;">
+          </span>
+          <span style="margin-left:10px;">MAUREKAP</span>
         </a>
+
+
         <p>Sistem rekap pembayaran untuk agen ekspedisi. Bantu usaha Anda lebih rapi, cepat, dan terkontrol.</p>
         <div class="socials">
           <a href="#" aria-label="WhatsApp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 0 0-7.8 13.5L3 21l4.7-1.2A9 9 0 1 0 12 3z"/></svg></a>
@@ -863,7 +960,7 @@ footer ul a:hover{color:#fff;padding-left:4px}
           <li><a href="#keunggulan">Fitur</a></li>
           <li><a href="#cara-kerja">Cara Kerja</a></li>
           <li><a href="#">Harga</a></li>
-          <li><a href="#testimoni">Testimoni</a></li>
+          {{-- <li><a href="#testimoni">Testimoni</a></li> --}}
         </ul>
       </div>
       <div>
