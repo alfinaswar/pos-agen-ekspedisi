@@ -3,6 +3,7 @@
 use App\Http\Controllers\AbsensiController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DivisiController;
+use App\Http\Controllers\DokuWebhookController;
 use App\Http\Controllers\LandingPageController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\MasterPaketHargaController;
@@ -95,3 +96,17 @@ Route::middleware(['auth'])->group(function () {
     // ✅ Route Bulk Approve
     Route::post('tagihan-pembayaran/bulk-approve', [TagihanPembayaranController::class, 'BulkApprove'])->name('tagihan-pembayaran.bulkApprove');
 });
+// Form pendaftaran
+Route::get('/pendaftaran-tenant', [PendaftaranTenantController::class, 'create'])
+    ->name('pendaftaran-tenant.create');
+
+Route::post('/pendaftaran-tenant', [PendaftaranTenantController::class, 'store'])
+    ->name('pendaftaran-tenant.store');
+
+// Callback setelah bayar (redirect dari DOKU)
+Route::get('/pendaftaran/payment-finish/{id}', [PendaftaranTenantController::class, 'paymentFinish'])
+    ->name('pendaftaran.payment.finish');
+
+// Webhook DOKU (POST, tanpa CSRF)
+Route::post('/webhooks/doku', [DokuWebhookController::class, 'handle'])
+    ->name('webhooks.doku');

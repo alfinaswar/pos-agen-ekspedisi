@@ -485,6 +485,160 @@
             cursor: pointer
         }
 
+        /* info pembayaran */
+        .pay-info {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            background: var(--blue-50);
+            border: 1px solid var(--blue-100);
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 16px;
+            font-size: .85rem;
+            color: #28354C
+        }
+
+        .pay-info svg {
+            width: 20px;
+            height: 20px;
+            flex: none;
+            color: var(--blue);
+            margin-top: 2px
+        }
+
+        .pay-info b {
+            color: var(--blue-700)
+        }
+
+        .pay-info .mono {
+            font-weight: 700
+        }
+
+        /* dropzone */
+        .drop {
+            border: 2px dashed #B9C8E8;
+            background: #FAFCFF;
+            border-radius: 14px;
+            padding: 30px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: .2s
+        }
+
+        .drop:hover,
+        .drop.drag,
+        .drop.hover {
+            border-color: var(--blue);
+            background: var(--blue-50)
+        }
+
+        .drop-ic {
+            width: 52px;
+            height: 52px;
+            margin: 0 auto 14px;
+            border-radius: 50%;
+            background: var(--blue-100);
+            color: var(--blue);
+            display: grid;
+            place-items: center
+        }
+
+        .drop-ic svg {
+            width: 24px;
+            height: 24px
+        }
+
+        .drop b {
+            display: block;
+            font-size: .95rem;
+            color: var(--navy);
+            margin-bottom: 4px
+        }
+
+        .drop b span {
+            color: var(--blue)
+        }
+
+        .drop small {
+            font-size: .76rem;
+            color: var(--muted)
+        }
+
+        .file-prev {
+            display: none;
+            gap: 12px;
+            align-items: center;
+            border: 1.5px solid var(--line);
+            border-radius: 12px;
+            padding: 10px 12px;
+            margin-top: 14px;
+            background: #fff
+        }
+
+        .file-prev.show {
+            display: flex
+        }
+
+        .file-prev img,
+        .file-prev .pdf-ic {
+            width: 48px;
+            height: 48px;
+            border-radius: 9px;
+            object-fit: cover;
+            flex: none
+        }
+
+        .file-prev .pdf-ic {
+            background: var(--red);
+            color: #fff;
+            display: grid;
+            place-items: center;
+            font-size: .6rem;
+            font-weight: 800
+        }
+
+        .file-prev .f-meta {
+            min-width: 0;
+            flex: 1
+        }
+
+        .file-prev .f-meta b {
+            display: block;
+            font-size: .85rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis
+        }
+
+        .file-prev .f-meta span {
+            font-size: .74rem;
+            color: var(--muted)
+        }
+
+        .file-prev .ok-ic {
+            color: var(--green);
+            flex: none
+        }
+
+        .f-del {
+            border: 0;
+            background: var(--bg);
+            color: var(--muted);
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: .9rem;
+            flex: none;
+            transition: .2s
+        }
+
+        .f-del:hover {
+            background: #FEE2E2;
+            color: var(--red)
+        }
+
         /* terms & submit */
         .terms {
             display: flex;
@@ -1038,22 +1192,18 @@
                             @enderror
                         </span>
                     </div>
-                  <div class="field @error('Telepon') invalid @enderror">
-    <label for="Telepon" class="req">Telepon</label>
-    <input id="Telepon" name="Telepon" type="tel"
-           placeholder="cth: 081234567890 atau +6281234567890"
-           data-validate="phone" autocomplete="tel" value="{{ old('Telepon') }}">
-    <span class="err">
-        @error('Telepon')
-            {{ $message }}
-        @else
-            Nomor telepon tidak valid (min. 9 digit).
-        @enderror
-    </span>
-    <small style="color:var(--muted); font-size:.75rem; margin-top:4px;">
-        Format: 08xxx, 628xxx, atau +628xxx
-    </small>
-</div>
+                    <div class="field @error('Telepon') invalid @enderror">
+                        <label for="Telepon" class="req">Telepon</label>
+                        <input id="Telepon" name="Telepon" type="tel" placeholder="cth: 081234567890"
+                            data-validate="phone" autocomplete="tel" value="{{ old('Telepon') }}">
+                        <span class="err">
+                            @error('Telepon')
+                                {{ $message }}
+                            @else
+                                Nomor telepon tidak valid (min. 9 digit).
+                            @enderror
+                        </span>
+                    </div>
                     <div class="field span2 @error('Alamat') invalid @enderror">
                         <label for="Alamat" class="req">Alamat</label>
                         <textarea id="Alamat" name="Alamat" rows="3" placeholder="Nama jalan, nomor, kecamatan, kota, kode pos"
@@ -1133,42 +1283,60 @@
                     </div>
                 </div>
 
-                <!-- HAPUS seluruh section 3 (Bukti Pembayaran) -->
-<!-- Hapus: .pay-info, #drop, #buktibayar, #filePrev, dll. -->
+                <!-- 3. BUKTI BAYAR -->
+                <div class="form-sec">
+                    <span class="sec-num">3</span>
+                    <div>
+                        <h2>Bukti Pembayaran</h2>
+                        <p>Upload bukti transfer / QRIS sesuai nominal paket.</p>
+                    </div>
+                </div>
 
-<!-- Ganti section 3 menjadi info pembayaran: -->
+                <div class="pay-info">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="6" width="18" height="13" rx="2" />
+                        <path d="M3 10h18" />
+                        <path d="M7 15h4" />
+                    </svg>
+                    <p>Transfer ke <b>BCA <span class="mono">123-456-7890</span></b> a.n. <b>Maurekap Teknologi</b> —
+                        atau scan QRIS pada invoice Anda, lalu upload buktinya di bawah.</p>
+                </div>
 
-<!-- 3. INFORMASI PEMBAYARAN -->
-<div class="form-sec">
-    <span class="sec-num">3</span>
-    <div>
-        <h2>Informasi Pembayaran</h2>
-        <p>Setelah submit, Anda akan diarahkan ke halaman pembayaran DOKU.</p>
-    </div>
-</div>
+                <div class="field @error('BuktiPembayaran') invalid @enderror" id="fileField">
+                    <label for="buktibayar" class="req" style="margin-bottom:.5em;display:block;">Upload Bukti
+                        Pembayaran</label>
+                    <div class="drop" id="drop" role="button" tabindex="0"
+                        aria-label="Upload bukti pembayaran">
+                        <div class="drop-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 16V5m0 0l-4 4m4-4l4 4" />
+                                <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
+                            </svg></div>
+                        <b>Klik untuk pilih file <span>atau seret ke sini</span></b>
+                        <small>JPG, PNG, atau PDF · maks. 5 MB</small>
+                    </div>
+                    <input id="buktibayar" name="BuktiPembayaran" type="file"
+                        accept="image/jpeg,image/png,image/webp,application/pdf" style="display:none">
 
-<div class="pay-info">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round">
-        <rect x="3" y="6" width="18" height="13" rx="2" />
-        <path d="M3 10h18" />
-        <path d="M7 15h4" />
-    </svg>
-    <div>
-        <p>Anda dapat membayar menggunakan berbagai metode:</p>
-        <ul style="margin-top:8px; display:grid; gap:4px;">
-            <li>✓ Virtual Account (BCA, BRI, Mandiri, dll)</li>
-            <li>✓ QRIS (GoPay, OVO, DANA, ShopeePay)</li>
-            <li>✓ Kartu Kredit/Debit</li>
-            <li>✓ E-Wallet</li>
-        </ul>
-        <p style="margin-top:10px; font-size:.82rem; color:var(--muted);">
-            Pembayaran diproses melalui <b>DOKU Payment Gateway</b> yang aman & terenkripsi.
-        </p>
-    </div>
-</div>
-
-
+                    <div class="file-prev" id="filePrev">
+                        <img id="fThumb" alt="Pratinjau bukti bayar" hidden>
+                        <span class="pdf-ic" id="fPdf" hidden>PDF</span>
+                        <div class="f-meta"><b id="fName">—</b><span id="fSize">—</span></div>
+                        <svg class="ok-ic" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 6L9 17l-5-5" />
+                        </svg>
+                        <button type="button" class="f-del" id="fDel" aria-label="Hapus file">✕</button>
+                    </div>
+                    <span class="err" id="buktiErr">
+                        @error('BuktiPembayaran')
+                            {{ $message }}
+                        @else
+                            Bukti pembayaran wajib diupload (JPG/PNG/PDF, maks. 5 MB).
+                        @enderror
+                    </span>
+                </div>
 
                 <div class="terms" id="termsRow">
                     <input id="terms" name="terms" type="checkbox" {{ old('terms') ? 'checked' : '' }}>
@@ -1403,7 +1571,98 @@
                 });
             }
 
-            // Kode untuk handle file upload, preview, validasi, dan event fDel telah dihapus sesuai permintaan.
+            /* 5. PREVIEW BUKTI BAYAR */
+            var drop = $('#drop'),
+                fileInput = $('#buktibayar'),
+                prev = $('#filePrev'),
+                thumb = $('#fThumb'),
+                pdfIc = $('#fPdf'),
+                fName = $('#fName'),
+                fSize = $('#fSize'),
+                fileField = $('#fileField'),
+                buktiErr = $('#buktiErr');
+            var OK_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+            var MAX = 5 * 1024 * 1024;
+
+            function fmtSize(b) {
+                return b < 1024 * 1024 ? (b / 1024).toFixed(0) + ' KB' : (b / 1024 / 1024).toFixed(2) + ' MB';
+            }
+
+            function previewBuktiBayar() {
+                var file = fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
+                if (!file) {
+                    prev.classList.remove('show');
+                    fileField.classList.remove('invalid');
+                    return;
+                }
+                if (OK_TYPES.indexOf(file.type) === -1 || file.size > MAX) {
+                    prev.classList.remove('show');
+                    buktiErr.textContent = 'Format atau ukuran file tidak sesuai (JPG/PNG/PDF · maks. 5 MB).';
+                    fileField.classList.add('invalid');
+                    return;
+                }
+                fileField.classList.remove('invalid');
+                fName.textContent = file.name;
+                fSize.textContent = fmtSize(file.size) + ' · siap diverifikasi';
+                var isPdf = file.type === 'application/pdf';
+                pdfIc.hidden = !isPdf;
+                thumb.hidden = isPdf;
+                if (!isPdf) {
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        thumb.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+                prev.classList.add('show');
+            }
+
+            drop.addEventListener('click', function() {
+                fileInput.click();
+            });
+            drop.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    fileInput.click();
+                }
+            });
+            ['dragover', 'dragenter'].forEach(function(ev) {
+                drop.addEventListener(ev, function(e) {
+                    e.preventDefault();
+                    drop.classList.add('drag');
+                });
+            });
+            ['dragleave', 'drop'].forEach(function(ev) {
+                drop.addEventListener(ev, function(e) {
+                    e.preventDefault();
+                    drop.classList.remove('drag');
+                });
+            });
+            drop.addEventListener('drop', function(e) {
+                if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+                    fileInput.files = e.dataTransfer.files;
+                    previewBuktiBayar();
+                }
+            });
+            fileInput.addEventListener('change', previewBuktiBayar);
+
+            $('#fDel').addEventListener('click', function() {
+                Swal.fire({
+                    title: 'Hapus file?',
+                    text: 'File bukti pembayaran akan dihapus.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Hapus',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#aaa'
+                }).then(function(res) {
+                    if (res.isConfirmed) {
+                        fileInput.value = '';
+                        previewBuktiBayar();
+                    }
+                });
+            });
 
             /* 6. VALIDASI & SWEETALERT KONFIRMASI (DIGABUNG) */
             var form = $('#regForm');
@@ -1433,6 +1692,11 @@
                     if (!checkField(inp)) valid = false;
                 });
 
+                var file = fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
+                if (!(file && OK_TYPES.indexOf(file.type) !== -1 && file.size <= MAX)) {
+                    fileField.classList.add('invalid');
+                    valid = false;
+                }
 
                 var termsOk = $('#terms').checked;
                 $('#termsRow').classList.toggle('invalid', !termsOk);

@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Mail\TenantApprovedMail;
+use App\Models\MasterPaketHarga;
 use App\Models\PendaftaranTenant;
 use App\Models\TagihanPembayaran;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\DokuService;
+use App\Services\TenantProvisioningService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,9 +18,14 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Yajra\DataTables\DataTables;
+use Illuminate\Support\Str;
 
 class PendaftaranTenantController extends Controller
 {
+    public function __construct(
+        protected TenantProvisioningService $provisioning
+    ) {
+    }
     /**
      * Display a listing of the resource.
      */
@@ -81,9 +89,8 @@ class PendaftaranTenantController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, DokuService $doku)
     {
-        // dd($request->all());
         $validated = $request->validate([
             'Nama' => 'required|string|max:255',
             'Paket' => 'required|string|max:255',
@@ -92,43 +99,96 @@ class PendaftaranTenantController extends Controller
             'Alamat' => 'required|string|max:500',
             'NamaPIC' => 'required|string|max:255',
             'EmailPIC' => 'required|email|max:255',
+            'TeleponPIC' => 'nullable|string|max:20',
             'AlamatPIC' => 'nullable|string|max:500',
-            'BuktiPembayaran' => 'required|file|mimes:jpg,jpeg,png,pdf,webp|max:5120',  // 5MB
         ], [
             'required' => ':attribute wajib diisi.',
             'email' => ':attribute harus berupa email yang valid.',
             'min' => ':attribute minimal :min karakter.',
             'max' => ':attribute maksimal :max karakter.',
-            'file' => ':attribute harus berupa file.',
-            'mimes' => ':attribute harus JPG/PNG/PDF/WEBP.',
         ]);
 
-        // Handle file upload
-        $buktiPembayaranPath = null;
-        if ($request->hasFile('BuktiPembayaran')) {
-            $file = $request->file('BuktiPembayaran');
-            $fileName = time() . '_' . preg_replace('/[^A-Za-z0-9\-_\.]/', '', $file->getClientOriginalName());
-            $buktiPembayaranPath = $file->storeAs('bukti_pembayaran', $fileName, 'public');
-        }
-        // Simpan data pendaftaran
+        $paket = MasterPaketHarga::findOrFail($validated['Paket']);
+        $invoiceNumber = 'MRK-' . date('Ymd') . '-' . strtoupper(Str::random(6));
+
         $pendaftaran = PendaftaranTenant::create([
             'Nama' => $validated['Nama'],
             'Paket' => $validated['Paket'],
             'Email' => $validated['Email'],
+            'Telepon' => $validated['Telepon'],
             'Alamat' => $validated['Alamat'],
             'NamaPIC' => $validated['NamaPIC'],
             'EmailPIC' => $validated['EmailPIC'],
+            'TeleponPIC' => $validated['TeleponPIC'] ?? null,
             'AlamatPIC' => $validated['AlamatPIC'] ?? null,
-            'BuktiPembayaran' => $buktiPembayaranPath,
             'Status' => 'N/A',
+            'PaymentStatus' => 'PENDING',
+            'DokuInvoiceNumber' => $invoiceNumber,
         ]);
 
-        return redirect()
-            ->back()
-            ->with('success', [
-                'message' => 'Pendaftaran berhasil dikirim! Proses pendaftaran akan diproses dalam 1 x 24 jam.',
-                'kode' => $pendaftaran->Kode,
+        // 🔥 NORMALISASI NOMOR TELEPON DI SINI
+        $rawPhone = $validated['TeleponPIC'] ?? $validated['Telepon'];
+        $normalizedPhone = $doku->normalizePhone($rawPhone);
+
+        // Debug: Log nomor sebelum dan sesudah normalisasi
+        \Log::info('Phone normalization', [
+            'raw' => $rawPhone,
+            'normalized' => $normalizedPhone,
+        ]);
+
+        $result = $doku->createCheckout([
+            'amount' => $paket->Harga,
+            'invoice_number' => $invoiceNumber,
+            'callback_url' => route('pendaftaran.payment.finish', $pendaftaran->id),
+            'notification_url' => route('webhooks.doku'),
+            'payment_due_date' => 60,
+            'customer_id' => 'CUST-' . $pendaftaran->id,
+            'customer_name' => $validated['NamaPIC'],
+            'customer_email' => $validated['EmailPIC'],
+            'customer_phone' => $normalizedPhone, // ← Pakai yang sudah dinormalisasi
+        ]);
+
+        if (!$result['success']) {
+            \Log::error('DOKU Checkout failed', [
+                'status' => $result['status'],
+                'body' => $result['body'],
+                'raw' => $result['raw'],
             ]);
+
+            $pendaftaran->update(['PaymentStatus' => 'FAILED']);
+
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Gagal membuat pembayaran: ' . ($result['body']['message'][0] ?? 'Unknown error'));
+        }
+
+        $responseBody = $result['body'];
+
+        $pendaftaran->update([
+            'DokuPaymentUrl' => $responseBody['response']['payment']['url'] ?? null,
+            'DokuTokenId' => $responseBody['response']['payment']['token_id'] ?? null,
+            'DokuSessionId' => $responseBody['response']['order']['session_id'] ?? null,
+        ]);
+
+        $paymentUrl = $responseBody['response']['payment']['url'] ?? null;
+
+        if ($paymentUrl) {
+            return redirect()->away($paymentUrl);
+        }
+
+        return redirect()->back()->with('error', 'Payment URL tidak ditemukan.');
+    }
+
+    /**
+     * Halaman setelah user selesai bayar (callback dari DOKU)
+     */
+
+    public function paymentFinish(Request $request, $id)
+    {
+        $pendaftaran = PendaftaranTenant::findOrFail($id);
+        // Ambil credential dari session (jika ada)
+        $credentials = session()->pull('provisioned_credentials');
+        return view('landing-page.payment-finish', compact('pendaftaran', 'credentials'));
     }
 
     /**
@@ -146,103 +206,43 @@ class PendaftaranTenantController extends Controller
             'Status' => 'required|in:Y,N',
             'CatatanVerifikasi' => 'nullable|string|max:1000',
         ]);
-        // Mengambil data paket terkait dengan pendaftaran tenant
-        DB::beginTransaction();
-        try {
-            // 1. Update Status Pendaftaran
-            $PendaftaranTenant->update([
-                'Status' => $Request->Status,
-                'CatatanVerifikasi' => $Request->CatatanVerifikasi,
-                'VerifOleh' => Auth::user()->name ?? 'System',
-                'VerifPada' => now(),
-            ]);
 
-            // 2. Jika Disetujui (Y), Buat Master Tenant, User Admin, dan Tagihan Pertama
-            if ($Request->Status === 'Y') {
-                $TanggalJoin = now();
-                $PasswordPlain = Carbon::parse($PendaftaranTenant->created_at)->format('Ymd');
-
-                // A. Buat Data Master Tenant
-                $NewTenant = Tenant::create([
-                    'Nama' => $PendaftaranTenant->Nama ?? null,
-                    'Email' => $PendaftaranTenant->Email ?? null,
-                    'Alamat' => $PendaftaranTenant->Alamat ?? null,
-                    'Telepon' => $PendaftaranTenant->Telepon ?? null,
-                    'NamaPIC' => $PendaftaranTenant->NamaPIC ?? null,
-                    'EmailPIC' => $PendaftaranTenant->EmailPIC ?? null,
-                    'AlamatPIC' => $PendaftaranTenant->AlamatPIC ?? null,
-                    'TeleponPIC' => $PendaftaranTenant->TeleponPIC ?? null,
-                    'TanggalJoin' => $TanggalJoin,
-                    'StatusSubscription' => 'Aktif',
-                    'TanggalMulaiSubscription' => $TanggalJoin,
-                    'TanggalAkhirSubscription' => $TanggalJoin->copy()->addMonth($PendaftaranTenant->getPaket->DurasiBulan),
-                    'UserCreate' => Auth::user()->name ?? 'System',
-                ]);
-
-                // B. Buat User Admin untuk Tenant tersebut
-                $UserName = $PendaftaranTenant->NamaPIC ?: $PendaftaranTenant->Nama;
-                $UserEmail = $PendaftaranTenant->EmailPIC ?: $PendaftaranTenant->Email;
-
-                User::create([
-                    'tenant_id' => $NewTenant->Kode,
-                    'name' => $UserName,
-                    'email' => $UserEmail,
-                    'password' => Hash::make($PasswordPlain),
-                    'role' => 'Admin',
-                    'user_create' => Auth::user()->name ?? 'System',
-                ]);
-
-                $PeriodeBulan = now()->format('Y-m');
-                $TanggalJatuhTempo = now()->addDays(7);
-                $buktiPembayaranBaru = null;
-                if ($PendaftaranTenant->BuktiPembayaran && Storage::disk('public')->exists($PendaftaranTenant->BuktiPembayaran)) {
-                    $namaFile = basename($PendaftaranTenant->BuktiPembayaran);
-                    $targetPath = 'bukti-bayar/' . $namaFile;
-                    Storage::disk('public')->copy($PendaftaranTenant->BuktiPembayaran, $targetPath);
-                    $buktiPembayaranBaru = $targetPath;
-                }
-                TagihanPembayaran::create([
-                    'TenantId' => $NewTenant->Kode,
-                    'PeriodeBulan' => $PeriodeBulan,
-                    'TanggalJatuhTempo' => $TanggalJatuhTempo,
-                    'JumlahTagihan' => 149000,
-                    'StatusPembayaran' => 'Lunas',
-                    'TanggalPembayaran' => $TanggalJoin,
-                    'BerlakuHingga' => $TanggalJoin->copy()->addMonth($PendaftaranTenant->getPaket->DurasiBulan),
-                    'BuktiPembayaran' => $buktiPembayaranBaru,
-                    'Catatan' => null,
-                    'Status' => 'N/A',
-                    'CatatanVerifikasi' => null,
-                    'VerifPada' => null,
-                    'VerifOleh' => null,
-                    'UserCreate' => Auth::user()->name ?? 'System',
-                ]);
+        if ($Request->Status === 'Y') {
+            // Cek apakah pembayaran sudah lunas dulu
+            if ($PendaftaranTenant->PaymentStatus !== 'PAID') {
+                return redirect()->back()->with(
+                    'error',
+                    'Pembayaran belum lunas. Tunggu konfirmasi dari payment gateway.'
+                );
             }
 
-            DB::commit();
+            $result = $this->provisioning->provision(
+                $PendaftaranTenant,
+                Auth::user()->name ?? 'Admin',
+                $Request->CatatanVerifikasi,
+                false  // Admin tidak perlu flash password
+            );
 
-            // 3. Kirim Email Jika Disetujui dan Email PIC Ada
-            if ($Request->Status === 'Y' && !empty($UserEmail)) {
-                $LoginUrl = url('/login');
-
-                Mail::to($UserEmail)->send(new TenantApprovedMail(
-                    $UserName,
-                    $UserEmail,
-                    $PasswordPlain,
-                    $LoginUrl
-                ));
+            if (!$result['success']) {
+                return redirect()->back()->with('error', $result['error']);
             }
 
-            $Pesan = $Request->Status === 'Y'
-                ? 'Pendaftaran berhasil disetujui. Tenant, Akun Admin, dan Tagihan Pertama telah dibuat.'
-                : 'Pendaftaran tenant ditolak.';
-
-            return redirect()->route('pendaftaran-tenant.index')->with('success', $Pesan);
-        } catch (\Exception $Exception) {
-            dd($Exception);
-            DB::rollBack();
-            return redirect()->back()->with('error', 'Gagal memproses verifikasi: ' . $Exception->getMessage());
+            return redirect()
+                ->route('pendaftaran-tenant.index')
+                ->with('success', $result['message']);
         }
+
+        // Penolakan
+        $PendaftaranTenant->update([
+            'Status' => 'N',
+            'CatatanVerifikasi' => $Request->CatatanVerifikasi,
+            'VerifOleh' => Auth::user()->name ?? 'Admin',
+            'VerifPada' => now(),
+        ]);
+
+        return redirect()
+            ->route('pendaftaran-tenant.index')
+            ->with('success', 'Pendaftaran tenant ditolak.');
     }
 
     /**

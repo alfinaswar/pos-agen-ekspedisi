@@ -19,6 +19,10 @@ class PendaftaranTenant extends Model
      */
     protected $guarded = ['id'];
 
+    protected $casts = [
+        'PaymentExpiredAt' => 'datetime',
+        'PaidAt' => 'datetime',
+    ];
     public function getPaket()
     {
         return $this->belongsTo(MasterPaketHarga::class, 'Paket');

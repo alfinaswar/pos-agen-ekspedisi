@@ -6,13 +6,17 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use App\Models\Pengumuman; // Import Model
 use App\Models\Tenant;
+use App\Services\DokuService;
+use App\Services\TenantProvisioningService;
 use Illuminate\Support\Facades\Auth;
 
 class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        // Register DOKU & Provisioning sebagai singleton (hemat resource)
+        $this->app->singleton(DokuService::class);
+        $this->app->singleton(TenantProvisioningService::class);
     }
 
     public function boot(): void
