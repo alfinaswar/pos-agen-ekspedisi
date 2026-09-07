@@ -38,9 +38,10 @@ class TransaksiController extends Controller
                     'Status',
                     'BuktiBayar',
                     'Catatan',
-                    'TanggalJatuhTempo'  // <-- TAMBAHKAN 'Catatan'
+                    'TanggalJatuhTempo'
                 ])
                 ->orderBy('id', 'desc');
+
 
             // Kalau bukan admin/leader/finance, hanya tampilkan data milik user itu sendiri
             if (!auth()->user() || !in_array(auth()->user()->role, ['Admin', 'Leader', 'Finance'])) {
@@ -75,7 +76,7 @@ class TransaksiController extends Controller
             $totalPendapatan = (clone $query)->sum('Pendapatan') ?? 0;
             $totalDiskon = (clone $query)->sum('Diskon') ?? 0;
             $totalPendapatanBersih = (clone $query)->sum('PendapatanBersih') ?? 0;
-
+            $query->where('KodeTenant', auth()->user()->KodeTenant);
             // 4. Return DataTables
             return DataTables::of($query)
                 ->addIndexColumn()
@@ -188,19 +189,23 @@ class TransaksiController extends Controller
                 ->make(true);
         }
 
-        $ekspedisi = Ekspedisi::get();
+        $kodeTenant = auth()->user()->KodeTenant ?? null;
+        $ekspedisi = Ekspedisi::where('KodeTenant', $kodeTenant)->get();
         if (auth()->user() && !in_array(auth()->user()->role, ['Admin', 'Leader'])) {
-            $users = User::where('id', auth()->id())->get();
+            $users = User::where('id', auth()->id())->where('KodeTenant', $kodeTenant)->get();
         } else {
-            $users = User::all();
+            $users = User::where('KodeTenant', $kodeTenant)->get();
         }
+
 
         return view('transaksi.index', compact('ekspedisi', 'users'));
     }
 
     public function create()
     {
-        $ekspedisis = Ekspedisi::get();  // Uncomment jika model Ekspedisi sudah ada
+        $kodeTenant = auth()->user()->KodeTenant ?? null;
+        $ekspedisis = Ekspedisi::where('KodeTenant', $kodeTenant)->get();
+
         return view('transaksi.create', compact('ekspedisis'));
     }
 
@@ -224,6 +229,9 @@ class TransaksiController extends Controller
         $data = $request->except(['BuktiBayar']);
         $data['Divisi'] = auth()->user()->divisi ?? '-';
 
+        // Tambahkan KodeTenant dari user yang sedang login
+        $data['KodeTenant'] = auth()->user()->KodeTenant;
+
         if (empty($data['KodeTransaksi'])) {
             unset($data['KodeTransaksi']);
         }
@@ -244,7 +252,8 @@ class TransaksiController extends Controller
 
     public function edit(Transaksi $transaksi)
     {
-        $ekspedisis = Ekspedisi::get();
+        $kodeTenant = auth()->user()->KodeTenant ?? null;
+        $ekspedisis = Ekspedisi::where('KodeTenant', $kodeTenant)->get();
         return view('transaksi.edit', compact('transaksi', 'ekspedisis'));
     }
 
@@ -297,6 +306,8 @@ class TransaksiController extends Controller
 
         $data = $request->except(['BuktiBayar']);
         $data['UserUpdate'] = auth()->id();
+        // Tambahkan KodeTenant dari user yang sedang login (supaya update juga ikut konsisten multi tenant)
+        $data['KodeTenant'] = auth()->user()->KodeTenant;
 
         // 2. Handle Upload File Baru (dan Hapus File Lama)
         if ($request->hasFile('BuktiBayar')) {
@@ -337,8 +348,10 @@ class TransaksiController extends Controller
                 'Diskon',
                 'PendapatanBersih',
                 'Keterangan',
+                'KodeTenant', // Tambahkan kode tenant
             ])
             ->orderBy('created_at', 'desc');
+
 
         $FilterInfo = 'Semua Data';
         $Params = [];

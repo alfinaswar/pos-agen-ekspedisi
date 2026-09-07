@@ -18,7 +18,7 @@ class ReimbursementController extends Controller
     {
         if ($request->ajax()) {
             // Mulai query dasar
-            $query = Reimbursement::with('getUser')->latest()->select(['id', 'Tanggal', 'Nama', 'Item', 'Nominal', 'Status', 'BuktiUpload','BuktiTransfer']);
+            $query = Reimbursement::with('getUser')->latest()->select(['id', 'Tanggal', 'Nama', 'Item', 'Nominal', 'Status', 'BuktiUpload', 'BuktiTransfer', 'KodeTenant']);
 
             // Kalau bukan admin, tampilkan hanya data reimbursement yang dibuat oleh user login saat ini
             if (!auth()->user() || auth()->user()->role !== 'Admin') {
@@ -43,7 +43,8 @@ class ReimbursementController extends Controller
             if ($request->filled('nama')) {
                 $query->where('Nama', $request->input('nama'));
             }
-
+            // Filter by KodeTenant
+            $query->where('KodeTenant', auth()->user()->KodeTenant);
             return DataTables::of($query)
                 ->addIndexColumn()
                 ->addColumn('action', function ($row) {
@@ -89,6 +90,11 @@ class ReimbursementController extends Controller
         $query = Reimbursement::query();
         $filters = [];
 
+        // Filter by KodeTenant
+        if (auth()->user()) {
+            $query->where('KodeTenant', auth()->user()->KodeTenant);
+        }
+
         // 1. Filter Tanggal
         if ($request->filled('tanggal_awal') && $request->filled('tanggal_akhir')) {
             $query->whereBetween('Tanggal', [$request->tanggal_awal, $request->tanggal_akhir]);
@@ -126,6 +132,7 @@ class ReimbursementController extends Controller
         $data = $request->except(['BuktiUpload']);
         $data['Status'] = 'Menunggu'; // Default status saat user input
         $data['UserCreate'] = auth()->user()->id ?? null;
+        $data['KodeTenant'] = auth()->user()->KodeTenant ?? null;
 
         // Handle Upload File
         if ($request->hasFile('BuktiUpload')) {
@@ -160,6 +167,7 @@ class ReimbursementController extends Controller
         $data = $request->except(['BuktiUpload', 'BuktiTransfer']);
         // Catat siapa Owner yang mengubah status
         $data['OwnerUpdate'] = auth()->user()->name ?? 'Owner';
+        $data['KodeTenant'] = auth()->user()->KodeTenant ?? $reimbursement->KodeTenant;
 
         // Handle Upload File Baru untuk BuktiUpload
         if ($request->hasFile('BuktiUpload')) {
@@ -196,7 +204,10 @@ class ReimbursementController extends Controller
             if ($reimbursement->BuktiUpload && Storage::disk('public')->exists($reimbursement->BuktiUpload)) {
                 Storage::disk('public')->delete($reimbursement->BuktiUpload);
             }
-            $reimbursement->update(['UserDelete' => auth()->user()->name ?? 'System']);
+            $reimbursement->update([
+                'UserDelete' => auth()->user()->name ?? 'System',
+                'KodeTenant' => auth()->user()->KodeTenant ?? $reimbursement->KodeTenant
+            ]);
             $reimbursement->delete();
 
             return response()->json(['success' => true, 'status' => 200, 'message' => 'Data berhasil dihapus.']);

@@ -19,7 +19,7 @@ class PengumumanController extends Controller
             if ($Request->filled('Kategori')) {
                 $Query->where('Kategori', $Request->Kategori);
             }
-
+            $Query->where('KodeTenant', auth()->user()->KodeTenant);
             return DataTables::of($Query)
                 ->addIndexColumn()
                 ->editColumn('Kategori', function ($Row) {
@@ -83,6 +83,7 @@ class PengumumanController extends Controller
 
         $Data = $Request->except(['Gambar']);
         $Data['UserCreate'] = Auth::user()->name ?? 'System';
+        $Data['KodeTenant'] = Auth::user()->KodeTenant ?? null;
 
         // Handle Upload Gambar
         if ($Request->hasFile('Gambar')) {
@@ -90,7 +91,6 @@ class PengumumanController extends Controller
             $FileName = time() . '_' . preg_replace('/[^A-Za-z0-9\-_\.]/', '', $File->getClientOriginalName());
             $Data['Gambar'] = $File->storeAs('pengumuman', $FileName, 'public');
         }
-
 
         Pengumuman::create($Data);
 
@@ -120,6 +120,7 @@ class PengumumanController extends Controller
 
         $Data = $Request->except(['Gambar']);
         $Data['UserUpdate'] = Auth::user()->name ?? 'System';
+        $Data['KodeTenant'] = Auth::user()->KodeTenant ?? null; // Tambahkan KodeTenant
 
         // Handle Update Gambar
         if ($Request->hasFile('Gambar')) {

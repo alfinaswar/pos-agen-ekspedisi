@@ -16,8 +16,11 @@ class EkspedisiController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
+            $kodeTenant = auth()->user()->KodeTenant ?? null;
             $data = Ekspedisi::select(['id', 'NamaEkspedisi', 'Deskripsi'])
+                ->where('KodeTenant', $kodeTenant)
                 ->orderBy('id', 'desc'); // YANG TERBARU DULU
+
             return DataTables::of($data)
                 ->addIndexColumn()
                 ->addColumn('action', function ($row) {
@@ -52,19 +55,23 @@ class EkspedisiController extends Controller
      */
     public function store(Request $request)
     {
+        // Ambil kode tenant dari user login
+        $kodeTenant = auth()->user()->KodeTenant ?? null;
+
         // Validasi input
         $request->validate([
-            'NamaEkspedisi' => 'required|string|max:255|unique:ekspedisi,NamaEkspedisi',
+            'NamaEkspedisi' => 'required|string|max:255|unique:ekspedisi,NamaEkspedisi,NULL,id,KodeTenant,' . $kodeTenant,
             'Deskripsi' => 'nullable|string|max:1000',
         ], [
             'NamaEkspedisi.required' => 'Nama ekspedisi wajib diisi.',
             'NamaEkspedisi.unique' => 'Nama ekspedisi sudah terdaftar.',
         ]);
 
-        // Simpan data
+        // Simpan data beserta KodeTenant
         Ekspedisi::create([
             'NamaEkspedisi' => $request->NamaEkspedisi,
             'Deskripsi' => $request->Deskripsi,
+            'KodeTenant' => $kodeTenant,
         ]);
 
         // Redirect dengan pesan sukses (akan ditangkap oleh SweetAlert2 Toast di view)
@@ -85,16 +92,24 @@ class EkspedisiController extends Controller
      */
     public function update(Request $request, $id)
     {
-
         $ekspedisi = Ekspedisi::findOrFail($id);
+
+        // Ambil kode tenant dari user login
+        $kodeTenant = auth()->user()->KodeTenant ?? null;
+
+        // Validasi, pastikan unique-nya scoped by KodeTenant!
         $request->validate([
-            'NamaEkspedisi' => 'required|string|max:255|unique:ekspedisi,NamaEkspedisi,' . $ekspedisi->id,
+            'NamaEkspedisi' => 'required|string|max:255|unique:ekspedisi,NamaEkspedisi,' . $ekspedisi->id . ',id,KodeTenant,' . $kodeTenant,
             'Deskripsi' => 'nullable|string|max:1000',
+        ], [
+            'NamaEkspedisi.required' => 'Nama ekspedisi wajib diisi.',
+            'NamaEkspedisi.unique' => 'Nama ekspedisi sudah terdaftar.',
         ]);
 
         $ekspedisi->update([
             'NamaEkspedisi' => $request->NamaEkspedisi,
             'Deskripsi' => $request->Deskripsi,
+            'KodeTenant' => $kodeTenant, // Selalu update KodeTenant sesuai user login
         ]);
 
         return redirect()->route('ekspedisi.index')->with('success', 'Data ekspedisi berhasil diperbarui.');

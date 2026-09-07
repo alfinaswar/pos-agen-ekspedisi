@@ -9,6 +9,7 @@ use App\Models\Divisi;
 use App\Models\Transaksi;
 use App\Models\Ekspedisi;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Facades\Excel;
@@ -23,6 +24,9 @@ class LaporanController extends Controller
         $tanggal = $request->get('tanggal', $defaultDate);
         $date = Carbon::parse($tanggal);
 
+        // Ambil kode tenant dari user login
+        $kodeTenant = Auth::user()->KodeTenant;
+
         // 1. Tentukan Range Tanggal
         if ($type === 'harian') {
             $startDate = $date->copy()->startOfDay();
@@ -34,7 +38,9 @@ class LaporanController extends Controller
 
         // 2. Query Data Berdasarkan Tipe
         if ($type === 'per_user') {
-            $data = Transaksi::with('userCreate')->whereBetween('Tanggal', [$startDate, $endDate])
+            $data = Transaksi::with('userCreate')
+                ->whereBetween('Tanggal', [$startDate, $endDate])
+                ->where('KodeTenant', $kodeTenant)
                 ->select('UserCreate', DB::raw('COUNT(*) as jumlah_transaksi'), DB::raw('SUM(PendapatanBersih) as total_pendapatan'))
                 ->groupBy('UserCreate')
                 ->orderBy('total_pendapatan', 'desc')
@@ -47,6 +53,7 @@ class LaporanController extends Controller
             foreach ($data as $row) {
                 $breakdownData = Transaksi::whereBetween('Tanggal', [$startDate, $endDate])
                     ->where('UserCreate', $row->UserCreate)
+                    ->where('KodeTenant', $kodeTenant)
                     ->select('Ekspedisi', DB::raw('SUM(PendapatanBersih) as total_pendapatan'))
                     ->groupBy('Ekspedisi')
                     ->get();
@@ -63,6 +70,7 @@ class LaporanController extends Controller
 
         } elseif ($type === 'per_divisi') {
             $data = Transaksi::whereBetween('Tanggal', [$startDate, $endDate])
+                ->where('KodeTenant', $kodeTenant)
                 ->select('Divisi', DB::raw('COUNT(*) as jumlah_transaksi'), DB::raw('SUM(PendapatanBersih) as total_pendapatan'))
                 ->groupBy('Divisi')
                 ->get();
@@ -75,6 +83,7 @@ class LaporanController extends Controller
             foreach ($data as $row) {
                 $breakdownData = Transaksi::whereBetween('Tanggal', [$startDate, $endDate])
                     ->where('Divisi', $row->Divisi)
+                    ->where('KodeTenant', $kodeTenant)
                     ->select('Ekspedisi', DB::raw('SUM(PendapatanBersih) as total_pendapatan'))
                     ->groupBy('Ekspedisi')
                     ->get();
@@ -92,6 +101,7 @@ class LaporanController extends Controller
         } else {
             // Harian & Bulanan (Group by Ekspedisi)
             $data = Transaksi::whereBetween('Tanggal', [$startDate, $endDate])
+                ->where('KodeTenant', $kodeTenant)
                 ->select('Ekspedisi', DB::raw('COUNT(*) as jumlah_transaksi'), DB::raw('SUM(PendapatanBersih) as total_pendapatan'))
                 ->groupBy('Ekspedisi')
                 ->orderBy('total_pendapatan', 'desc')
@@ -104,11 +114,11 @@ class LaporanController extends Controller
                 return $expeditionNames[$id] ?? 'Ekspedisi ' . $id;
             })->toArray();
 
-
             // ✅ BREAKDOWN: Nominal per Divisi untuk setiap Ekspedisi
             foreach ($data as $row) {
                 $breakdownData = Transaksi::with('getDivisi')->whereBetween('Tanggal', [$startDate, $endDate])
                     ->where('Ekspedisi', $row->Ekspedisi)
+                    ->where('KodeTenant', $kodeTenant)
                     ->select('Divisi', DB::raw('SUM(PendapatanBersih) as total_pendapatan'))
                     ->groupBy('Divisi')
                     ->get();
@@ -154,6 +164,9 @@ class LaporanController extends Controller
         $tanggal = $request->get('tanggal', date('Y-m-d'));
         $date = Carbon::parse($tanggal);
 
+        // Ambil kode tenant dari user login
+        $kodeTenant = Auth::user()->KodeTenant;
+
         // 1. Tentukan range & nama file
         if ($type === 'harian') {
             $startDate = $date->copy()->startOfDay();
@@ -169,6 +182,7 @@ class LaporanController extends Controller
         // 2. Panggil Export Class yang SPESIFIK berdasarkan tipe
         if ($type === 'per_user') {
             $data = Transaksi::whereBetween('Tanggal', [$startDate, $endDate])
+                ->where('KodeTenant', $kodeTenant)
                 ->select('UserCreate', DB::raw('COUNT(*) as jumlah_transaksi'), DB::raw('SUM(PendapatanBersih) as total_pendapatan'))
                 ->groupBy('UserCreate')->orderBy('total_pendapatan', 'desc')->get();
 
@@ -179,6 +193,7 @@ class LaporanController extends Controller
 
         } elseif ($type === 'per_divisi') {
             $data = Transaksi::whereBetween('Tanggal', [$startDate, $endDate])
+                ->where('KodeTenant', $kodeTenant)
                 ->select('Divisi', DB::raw('COUNT(*) as jumlah_transaksi'), DB::raw('SUM(PendapatanBersih) as total_pendapatan'))
                 ->groupBy('Divisi')->orderBy('total_pendapatan', 'desc')->get();
 
@@ -190,6 +205,7 @@ class LaporanController extends Controller
         } else {
             // Harian & Bulanan (Ekspedisi)
             $data = Transaksi::whereBetween('Tanggal', [$startDate, $endDate])
+                ->where('KodeTenant', $kodeTenant)
                 ->select('Ekspedisi', DB::raw('COUNT(*) as jumlah_transaksi'), DB::raw('SUM(PendapatanBersih) as total_pendapatan'))
                 ->groupBy('Ekspedisi')->orderBy('total_pendapatan', 'desc')->get();
 

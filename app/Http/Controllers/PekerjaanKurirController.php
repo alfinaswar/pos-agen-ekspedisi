@@ -36,7 +36,7 @@ class PekerjaanKurirController extends Controller
 
             // Urutan default by terbaru
             $Query->orderByDesc('Tanggal')->orderByDesc('id');
-
+            $Query->where('KodeTenant', auth()->user()->KodeTenant);
             return DataTables::of($Query)
                 ->addIndexColumn()
                 ->editColumn('Tanggal', function ($Row) {
@@ -187,7 +187,7 @@ class PekerjaanKurirController extends Controller
             'Keterangan' => $Request->input('Keterangan'),
             'IdUser' => Auth::id(),
             'UserCreate' => Auth::user()->name ?? 'System',
-            // 'Tenant'       => Auth::user()->tenant ?? null,
+            'KodeTenant' => Auth::user()->KodeTenant ?? null, // Tambah KodeTenant
         ];
 
         if ($Request->hasFile('BuktiFoto')) {
@@ -222,6 +222,7 @@ class PekerjaanKurirController extends Controller
 
         $Data = $Request->except(['BuktiFoto']);
         $Data['UserUpdate'] = Auth::user()->name ?? 'System';
+        $Data['KodeTenant'] = Auth::user()->KodeTenant ?? null; // Pastikan KodeTenant selalu di-update/ikut
 
         if ($Request->hasFile('BuktiFoto')) {
             if ($PekerjaanKurir->BuktiFoto && Storage::disk('public')->exists($PekerjaanKurir->BuktiFoto)) {

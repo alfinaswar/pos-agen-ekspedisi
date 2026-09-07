@@ -15,7 +15,10 @@ class UserController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $data = User::select(['id', 'name', 'email', 'email_verified_at', 'role', 'divisi', 'no_hp', 'created_at']);
+            $data = User::select(['id', 'name', 'email', 'email_verified_at', 'role', 'divisi', 'no_hp', 'created_at'])
+                        ->where('KodeTenant', auth()->user()->KodeTenant);
+
+
 
             return DataTables::of($data)
                 ->addIndexColumn()
@@ -76,6 +79,10 @@ class UserController extends Controller
         ]);
 
         $data = $request->except(['password', 'foto_profil', 'foto_ktp']);
+
+        // Tambahkan KodeTenant dari user yang sedang login
+        $data['KodeTenant'] = auth()->user()->KodeTenant;
+
         $data['password'] = Hash::make($request->password);
 
         // ✅ Handle Upload Foto Profil dengan storeAs
@@ -117,6 +124,9 @@ class UserController extends Controller
         ]);
 
         $data = $request->except(['password', 'foto_profil', 'foto_ktp']);
+
+        // Tambahkan KodeTenant dari user yang sedang login
+        $data['KodeTenant'] = auth()->user()->KodeTenant;
 
         if ($request->filled('password')) {
             $data['password'] = Hash::make($request->password);
