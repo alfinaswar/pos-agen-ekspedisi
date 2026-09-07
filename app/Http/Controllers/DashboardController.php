@@ -22,14 +22,18 @@ class DashboardController extends Controller
         $selectedYear = $request->query('tahun') ? intval($request->query('tahun')) : Carbon::now()->year;
         $currentMonth = Carbon::create($selectedYear, $selectedMonth, 1);
 
-        // 1. Total Pendapatan & Transaksi Bulan Ini (Menggunakan PendapatanBersih)
-        $totalPendapatan = Transaksi::whereMonth('Tanggal', $currentMonth->month)
-            ->whereYear('Tanggal', $currentMonth->year)
-            ->sum('PendapatanBersih');
+        // Ambil kode tenant dari request, jika ada
+        $kodeTenant = $request->query('kode_tenant');
 
-        $totalTransaksi = Transaksi::whereMonth('Tanggal', $currentMonth->month)
-            ->whereYear('Tanggal', $currentMonth->year)
-            ->count();
+        // 1. Total Pendapatan & Transaksi Bulan Ini (Menggunakan PendapatanBersih)
+        $transaksiQuery = Transaksi::whereMonth('Tanggal', $currentMonth->month)
+            ->whereYear('Tanggal', $currentMonth->year);
+
+        if ($kodeTenant) {
+            $transaksiQuery->where('KodeTenant', $kodeTenant);
+        }
+        $totalPendapatan = (clone $transaksiQuery)->sum('PendapatanBersih');
+        $totalTransaksi = (clone $transaksiQuery)->count();
 
         $avgTransaksiPerHari = $totalTransaksi > 0 ? round($totalTransaksi / $currentMonth->daysInMonth, 1) : 0;
         $reimbursementPending = Reimbursement::where('Status', 'Menunggu')->count();
@@ -45,12 +49,18 @@ class DashboardController extends Controller
         // 6. Pendapatan per Ekspedisi per bulan (TAMPILKAN SEMUA)
         $ekspedisiPerBulanData = [];
         for ($bln = 1; $bln <= 12; $bln++) {
-            $expData = Transaksi::select('Ekspedisi', DB::raw('SUM(PendapatanBersih) as total'))
+            $expDataQuery = Transaksi::select('Ekspedisi', DB::raw('SUM(PendapatanBersih) as total'))
                 ->whereMonth('Tanggal', $bln)
-                ->whereYear('Tanggal', $selectedYear)
+                ->whereYear('Tanggal', $selectedYear);
+
+            if ($kodeTenant) {
+                $expDataQuery->where('KodeTenant', $kodeTenant);
+            }
+
+            $expData = $expDataQuery
                 ->groupBy('Ekspedisi')
                 ->orderBy('total', 'desc')
-                ->get(); // <-- limit(5) DIHAPUS, tampilkan semua ekspedisi
+                ->get();
 
             $ekspedisiPerBulanData[$bln] = [
                 'labels' => $expData->pluck('Ekspedisi')->map(fn($exp) => $expeditionNames[$exp] ?? 'Ekspedisi ' . $exp)->toArray(),
@@ -61,13 +71,17 @@ class DashboardController extends Controller
         // 6b. Pendapatan per User per bulan (SEMUA User, tanpa limit)
         $userPerBulanData = [];
         for ($bln = 1; $bln <= 12; $bln++) {
-            $userData = Transaksi::with('userCreate')->select('UserCreate', DB::raw('SUM(PendapatanBersih) as total'))
+            $userDataQuery = Transaksi::with('userCreate')->select('UserCreate', DB::raw('SUM(PendapatanBersih) as total'))
                 ->whereMonth('Tanggal', $bln)
                 ->whereYear('Tanggal', $selectedYear)
-                ->whereNotNull('UserCreate') // Hindari group by null
+                ->whereNotNull('UserCreate');
+            if ($kodeTenant) {
+                $userDataQuery->where('KodeTenant', $kodeTenant);
+            }
+            $userData = $userDataQuery
                 ->groupBy('UserCreate')
                 ->orderBy('total', 'desc')
-                ->get(); // <-- limit(5) DIHAPUS
+                ->get();
 
             $userPerBulanData[$bln] = [
                 'labels' => $userData->pluck('userCreate.name')->map(fn($n) => $n ?: 'Tidak Diketahui')->toArray(),
@@ -78,13 +92,17 @@ class DashboardController extends Controller
         // 6c. Pendapatan per Divisi per bulan (SEMUA Divisi, tanpa limit)
         $divisiPerBulanData = [];
         for ($bln = 1; $bln <= 12; $bln++) {
-            $divisiData = Transaksi::with('getDivisi')->select('Divisi', DB::raw('SUM(PendapatanBersih) as total'))
+            $divisiDataQuery = Transaksi::with('getDivisi')->select('Divisi', DB::raw('SUM(PendapatanBersih) as total'))
                 ->whereMonth('Tanggal', $bln)
                 ->whereYear('Tanggal', $selectedYear)
-                ->whereNotNull('Divisi') // Hindari group by null
+                ->whereNotNull('Divisi');
+            if ($kodeTenant) {
+                $divisiDataQuery->where('KodeTenant', $kodeTenant);
+            }
+            $divisiData = $divisiDataQuery
                 ->groupBy('Divisi')
                 ->orderBy('total', 'desc')
-                ->get(); // <-- limit(5) DIHAPUS
+                ->get();
 
             $divisiPerBulanData[$bln] = [
                 'labels' => $divisiData->pluck('getDivisi.Nama')->map(fn($n) => $n ?: 'Tanpa Divisi')->toArray(),
@@ -104,8 +122,12 @@ class DashboardController extends Controller
         $trendData = [];
         for ($i = 6; $i >= 0; $i--) {
             $date = Carbon::today()->subDays($i);
+            $trendPendapatanQuery = Transaksi::whereDate('Tanggal', $date);
+            if ($kodeTenant) {
+                $trendPendapatanQuery->where('KodeTenant', $kodeTenant);
+            }
             $trendLabels[] = $date->isoFormat('ddd');
-            $trendData[] = Transaksi::whereDate('Tanggal', $date)->sum('PendapatanBersih');
+            $trendData[] = $trendPendapatanQuery->sum('PendapatanBersih');
         }
 
         // 9. Statistik Kehadiran Minggu Ini
@@ -118,7 +140,12 @@ class DashboardController extends Controller
         }
 
         // 10 & 11. Data Terbaru
-        $transaksiTerbaru = Transaksi::with('ekspedisi')->orderBy('Tanggal', 'desc')->limit(5)->get();
+        $transaksiTerbaruQuery = Transaksi::with('ekspedisi')->orderBy('Tanggal', 'desc')->limit(5);
+        if ($kodeTenant) {
+            $transaksiTerbaruQuery->where('KodeTenant', $kodeTenant);
+        }
+        $transaksiTerbaru = $transaksiTerbaruQuery->get();
+
         $reimbursementTerbaru = Reimbursement::orderBy('created_at', 'desc')->limit(5)->get();
 
         // Dropdown Options
@@ -155,47 +182,111 @@ class DashboardController extends Controller
             'selectedYear',
             'availableMonths',
             'availableYears',
-            'selectedBulan' // Sekarang variabel ini sudah terdefinisi
+            'selectedBulan', // Sekarang variabel ini sudah terdefinisi
+            'kodeTenant' // kirim ke view jika perlu
         ));
     }
-    public function IndexTenant()
+    public function IndexTenant(Request $request)
     {
         $Now = Carbon::now();
 
+        // Ambil kode tenant dari request, jika ada
+        $kodeTenant = $request->query('kode_tenant');
+
         // 1. Total Tenant
-        $TotalTenant = Tenant::count();
-        $TenantAktif = Tenant::where('StatusSubscription', 'Aktif')->count();
-        $TenantExpired = Tenant::where('StatusSubscription', 'Expired')->count();
-        $TenantNonaktif = Tenant::where('StatusSubscription', 'Nonaktif')->count();
+        $tenantQuery = Tenant::query();
+        if ($kodeTenant) {
+            $tenantQuery->where('KodeTenant', $kodeTenant);
+        }
+        $TotalTenant = $tenantQuery->count();
+
+        $TenantAktif = Tenant::when($kodeTenant, function($query) use ($kodeTenant) {
+                return $query->where('KodeTenant', $kodeTenant);
+            })
+            ->where('StatusSubscription', 'Aktif')->count();
+        $TenantExpired = Tenant::when($kodeTenant, function($query) use ($kodeTenant) {
+                return $query->where('KodeTenant', $kodeTenant);
+            })
+            ->where('StatusSubscription', 'Expired')->count();
+        $TenantNonaktif = Tenant::when($kodeTenant, function($query) use ($kodeTenant) {
+                return $query->where('KodeTenant', $kodeTenant);
+            })
+            ->where('StatusSubscription', 'Nonaktif')->count();
 
         // 2. Pendapatan
-        $TotalPendapatan = TagihanPembayaran::where('StatusPembayaran', 'Lunas')->sum('JumlahTagihan');
-        $PendapatanBulanIni = TagihanPembayaran::where('StatusPembayaran', 'Lunas')
+        $pendapatanQuery = TagihanPembayaran::where('StatusPembayaran', 'Lunas');
+        if ($kodeTenant) {
+            $pendapatanQuery->whereHas('Tenant', function($q) use ($kodeTenant) {
+                $q->where('KodeTenant', $kodeTenant);
+            });
+        }
+        $TotalPendapatan = $pendapatanQuery->sum('JumlahTagihan');
+
+        $PendapatanBulanIniQuery = TagihanPembayaran::where('StatusPembayaran', 'Lunas')
             ->whereYear('TanggalPembayaran', $Now->year)
-            ->whereMonth('TanggalPembayaran', $Now->month)
-            ->sum('JumlahTagihan');
+            ->whereMonth('TanggalPembayaran', $Now->month);
+        if ($kodeTenant) {
+            $PendapatanBulanIniQuery->whereHas('Tenant', function($q) use ($kodeTenant) {
+                $q->where('KodeTenant', $kodeTenant);
+            });
+        }
+        $PendapatanBulanIni = $PendapatanBulanIniQuery->sum('JumlahTagihan');
 
         // 3. Tagihan
-        $TotalTagihanBelumBayar = TagihanPembayaran::where('StatusPembayaran', 'Belum Bayar')->count();
-        $NominalBelumBayar = TagihanPembayaran::where('StatusPembayaran', 'Belum Bayar')->sum('JumlahTagihan');
-        $TotalTagihanTerlambat = TagihanPembayaran::where('StatusPembayaran', 'Terlambat')->count();
+        $TagihanBelumBayarQuery = TagihanPembayaran::where('StatusPembayaran', 'Belum Bayar');
+        $TagihanTerlambatQuery = TagihanPembayaran::where('StatusPembayaran', 'Terlambat');
+        $TagihanNominalBelumBayarQuery = TagihanPembayaran::where('StatusPembayaran', 'Belum Bayar');
+
+        if ($kodeTenant) {
+            $TagihanBelumBayarQuery->whereHas('Tenant', function($q) use ($kodeTenant) {
+                $q->where('KodeTenant', $kodeTenant);
+            });
+            $TagihanTerlambatQuery->whereHas('Tenant', function($q) use ($kodeTenant) {
+                $q->where('KodeTenant', $kodeTenant);
+            });
+            $TagihanNominalBelumBayarQuery->whereHas('Tenant', function($q) use ($kodeTenant) {
+                $q->where('KodeTenant', $kodeTenant);
+            });
+        }
+
+        $TotalTagihanBelumBayar = $TagihanBelumBayarQuery->count();
+        $NominalBelumBayar = $TagihanNominalBelumBayarQuery->sum('JumlahTagihan');
+        $TotalTagihanTerlambat = $TagihanTerlambatQuery->count();
 
         // 4. Pendaftaran Pending
-        $PendaftaranPending = PendaftaranTenant::where('Status', 'N/A')->count();
-        $PendaftaranHariIni = PendaftaranTenant::whereDate('created_at', $Now->toDateString())->count();
+        $PendaftaranPendingQuery = PendaftaranTenant::where('Status', 'N/A');
+        $PendaftaranHariIniQuery = PendaftaranTenant::whereDate('created_at', $Now->toDateString());
+
+        if ($kodeTenant) {
+            $PendaftaranPendingQuery->whereHas('Tenant', function($q) use ($kodeTenant) {
+                $q->where('KodeTenant', $kodeTenant);
+            });
+            $PendaftaranHariIniQuery->whereHas('Tenant', function($q) use ($kodeTenant) {
+                $q->where('KodeTenant', $kodeTenant);
+            });
+        }
+
+        $PendaftaranPending = $PendaftaranPendingQuery->count();
+        $PendaftaranHariIni = $PendaftaranHariIniQuery->count();
 
         // 5. Subscription Akan Habis (7 hari)
-        $SubscriptionAkanHabis = Tenant::where('StatusSubscription', 'Aktif')
-            ->whereBetween('TanggalAkhirSubscription', [$Now, $Now->copy()->addDays(7)])
-            ->count();
+        $SubscriptionAkanHabisQuery = Tenant::where('StatusSubscription', 'Aktif')
+            ->whereBetween('TanggalAkhirSubscription', [$Now, $Now->copy()->addDays(7)]);
+        if ($kodeTenant) {
+            $SubscriptionAkanHabisQuery->where('KodeTenant', $kodeTenant);
+        }
+        $SubscriptionAkanHabis = $SubscriptionAkanHabisQuery->count();
 
         // 6. Pertumbuhan Tenant (6 bulan terakhir)
         $PertumbuhanTenant = [];
         for ($Index = 5; $Index >= 0; $Index--) {
             $Month = $Now->copy()->subMonths($Index);
-            $Count = Tenant::whereYear('created_at', $Month->year)
-                ->whereMonth('created_at', $Month->month)
-                ->count();
+            $PertumbuhanTenantQuery = Tenant::whereYear('created_at', $Month->year)
+                ->whereMonth('created_at', $Month->month);
+            if ($kodeTenant) {
+                $PertumbuhanTenantQuery->where('KodeTenant', $kodeTenant);
+            }
+            $Count = $PertumbuhanTenantQuery->count();
             $PertumbuhanTenant[] = [
                 'Month' => $Month->format('M Y'),
                 'Count' => $Count
@@ -203,13 +294,18 @@ class DashboardController extends Controller
         }
 
         // 7. Top 5 Tenant by Revenue
-        $TopTenant = TagihanPembayaran::select('TenantId', DB::raw('SUM(JumlahTagihan) as TotalRevenue'))
+        $TopTenantQuery = TagihanPembayaran::select('TenantId', DB::raw('SUM(JumlahTagihan) as TotalRevenue'))
             ->where('StatusPembayaran', 'Lunas')
             ->groupBy('TenantId')
             ->orderBy('TotalRevenue', 'desc')
             ->limit(5)
-            ->with('Tenant')
-            ->get();
+            ->with('Tenant');
+        if ($kodeTenant) {
+            $TopTenantQuery->whereHas('Tenant', function($q) use ($kodeTenant) {
+                $q->where('KodeTenant', $kodeTenant);
+            });
+        }
+        $TopTenant = $TopTenantQuery->get();
 
         // ✅ GROUP SEMUA VARIABEL KE DALAM ARRAY $Data AGAR COCOK DENGAN VIEW
         $Data = [
@@ -227,6 +323,7 @@ class DashboardController extends Controller
             'SubscriptionAkanHabis' => $SubscriptionAkanHabis,
             'PertumbuhanTenant' => $PertumbuhanTenant,
             'TopTenant' => $TopTenant,
+            'kodeTenant' => $kodeTenant
         ];
 
         return view('dashboard-manajemen-tenant', compact('Data'));

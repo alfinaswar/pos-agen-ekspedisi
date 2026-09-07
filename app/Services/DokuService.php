@@ -26,7 +26,11 @@ class DokuService
     public function createCheckout(array $params): array
     {
         $requestId = (string) Str::uuid();
+        // Base endpoint untuk DOKU pembayaran
         $requestTarget = '/checkout/v1/payment';
+
+        // Untuk production:
+        // $requestTarget = '/checkout/v1/payment'; // Biasanya sama, hanya baseUrl yang beda
         $timestamp = Carbon::now('UTC')->format('Y-m-d\TH:i:s\Z');
 
         $body = [
