@@ -41,7 +41,7 @@ class TransaksiController extends Controller
                     'TanggalJatuhTempo'
                 ])
                 ->orderBy('id', 'desc');
-
+            $query->where('KodeTenant', auth()->user()->KodeTenant);
 
             // Kalau bukan admin/leader/finance, hanya tampilkan data milik user itu sendiri
             if (!auth()->user() || !in_array(auth()->user()->role, ['Admin', 'Leader', 'Finance'])) {
@@ -76,7 +76,7 @@ class TransaksiController extends Controller
             $totalPendapatan = (clone $query)->sum('Pendapatan') ?? 0;
             $totalDiskon = (clone $query)->sum('Diskon') ?? 0;
             $totalPendapatanBersih = (clone $query)->sum('PendapatanBersih') ?? 0;
-            $query->where('KodeTenant', auth()->user()->KodeTenant);
+
             // 4. Return DataTables
             return DataTables::of($query)
                 ->addIndexColumn()
