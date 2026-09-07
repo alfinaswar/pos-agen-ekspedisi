@@ -2,13 +2,14 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\View;
-use App\Models\Pengumuman; // Import Model
+use App\Models\Pengumuman;  // Import Model
 use App\Models\Tenant;
 use App\Services\DokuService;
 use App\Services\TenantProvisioningService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -21,6 +22,9 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        if (str_starts_with(config('app.url'), 'https://')) {
+            URL::forceScheme('https');
+        }
         // View Composer: Mengirim data ke layout 'layouts.app'
         View::composer('layouts.app', function ($View) {
             $RecentAnnouncements = Pengumuman::latest()

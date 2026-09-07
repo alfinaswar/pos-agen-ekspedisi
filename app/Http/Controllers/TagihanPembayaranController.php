@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\MasterPaketHarga;
 use App\Models\TagihanPembayaran;
 use App\Models\Tenant;
+use App\Services\DokuService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -25,7 +28,6 @@ class TagihanPembayaranController extends Controller
                     $q->where('Kode', $User->KodeTenant);
                 });
             }
-
 
             // ✅ TAMBAHAN: Logika Filter Tahun dan Bulan
             $FilterTahun = $Request->FilterTahun ?? null;
@@ -105,63 +107,158 @@ class TagihanPembayaranController extends Controller
         $Tenants = $User->role === 'Superadmin'
             ? Tenant::select('id', 'Kode', 'Nama')->orderBy('Nama', 'asc')->get()
             : Tenant::select('id', 'Kode', 'Nama')->where('id', $User->TenantId ?? 0)->get();
+        $Now = Carbon::now();
+        $SevenDaysFromNow = $Now->copy()->addDays(7);
 
-        return view('tagihan-pembayaran.index', compact('Tenants'));
+        $TenantAkanHabis = Tenant::where('StatusSubscription', 'Aktif')
+            ->whereBetween('TanggalAkhirSubscription', [$Now, $SevenDaysFromNow])
+            ->orderBy('TanggalAkhirSubscription', 'asc')
+            ->get();
+        return view('tagihan-pembayaran.index', compact('Tenants', 'TenantAkanHabis'));
     }
 
     public function Create()
     {
-        // KodeTenant ditambahkan ke variabel Tenants supaya bisa dipakai di form create
-        $Tenants = Tenant::where('StatusSubscription', 'Aktif')->get(['id', 'Kode', 'Nama']);
-        return view('tagihan-pembayaran.create', compact('Tenants'));
+        $user = auth()->user();
+        $KodeTenant = $user->KodeTenant ?? null;
+        if ($user->role === 'Superadmin') {
+            $Tenants = Tenant::where('StatusSubscription', 'Aktif')->get(['id', 'Kode', 'Nama']);
+        } else {
+            $Tenants = Tenant::where('StatusSubscription', 'Aktif')
+                ->where('Kode', $KodeTenant)
+                ->get(['id', 'Kode', 'Nama']);
+        }
+        $Paket = MasterPaketHarga::get();
+        return view('tagihan-pembayaran.create', compact('Tenants', 'KodeTenant', 'Paket'));
     }
+
     public function Show(TagihanPembayaran $TagihanPembayaran)
     {
         // Muat relasi Tenant agar data nama tenant dan kode tenant tersedia di view
         $TagihanPembayaran->load('Tenant');
         return view('tagihan-pembayaran.show', compact('TagihanPembayaran'));
     }
-    public function Store(Request $Request)
+
+    public function Store(Request $Request, DokuService $doku)
     {
-        // 1. Validasi Input
+        // 1. Validasi Input (sesuaikan dengan nama field di form view)
         $Request->validate([
-            'TenantId' => 'required|exists:tenants,id',
+            'TenantId' => 'required|exists:tenants,Kode',
+            'Paket' => 'nullable|exists:master_paket_hargas,id',
             'PeriodeBulan' => 'required|date_format:Y-m',
-            'JumlahTagihan' => 'required|string',
-            'TanggalPembayaran' => 'required|date',
-            'BerlakuHingga' => 'required|date|after_or_equal:TanggalPembayaran',
-            'BuktiPembayaran' => 'required|file|mimes:jpeg,png,jpg,pdf|max:2048',
+            'harga' => 'required|string',  // ← FIELD DI VIEW = 'harga'
+            'TanggalJatuhTempo' => 'required|date',
+            'BerlakuHingga' => 'required|date|after_or_equal:TanggalJatuhTempo',
             'Catatan' => 'nullable|string|max:1000',
+        ], [
+            'required' => ':attribute wajib diisi.',
+            'exists' => ':attribute tidak valid.',
+            'date' => ':attribute harus berupa tanggal.',
+            'date_format' => 'Format :attribute harus YYYY-MM.',
+            'after_or_equal' => ':attribute harus sama atau setelah Tanggal Jatuh Tempo.',
         ]);
 
-        // 2. Bersihkan format angka (hapus titik ribuan)
-        $CleanAmount = str_replace('.', '', $Request->JumlahTagihan);
+        // 2. Bersihkan format angka (Rp 149.000 → 149000)
+        $CleanAmount = (int) preg_replace('/[^0-9]/', '', $Request->harga);
 
-        // 3. Siapkan data untuk disimpan
-        $Data = $Request->except(['JumlahTagihan', 'BuktiPembayaran', 'BerlakuHingga']);
-        $Data['JumlahTagihan'] = $CleanAmount;
+        if ($CleanAmount <= 0) {
+            return back()->withErrors(['harga' => 'Jumlah tagihan harus lebih dari 0.'])->withInput();
+        }
+        // dd('123');
+        // 3. Ambil data tenant
+        $tenant = Tenant::where('Kode', $Request->TenantId)->firstOrFail();
 
-        // Mapping field 'BerlakuHingga' dari view ke 'TanggalJatuhTempo' di database
-        $Data['TanggalJatuhTempo'] = $Request->BerlakuHingga;
+        // 4. Generate nomor invoice DOKU
+        $invoiceNumber = 'INV-' . date('Ymd') . '-' . strtoupper(Str::random(6));
 
-        $Data['StatusPembayaran'] = 'Lunas'; // Default status saat dibuat
-        $Data['UserCreate'] = Auth::user()->name ?? 'System';
+        // 5. Siapkan data tagihan
+        $Data = [
+            'TenantId' => $tenant->id,
+            'KodeTenant' => $tenant->Kode,
+            'NomorTagihan' => $invoiceNumber,
+            'Paket' => $Request->Paket,
+            'PeriodeBulan' => $Request->PeriodeBulan,
+            'TanggalJatuhTempo' => $Request->TanggalJatuhTempo,
+            'JumlahTagihan' => $CleanAmount,
+            'StatusPembayaran' => 'Belum Bayar',
+            'PaymentStatus' => 'PENDING',
+            'TanggalPembayaran' => null,
+            'BerlakuHingga' => $Request->BerlakuHingga,
+            'BuktiPembayaran' => null,
+            'Catatan' => $Request->Catatan,
+            'Status' => 'N/A',
+            'CatatanVerifikasi' => null,
+            'DokuInvoiceNumber' => $invoiceNumber,
+            'UserCreate' => Auth::user()->name ?? 'System',
+        ];
 
-        // Tambahkan KodeTenant pada data yang diinsert
-        $tenant = Tenant::find($Request->TenantId);
-        $Data['KodeTenant'] = $tenant ? $tenant->Kode : null;
+        // 6. Simpan tagihan dulu
+        $tagihan = TagihanPembayaran::create($Data);
 
-        // 4. Handle Upload File
-        if ($Request->hasFile('BuktiPembayaran')) {
-            $File = $Request->file('BuktiPembayaran');
-            $FileName = time() . '_' . preg_replace('/[^A-Za-z0-9\-_\.]/', '', $File->getClientOriginalName());
-            $Data['BuktiPembayaran'] = $File->storeAs('tagihan', $FileName, 'public');
+        // 7. Normalize phone tenant
+        $rawPhone = $tenant->TeleponPIC ?? $tenant->Telepon ?? '';
+        $normalizedPhone = $doku->normalizePhone($rawPhone);
+
+        // 8. 🔥 FIX: Generate URL tanpa forceScheme (sudah di AppServiceProvider)
+        $callbackUrl = route('tagihan-pembayaran.payment-finish', $tagihan->id);
+        $notificationUrl = route('webhooks.doku');
+
+        // 9. Generate DOKU Checkout
+        $result = $doku->createCheckout([
+            'amount' => $CleanAmount,
+            'invoice_number' => $invoiceNumber,
+            'callback_url' => $callbackUrl,
+            'notification_url' => $notificationUrl,
+            'payment_due_date' => 60 * 24,  // 24 jam untuk tagihan
+            'customer_id' => 'TENANT-' . $tenant->Kode,
+            'customer_name' => $tenant->NamaPIC ?? $tenant->Nama,
+            'customer_email' => $tenant->EmailPIC ?? $tenant->Email,
+            'customer_phone' => $normalizedPhone,
+        ]);
+        // dd($result);
+        if (!$result['success']) {
+            \Log::error('DOKU Checkout failed for tagihan', [
+                'tagihan_id' => $tagihan->id,
+                'status' => $result['status'],
+                'body' => $result['body'],
+            ]);
+
+            $tagihan->update(['PaymentStatus' => 'FAILED']);
+
+            return redirect()
+                ->route('tagihan-pembayaran.index')
+                ->with('error', 'Tagihan berhasil dibuat, tapi link pembayaran gagal dibuat: '
+                    . ($result['body']['error']['message'] ?? $result['body']['message'][0] ?? 'Unknown error'));
         }
 
-        // 5. Simpan ke Database
-        TagihanPembayaran::create($Data);
+        $responseBody = $result['body'];
 
-        return redirect()->route('tagihan-pembayaran.index')->with('success', 'Tagihan pembayaran berhasil dibuat.');
+        // 10. Update tagihan dengan data dari DOKU
+        $updateData = [
+            'DokuPaymentUrl' => $responseBody['response']['payment']['url'] ?? null,
+            'DokuTokenId' => $responseBody['response']['payment']['token_id'] ?? null,
+            'DokuSessionId' => $responseBody['response']['order']['session_id'] ?? null,
+        ];
+
+        // Parse expired_date dengan aman
+        if (!empty($responseBody['response']['payment']['expired_date'])) {
+            try {
+                $updateData['PaymentExpiredAt'] = \Carbon\Carbon::createFromFormat(
+                    'YmdHis',
+                    $responseBody['response']['payment']['expired_date']
+                );
+            } catch (\Exception $e) {
+                $updateData['PaymentExpiredAt'] = now()->addHours(24);
+            }
+        } else {
+            $updateData['PaymentExpiredAt'] = now()->addHours(24);
+        }
+
+        $tagihan->update($updateData);
+
+        return redirect()
+            ->route('tagihan-pembayaran.payment-finish', $tagihan->id)
+            ->with('success', 'Tagihan berhasil dibuat. Link pembayaran siap dibagikan ke tenant.');
     }
 
     public function Edit(TagihanPembayaran $TagihanPembayaran)
@@ -194,7 +291,7 @@ class TagihanPembayaranController extends Controller
         // 3. Siapkan data untuk diupdate
         $Data = $Request->except(['JumlahTagihan', 'BuktiPembayaran', 'BerlakuHingga']);
         $Data['JumlahTagihan'] = $CleanAmount;
-        $Data['TanggalJatuhTempo'] = $Request->BerlakuHingga; // Mapping ke DB
+        $Data['TanggalJatuhTempo'] = $Request->BerlakuHingga;  // Mapping ke DB
         $Data['UserUpdate'] = Auth::user()->name ?? 'System';
 
         // Update KodeTenant sesuai TenantId yang terbaru
@@ -314,6 +411,7 @@ class TagihanPembayaranController extends Controller
             'message' => "Berhasil memverifikasi {$UpdatedCount} tagihan pembayaran dengan status {$Request->Status}."
         ]);
     }
+
     public function KonfirmasiProses(Request $Request, TagihanPembayaran $TagihanPembayaran)
     {
         $Request->validate([
@@ -359,5 +457,83 @@ class TagihanPembayaranController extends Controller
             'success',
             'Pembayaran berhasil diverifikasi. Status telah diubah menjadi ' . $UpdateData['StatusPembayaran'] . '.'
         );
+    }
+
+    public function paymentFinish(Request $request, $id)
+    {
+        $tagihan = TagihanPembayaran::with('tenant')->findOrFail($id);
+
+        // Auto-provision update kalau sudah PAID
+        if ($tagihan->PaymentStatus === 'PENDING' && $tagihan->DokuInvoiceNumber) {
+            $doku = app(DokuService::class);
+            $result = $doku->checkPaymentStatus($tagihan->DokuInvoiceNumber);
+
+            if ($result['success'] && isset($result['body']['transaction']['status'])) {
+                $dokuStatus = strtoupper($result['body']['transaction']['status']);
+
+                if ($dokuStatus === 'SUCCESS') {
+                    $tagihan->update([
+                        'PaymentStatus' => 'PAID',
+                        'StatusPembayaran' => 'Lunas',
+                        'TanggalPembayaran' => now(),
+                        'PaidAt' => now(),
+                        'PaymentChannel' => $result['body']['channel']['id'] ?? null,
+                        'BuktiPembayaran' => 'DOKU-' . $tagihan->DokuInvoiceNumber,
+                        'UserUpdate' => Auth::user()->name ?? 'System (DOKU)',
+                    ]);
+                    $tagihan->refresh();
+                } elseif ($dokuStatus === 'FAILED') {
+                    $tagihan->update(['PaymentStatus' => 'FAILED']);
+                } elseif ($dokuStatus === 'EXPIRED') {
+                    $tagihan->update(['PaymentStatus' => 'EXPIRED']);
+                }
+            }
+        }
+
+        return view('tagihan-pembayaran.payment-finish', compact('tagihan'));
+    }
+
+    public function checkPaymentStatus(Request $request, $id)
+    {
+        $tagihan = TagihanPembayaran::find($id);
+        if (!$tagihan) {
+            return response()->json(['success' => false, 'error' => 'Not found'], 404);
+        }
+
+        if ($tagihan->PaymentStatus === 'PENDING' && $tagihan->DokuInvoiceNumber) {
+            $doku = app(DokuService::class);
+            $result = $doku->checkPaymentStatus($tagihan->DokuInvoiceNumber);
+
+            if ($result['success'] && isset($result['body']['transaction']['status'])) {
+                $dokuStatus = strtoupper($result['body']['transaction']['status']);
+
+                if ($dokuStatus === 'SUCCESS') {
+                    $tagihan->update([
+                        'PaymentStatus' => 'PAID',
+                        'StatusPembayaran' => 'Lunas',
+                        'TanggalPembayaran' => now(),
+                        'PaidAt' => now(),
+                        'PaymentChannel' => $result['body']['channel']['id'] ?? null,
+                        'BuktiPembayaran' => 'DOKU-' . $tagihan->DokuInvoiceNumber,
+                        'UserUpdate' => Auth::user()->name ?? 'System (DOKU)',
+                    ]);
+                } elseif ($dokuStatus === 'FAILED') {
+                    $tagihan->update(['PaymentStatus' => 'FAILED']);
+                } elseif ($dokuStatus === 'EXPIRED') {
+                    $tagihan->update(['PaymentStatus' => 'EXPIRED']);
+                }
+                $tagihan->refresh();
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'payment_status' => $tagihan->PaymentStatus,
+                'status_pembayaran' => $tagihan->StatusPembayaran,
+                'paid_at' => $tagihan->PaidAt?->format('d M Y H:i'),
+                'payment_channel' => $tagihan->PaymentChannel,
+            ],
+        ]);
     }
 }

@@ -18,22 +18,21 @@ use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 /*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
+ * |--------------------------------------------------------------------------
+ * | Web Routes
+ * |--------------------------------------------------------------------------
+ * |
+ * | Here is where you can register web routes for your application. These
+ * | routes are loaded by the RouteServiceProvider and all of them will
+ * | be assigned to the "web" middleware group. Make something great!
+ * |
+ */
 Auth::routes();
 
 Route::get('/', [LandingPageController::class, 'index'])->name('landing-page');
 Route::get('/landing-page', [LandingPageController::class, 'index'])->name('landing-page');
 Route::get('/daftar', [LandingPageController::class, 'daftar'])->name('daftar');
 Route::post('/pendaftaran-tenant/kirim', [PendaftaranTenantController::class, 'store'])->name('pendaftaran-tenant.store');
-
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
@@ -48,12 +47,12 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/ekspedisi/{id}', [App\Http\Controllers\EkspedisiController::class, 'update'])->name('ekspedisi.update');
     Route::delete('/ekspedisi/{id}', [App\Http\Controllers\EkspedisiController::class, 'destroy'])->name('ekspedisi.destroy');
 
-    //route transaksi
+    // route transaksi
     Route::get('/transaksi/export', [TransaksiController::class, 'export'])->name('transaksi.export');
     Route::patch('/transaksi/{transaksi}/update-status', [TransaksiController::class, 'updateStatus'])->name('transaksi.updateStatus');
     Route::post('/transaksi/bulk-update-status', [TransaksiController::class, 'bulkUpdateStatus'])->name('transaksi.bulkUpdateStatus');
     Route::resource('transaksi', TransaksiController::class);
-    //route absensi
+    // route absensi
     Route::get('/absensi/export', [AbsensiController::class, 'export'])->name('absensi.export');
     Route::post('/absensi/{absensi}/approve', [AbsensiController::class, 'approve'])->name('absensi.approve');
     Route::post('/absensi/bulk-approve', [AbsensiController::class, 'bulkApprove'])->name('absensi.bulkApprove');
@@ -62,10 +61,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/reimbursement/export', [ReimbursementController::class, 'export'])->name('reimbursement.export');
     Route::resource('reimbursement', ReimbursementController::class);
 
-
-        Route::get('pekerjaan-kurir/export', [PekerjaanKurirController::class, 'Export'])->name('pekerjaan-kurir.export');
-        Route::resource('pekerjaan-kurir', PekerjaanKurirController::class);
-        Route::post('pekerjaan-kurir/bulk-verify', [PekerjaanKurirController::class, 'BulkVerify'])->name('pekerjaan-kurir.bulkVerify');
+    Route::get('pekerjaan-kurir/export', [PekerjaanKurirController::class, 'Export'])->name('pekerjaan-kurir.export');
+    Route::resource('pekerjaan-kurir', PekerjaanKurirController::class);
+    Route::post('pekerjaan-kurir/bulk-verify', [PekerjaanKurirController::class, 'BulkVerify'])->name('pekerjaan-kurir.bulkVerify');
 
     Route::resource('divisi', DivisiController::class);
     Route::resource('pengumuman', PengumumanController::class);
@@ -83,13 +81,19 @@ Route::middleware(['auth'])->group(function () {
     Route::get('tagihan-pembayaran', [TagihanPembayaranController::class, 'Index'])->name('tagihan-pembayaran.index');
     Route::get('tagihan-pembayaran/create', [TagihanPembayaranController::class, 'Create'])->name('tagihan-pembayaran.create');
     Route::post('tagihan-pembayaran', [TagihanPembayaranController::class, 'Store'])->name('tagihan-pembayaran.store');
-    Route::get('tagihan-pembayaran/{TagihanPembayaran}', [TagihanPembayaranController::class, 'Show'])->name('tagihan-pembayaran.show'); // <-- Route Show
+    Route::get('tagihan-pembayaran/{TagihanPembayaran}', [TagihanPembayaranController::class, 'Show'])->name('tagihan-pembayaran.show');  // <-- Route Show
     Route::get('tagihan-pembayaran/{TagihanPembayaran}/edit', [TagihanPembayaranController::class, 'Edit'])->name('tagihan-pembayaran.edit');
     Route::put('tagihan-pembayaran/{TagihanPembayaran}', [TagihanPembayaranController::class, 'Update'])->name('tagihan-pembayaran.update');
     Route::delete('tagihan-pembayaran/{TagihanPembayaran}', [TagihanPembayaranController::class, 'Destroy'])->name('tagihan-pembayaran.destroy');
 
     Route::get('tagihan-pembayaran/{TagihanPembayaran}/konfirmasi', [TagihanPembayaranController::class, 'KonfirmasiForm'])->name('tagihan-pembayaran.konfirmasi');
     Route::post('tagihan-pembayaran/{TagihanPembayaran}/konfirmasi', [TagihanPembayaranController::class, 'KonfirmasiProses'])->name('tagihan-pembayaran.konfirmasi.proses');
+
+    Route::get('/tagihan/payment-finish/{id}', [TagihanPembayaranController::class, 'paymentFinish'])
+        ->name('tagihan-pembayaran.payment-finish');
+
+    Route::get('/tagihan/payment-status/{id}', [TagihanPembayaranController::class, 'checkPaymentStatus'])
+        ->name('tagihan-pembayaran.payment-status');
 
     // ✅ Route Bulk Approve
     Route::post('tagihan-pembayaran/bulk-approve', [TagihanPembayaranController::class, 'BulkApprove'])->name('tagihan-pembayaran.bulkApprove');
@@ -113,5 +117,3 @@ Route::get('/pendaftaran/payment-status/{id}', [PendaftaranTenantController::cla
 // Webhook tetap ada (optional, sebagai backup)
 Route::post('/webhooks/doku', [DokuWebhookController::class, 'handle'])
     ->name('webhooks.doku');
-
-

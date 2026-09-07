@@ -19,6 +19,16 @@ class TagihanPembayaran extends Model
      */
     protected $guarded = ['id'];
 
+    protected $casts = [
+        'TanggalJatuhTempo' => 'date',
+        'TanggalPembayaran' => 'date',
+        'BerlakuHingga' => 'date',
+        'PaymentExpiredAt' => 'datetime',
+        'PaidAt' => 'datetime',
+        'VerifPada' => 'datetime',
+        'JumlahTagihan' => 'integer',
+    ];
+
     // Nomor tagihan akan di-generate otomatis dengan format: INV26(TAHUN)(BULAN)(NO URUT)
     protected static function boot()
     {
@@ -38,7 +48,7 @@ class TagihanPembayaran extends Model
 
                 // Ambil no urut dari nomor tagihan terakhir (jika ada)
                 if ($last && preg_match('/INV26' . $tahun . $bulan . '(\d+)$/', $last->NomorTagihan, $match)) {
-                    $nextUrut = str_pad(((int)$match[1]) + 1, 4, '0', STR_PAD_LEFT);
+                    $nextUrut = str_pad(((int) $match[1]) + 1, 4, '0', STR_PAD_LEFT);
                 } else {
                     $nextUrut = '0001';
                 }
