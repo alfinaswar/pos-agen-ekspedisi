@@ -14,7 +14,7 @@ class LoginController extends Controller
         AuthenticatesUsers::login as traitLogin;
     }
 
-    protected $redirectTo = '/';
+    protected $redirectTo = '/home';
 
     public function login(Request $request)
     {
