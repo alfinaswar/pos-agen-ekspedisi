@@ -927,7 +927,7 @@
             <a class="logo" href="{{ url('/') }}">
                 <span class="logo-badge">
                     <img src="{{ asset('img/logo/maurekap-icon-hd-transparent.png') }}" alt="Logo Maurekap"
-                        width="20" height="20" style="filter: brightness(0) invert(1);">
+                        width="30" height="30" style="filter: brightness(0) invert(1);">
                 </span>
                 MAUREKAP
             </a>
@@ -1139,52 +1139,70 @@
 <!-- Ganti section 3 menjadi info pembayaran: -->
 
 <!-- 3. INFORMASI PEMBAYARAN -->
-<div class="form-sec">
-    <span class="sec-num">3</span>
+<div class="form-sec" style="margin-bottom:24px;">
+    <span class="sec-num" style="margin-right:12px;">3</span>
     <div>
-        <h2>Informasi Pembayaran</h2>
-        <p>Setelah submit, Anda akan diarahkan ke halaman pembayaran DOKU.</p>
-    </div>
-</div>
-
-<div class="pay-info">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round">
-        <rect x="3" y="6" width="18" height="13" rx="2" />
-        <path d="M3 10h18" />
-        <path d="M7 15h4" />
-    </svg>
-    <div>
-        <p>Anda dapat membayar menggunakan berbagai metode:</p>
-        <ul style="margin-top:8px; display:grid; gap:4px;">
-            <li>✓ Virtual Account (BCA, BRI, Mandiri, dll)</li>
-            <li>✓ QRIS (GoPay, OVO, DANA, ShopeePay)</li>
-            <li>✓ Kartu Kredit/Debit</li>
-            <li>✓ E-Wallet</li>
-        </ul>
-        <p style="margin-top:10px; font-size:.82rem; color:var(--muted);">
-            Pembayaran diproses melalui <b>DOKU Payment Gateway</b> yang aman & terenkripsi.
+        <h2 style="margin-bottom:4px;">Informasi Pembayaran</h2>
+        <p style="font-size:1rem; color:#555; margin:0;">
+            Setelah submit, Anda akan diarahkan ke halaman pembayaran <b>DOKU</b>.
         </p>
     </div>
 </div>
 
+<div class="pay-info" style="display:flex; gap:14px; align-items:flex-start; background:#f8fafc; border-radius:8px; padding:20px 18px 20px 16px; margin-bottom:30px; box-shadow:0 2px 8px #0001;">
+    <div style="flex-shrink:0;">
+        <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="6" width="18" height="13" rx="2" />
+            <path d="M3 10h18" />
+            <path d="M7 15h4" />
+        </svg>
+    </div>
+    <div>
+        <p style="margin:0 0 5px 0;font-weight:500;color:#222;">Pilih metode pembayaran:</p>
+        <ul style="margin:0 0 10px 14px; padding:0; display:grid; gap:3px; color:#444; font-size:.97rem; list-style:none;">
+            <li style="display:flex;align-items:center;">
+                <span style="color:#22c55e;font-size:1.1em;margin-right:7px;">&#10004;</span> Virtual Account (BCA, BRI, Mandiri, dll)
+            </li>
+            <li style="display:flex;align-items:center;">
+                <span style="color:#22c55e;font-size:1.1em;margin-right:7px;">&#10004;</span> QRIS (GoPay, OVO, DANA, ShopeePay)
+            </li>
+            <li style="display:flex;align-items:center;">
+                <span style="color:#22c55e;font-size:1.1em;margin-right:7px;">&#10004;</span> Kartu Kredit/Debit
+            </li>
+            <li style="display:flex;align-items:center;">
+                <span style="color:#22c55e;font-size:1.1em;margin-right:7px;">&#10004;</span> E-Wallet
+            </li>
+        </ul>
+        <div style="margin-top:4px; font-size:.93em; color:#8392a8;">
+            Pembayaran diproses melalui <b style="color:#2463eb">DOKU Payment Gateway</b> yang aman &amp; terenkripsi.
+        </div>
+    </div>
+</div>
 
+<div class="terms" id="termsRow" style="margin-bottom:20px;">
+    <input id="terms" name="terms" type="checkbox" {{ old('terms') ? 'checked' : '' }}>
+    <label for="terms" style="font-size:.98em;">
+        Saya menyatakan data di atas benar dan menyetujui
+        <a href="#" style="color:#2563eb;">Syarat &amp; Ketentuan</a>
+        serta
+        <a href="#" style="color:#2563eb;">Kebijakan Privasi</a> Maurekap.
+    </label>
+</div>
 
-                <div class="terms" id="termsRow">
-                    <input id="terms" name="terms" type="checkbox" {{ old('terms') ? 'checked' : '' }}>
-                    <label for="terms">Saya menyatakan data di atas benar dan menyetujui <a href="#">Syarat
-                            &amp; Ketentuan</a> serta <a href="#">Kebijakan Privasi</a> Maurekap.</label>
-                </div>
+<div class="submit-row" style="display:flex;align-items:center;gap:18px;">
+    <button type="submit" class="btn btn-blue" style="padding:11px 30px;font-size:1.07em;">
+        Lanjutkan Pembayaran <span class="arr" style="margin-left:7px;">→</span>
+    </button>
+    <span class="secure-note" style="display:flex;align-items:center;font-size:.96em;color:#74918c;">
+        <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="#10b981"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;">
+            <rect x="4" y="10" width="16" height="10" rx="2" />
+            <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+        </svg>
+        Data Anda aman &amp; terenkripsi
+    </span>
+</div>
 
-                <div class="submit-row">
-                    <button type="submit" class="btn btn-blue">Kirim Pendaftaran <span
-                            class="arr">→</span></button>
-                    <span class="secure-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="4" y="10" width="16" height="10" rx="2" />
-                            <path d="M8 10V7a4 4 0 0 1 8 0v3" />
-                        </svg>Data Anda aman &amp; terenkripsi</span>
-                </div>
             </form>
 
             <!-- ===== SIDEBAR ===== -->

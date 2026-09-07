@@ -2,23 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\TenantApprovedMail;
 use App\Models\MasterPaketHarga;
 use App\Models\PendaftaranTenant;
-use App\Models\TagihanPembayaran;
-use App\Models\Tenant;
-use App\Models\User;
 use App\Services\DokuService;
 use App\Services\TenantProvisioningService;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
-use Yajra\DataTables\DataTables;
 use Illuminate\Support\Str;
+use Yajra\DataTables\DataTables;
 
 class PendaftaranTenantController extends Controller
 {
@@ -26,15 +18,15 @@ class PendaftaranTenantController extends Controller
         protected TenantProvisioningService $provisioning
     ) {
     }
+
     /**
-     * Display a listing of the resource.
+     * Display a listing
      */
     public function Index(Request $Request)
     {
         if ($Request->ajax()) {
             $Query = PendaftaranTenant::latest('created_at');
 
-            // ✅ TAMBAHAN: Logika Filter Tanggal (berdasarkan created_at)
             if ($Request->filled('TanggalAwal')) {
                 $Query->whereDate('created_at', '>=', $Request->TanggalAwal);
             }
@@ -57,37 +49,39 @@ class PendaftaranTenantController extends Controller
                     };
                     return '<span class="badge ' . $Badge . '">' . $Label . '</span>';
                 })
+                ->editColumn('PaymentStatus', function ($Row) {
+                    $Badge = match ($Row->PaymentStatus) {
+                        'PAID' => 'bg-success',
+                        'FAILED' => 'bg-danger',
+                        'EXPIRED' => 'bg-warning',
+                        default => 'bg-info'
+                    };
+                    return '<span class="badge ' . $Badge . '">' . ($Row->PaymentStatus ?? 'PENDING') . '</span>';
+                })
                 ->editColumn('BuktiPembayaran', function ($Row) {
-                    if ($Row->BuktiPembayaran) {
-                        return '<a href="' . asset('storage/' . $Row->BuktiPembayaran) . '" target="_blank" class="btn btn-sm btn-outline-primary"><i class="ti ti-eye"></i></a>';
-                    }
-                    return '<span class="text-muted">-</span>';
+                    return '<span class="text-muted">Via DOKU</span>';
                 })
                 ->addColumn('action', function ($Row) {
                     $Btn = '<div class="d-flex gap-1 justify-content-center">';
-                    $Btn .= '<a href="' . route('pendaftaran-tenant.show', $Row->id) . '" class="btn btn-info btn-sm text-white" title="Verifikasi"><i class="ti ti-eye"></i></a> ';
-                    // ✅ TAMBAHAN: Tombol Hapus
+                    $Btn .= '<a href="' . route('pendaftaran-tenant.show', $Row->id) . '" class="btn btn-info btn-sm text-white" title="Detail"><i class="ti ti-eye"></i></a> ';
                     $Btn .= '<button type="button" class="btn btn-danger btn-sm btn-hapus" data-id="' . $Row->id . '" data-nama="' . htmlspecialchars($Row->Nama) . '" title="Hapus"><i class="ti ti-trash"></i></button>';
                     $Btn .= '</div>';
                     return $Btn;
                 })
-                ->rawColumns(['Status', 'BuktiPembayaran', 'action'])
+                ->rawColumns(['Status', 'PaymentStatus', 'BuktiPembayaran', 'action'])
                 ->make(true);
         }
 
         return view('manejemen-tenant.pendaftaran.index');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         //
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store pendaftaran + buat DOKU checkout
      */
     public function store(Request $request, DokuService $doku)
     {
@@ -126,11 +120,9 @@ class PendaftaranTenantController extends Controller
             'DokuInvoiceNumber' => $invoiceNumber,
         ]);
 
-        // 🔥 NORMALISASI NOMOR TELEPON DI SINI
         $rawPhone = $validated['TeleponPIC'] ?? $validated['Telepon'];
         $normalizedPhone = $doku->normalizePhone($rawPhone);
 
-        // Debug: Log nomor sebelum dan sesudah normalisasi
         \Log::info('Phone normalization', [
             'raw' => $rawPhone,
             'normalized' => $normalizedPhone,
@@ -140,19 +132,18 @@ class PendaftaranTenantController extends Controller
             'amount' => $paket->Harga,
             'invoice_number' => $invoiceNumber,
             'callback_url' => route('pendaftaran.payment.finish', $pendaftaran->id),
-            'notification_url' => route('webhooks.doku'),
+            'notification_url' => route('webhooks.doku'), // Tetap ada tapi tidak wajib
             'payment_due_date' => 60,
             'customer_id' => 'CUST-' . $pendaftaran->id,
             'customer_name' => $validated['NamaPIC'],
             'customer_email' => $validated['EmailPIC'],
-            'customer_phone' => $normalizedPhone, // ← Pakai yang sudah dinormalisasi
+            'customer_phone' => $normalizedPhone,
         ]);
 
         if (!$result['success']) {
             \Log::error('DOKU Checkout failed', [
                 'status' => $result['status'],
                 'body' => $result['body'],
-                'raw' => $result['raw'],
             ]);
 
             $pendaftaran->update(['PaymentStatus' => 'FAILED']);
@@ -181,25 +172,26 @@ class PendaftaranTenantController extends Controller
 
     /**
      * Halaman setelah user selesai bayar (callback dari DOKU)
+     * Tampilkan halaman pending dengan polling otomatis
      */
-
     public function paymentFinish(Request $request, $id)
     {
         $pendaftaran = PendaftaranTenant::findOrFail($id);
-        // Ambil credential dari session (jika ada)
+
+        // Ambil credential dari session (jika ada dari auto-approve)
         $credentials = session()->pull('provisioned_credentials');
+
         return view('landing-page.payment-finish', compact('pendaftaran', 'credentials'));
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function Show(PendaftaranTenant $PendaftaranTenant)
     {
         return view('manejemen-tenant.pendaftaran.show', compact('PendaftaranTenant'));
     }
 
-    // ✅ METHOD BARU: Proses Verifikasi
+    /**
+     * Verifikasi manual oleh admin
+     */
     public function Verifikasi(Request $Request, PendaftaranTenant $PendaftaranTenant)
     {
         $Request->validate([
@@ -208,11 +200,10 @@ class PendaftaranTenantController extends Controller
         ]);
 
         if ($Request->Status === 'Y') {
-            // Cek apakah pembayaran sudah lunas dulu
             if ($PendaftaranTenant->PaymentStatus !== 'PAID') {
                 return redirect()->back()->with(
                     'error',
-                    'Pembayaran belum lunas. Tunggu konfirmasi dari payment gateway.'
+                    'Pembayaran belum lunas. Tunggu konfirmasi pembayaran.'
                 );
             }
 
@@ -220,7 +211,7 @@ class PendaftaranTenantController extends Controller
                 $PendaftaranTenant,
                 Auth::user()->name ?? 'Admin',
                 $Request->CatatanVerifikasi,
-                false  // Admin tidak perlu flash password
+                false
             );
 
             if (!$result['success']) {
@@ -245,32 +236,19 @@ class PendaftaranTenantController extends Controller
             ->with('success', 'Pendaftaran tenant ditolak.');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(PendaftaranTenant $pendaftaranTenant)
     {
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, PendaftaranTenant $pendaftaranTenant)
     {
         //
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function Destroy(PendaftaranTenant $PendaftaranTenant)
     {
         try {
-            if ($PendaftaranTenant->BuktiPembayaran && Storage::disk('public')->exists($PendaftaranTenant->BuktiPembayaran)) {
-                Storage::disk('public')->delete($PendaftaranTenant->BuktiPembayaran);
-            }
-
             $PendaftaranTenant->delete();
 
             return response()->json([
@@ -283,5 +261,109 @@ class PendaftaranTenantController extends Controller
                 'message' => 'Gagal menghapus data: ' . $Exception->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * 🔥 POLLING ENDPOINT — Dipanggil frontend setiap 3-5 detik
+     * Cek status langsung ke DOKU API, langsung provision kalau SUCCESS
+     */
+    public function checkPaymentStatus(Request $request, $id)
+    {
+        $pendaftaran = PendaftaranTenant::with('getPaket')->find($id);
+
+        if (!$pendaftaran) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Pendaftaran tidak ditemukan',
+            ], 404);
+        }
+
+        // Jika sudah PAID dan sudah di-provision, langsung return
+        if ($pendaftaran->PaymentStatus === 'PAID' && $pendaftaran->Status === 'Y') {
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'payment_status' => $pendaftaran->PaymentStatus,
+                    'status' => $pendaftaran->Status,
+                    'is_paid' => true,
+                    'is_provisioned' => true,
+                    'invoice_number' => $pendaftaran->DokuInvoiceNumber,
+                    'paid_at' => $pendaftaran->PaidAt?->format('d M Y H:i'),
+                    'payment_channel' => $pendaftaran->PaymentChannel,
+                ],
+            ]);
+        }
+
+        // Jika masih PENDING, cek langsung ke DOKU API
+        if ($pendaftaran->PaymentStatus === 'PENDING' && $pendaftaran->DokuInvoiceNumber) {
+            $doku = app(DokuService::class);
+            $result = $doku->checkPaymentStatus($pendaftaran->DokuInvoiceNumber);
+            // dd($result);
+            if ($result['success'] && isset($result['body']['transaction']['status'])) {
+                $dokuStatus = strtoupper($result['body']['transaction']['status']);
+
+                $paymentStatus = match ($dokuStatus) {
+                    'SUCCESS' => 'PAID',
+                    'FAILED' => 'FAILED',
+                    'EXPIRED' => 'EXPIRED',
+                    default => 'PENDING',
+                };
+
+                $updateData = ['PaymentStatus' => $paymentStatus];
+
+                if ($paymentStatus === 'PAID') {
+                    $updateData['PaidAt'] = now();
+                    $updateData['PaymentChannel'] = $result['body']['channel']['id'] ?? null;
+                }
+
+                $pendaftaran->update($updateData);
+
+                // 🔥 LANGSUNG PROVISION KALAU BERHASIL BAYAR
+                if ($dokuStatus === 'SUCCESS' && $pendaftaran->Status !== 'Y') {
+                    \Log::info('🚀 Auto-provisioning triggered via polling', [
+                        'invoice' => $pendaftaran->DokuInvoiceNumber,
+                    ]);
+
+                    $provisionResult = $this->provisioning->provision(
+                        $pendaftaran,
+                        'System (DOKU Auto-Approve)',
+                        'Pembayaran berhasil via DOKU. Status otomatis disetujui.',
+                        true // flash password ke session
+                    );
+
+                    if ($provisionResult['success']) {
+                        \Log::info('✅ Auto-provisioning berhasil', [
+                            'tenant' => $provisionResult['tenant']->Kode ?? null,
+                        ]);
+                        // Reload data terbaru
+                        $pendaftaran->refresh();
+                    } else {
+                        \Log::error('❌ Auto-provisioning gagal', [
+                            'error' => $provisionResult['error'],
+                        ]);
+                    }
+                }
+            } else {
+                // Log kalau API call gagal
+                \Log::warning('DOKU status check failed', [
+                    'invoice' => $pendaftaran->DokuInvoiceNumber,
+                    'status' => $result['status'] ?? null,
+                    'body' => $result['body'] ?? null,
+                ]);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'payment_status' => $pendaftaran->PaymentStatus,
+                'status' => $pendaftaran->Status,
+                'is_paid' => $pendaftaran->PaymentStatus === 'PAID',
+                'is_provisioned' => $pendaftaran->Status === 'Y',
+                'invoice_number' => $pendaftaran->DokuInvoiceNumber,
+                'paid_at' => $pendaftaran->PaidAt?->format('d M Y H:i'),
+                'payment_channel' => $pendaftaran->PaymentChannel,
+            ],
+        ]);
     }
 }

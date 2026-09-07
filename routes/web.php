@@ -97,16 +97,23 @@ Route::middleware(['auth'])->group(function () {
     Route::post('tagihan-pembayaran/bulk-approve', [TagihanPembayaranController::class, 'BulkApprove'])->name('tagihan-pembayaran.bulkApprove');
 });
 // Form pendaftaran
+// Form pendaftaran
 Route::get('/pendaftaran-tenant', [PendaftaranTenantController::class, 'create'])
     ->name('pendaftaran-tenant.create');
 
 Route::post('/pendaftaran-tenant', [PendaftaranTenantController::class, 'store'])
     ->name('pendaftaran-tenant.store');
 
-// Callback setelah bayar (redirect dari DOKU)
+// Callback setelah bayar
 Route::get('/pendaftaran/payment-finish/{id}', [PendaftaranTenantController::class, 'paymentFinish'])
     ->name('pendaftaran.payment.finish');
 
-// Webhook DOKU (POST, tanpa CSRF)
+// 🔥 POLLING ENDPOINT (ini yang dipakai, tanpa webhook/ngrok)
+Route::get('/pendaftaran/payment-status/{id}', [PendaftaranTenantController::class, 'checkPaymentStatus'])
+    ->name('pendaftaran.payment.status');
+
+// Webhook tetap ada (optional, sebagai backup)
 Route::post('/webhooks/doku', [DokuWebhookController::class, 'handle'])
     ->name('webhooks.doku');
+
+
