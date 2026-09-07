@@ -370,7 +370,7 @@ footer ul a:hover{color:#fff;padding-left:4px}
   {{-- <a href="#testimoni">Testimoni</a> --}}
   <div class="nav-cta">
     <a href="{{ route('login') }}" class="btn btn-outline btn-sm">Login</a>
-    <a href="{{ route('daftar') }}" class="btn btn-blue btn-sm">Coba Gratis</a>
+    <a href="{{ route('daftar') }}" class="btn btn-blue btn-sm">Daftar Sekarang</a>
   </div>
 </nav>
   </div>
