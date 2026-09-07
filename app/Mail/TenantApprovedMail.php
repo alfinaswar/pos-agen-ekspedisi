@@ -15,17 +15,32 @@ class TenantApprovedMail extends Mailable
     public $Password;
     public $LoginUrl;
 
-    public function __construct($Nama, $Email, $Password, $LoginUrl)
-    {
+    // ✅ Opsional: detail langganan (boleh tidak diisi)
+    public $PaketNama;
+    public $TanggalMulai;
+    public $TanggalBerakhir;
+
+    public function __construct(
+        $Nama,
+        $Email,
+        $Password,
+        $LoginUrl,
+        $PaketNama = null,
+        $TanggalMulai = null,
+        $TanggalBerakhir = null
+    ) {
         $this->Nama = $Nama;
         $this->Email = $Email;
         $this->Password = $Password;
         $this->LoginUrl = $LoginUrl;
+        $this->PaketNama = $PaketNama;
+        $this->TanggalMulai = $TanggalMulai;
+        $this->TanggalBerakhir = $TanggalBerakhir;
     }
 
     public function build()
     {
-        return $this->subject('🎉 Pendaftaran Tenant Disetujui - Informasi Akun Anda')
+        return $this->subject('🎉 Akun Maurekap Anda Telah Aktif — Selamat Bergabung!')
             ->view('emails.tenant-approved');
     }
 }

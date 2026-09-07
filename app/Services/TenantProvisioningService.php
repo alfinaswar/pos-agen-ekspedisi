@@ -146,7 +146,10 @@ class TenantProvisioningService
                         $UserName,
                         $UserEmail,
                         $PasswordPlain,
-                        url('/login')
+                        url('/login'),
+                        $paket->NamaPaket ?? null,                                  // PaketNama
+                        $TanggalJoin->translatedFormat('d F Y'),                   // TanggalMulai
+                        $TanggalBerakhir->translatedFormat('d F Y')                // TanggalBerakhir
                     ));
                     Log::info('✅ Email approval terkirim ke ' . $UserEmail);
                 } catch (Exception $mailEx) {

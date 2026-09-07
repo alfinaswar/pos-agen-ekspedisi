@@ -178,8 +178,42 @@ class PendaftaranTenantController extends Controller
     {
         $pendaftaran = PendaftaranTenant::findOrFail($id);
 
-        // Ambil credential dari session (jika ada dari auto-approve)
+        // Coba ambil dari session dulu (hasil provisioning fresh)
         $credentials = session()->pull('provisioned_credentials');
+
+        // 🔥 LOGIKA RECOVERY:
+        // Jika status sudah PAID & Provisioned (Y) TAPI session credentials kosong
+        // (Artinya user refresh halaman atau session expired)
+        if ($pendaftaran->PaymentStatus === 'PAID' && $pendaftaran->Status === 'Y' && !$credentials) {
+
+            $userEmail = $pendaftaran->EmailPIC ?: $pendaftaran->Email;
+            $user = \App\Models\User::where('email', $userEmail)->first();
+
+            if ($user) {
+                // Generate password baru yang mudah diingat tapi unik
+                // Format: Maurekap + 4 digit angka random (cth: Maurekap8273)
+                $newPassword = 'Maurekap' . rand(1000, 9999);
+
+                // Update password di database
+                $user->update([
+                    'password' => \Hash::make($newPassword)
+                ]);
+
+                // Set credentials manual untuk ditampilkan di view
+                $credentials = [
+                    'email' => $user->email,
+                    'password' => $newPassword,
+                    'name' => $user->name,
+                    'tenant' => $pendaftaran->Nama,
+                    'kode' => $user->tenant_id,
+                    'is_recovered' => true, // Flag untuk tampilkan warning di view
+                ];
+
+                \Log::info('Password recovery triggered via payment-finish page', [
+                    'user_email' => $user->email
+                ]);
+            }
+        }
 
         return view('landing-page.payment-finish', compact('pendaftaran', 'credentials'));
     }

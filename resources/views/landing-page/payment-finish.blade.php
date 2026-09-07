@@ -173,23 +173,66 @@
                 <a class="btn btn-ghost" href="{{ url('/') }}" style="margin-top:16px;">← Kembali ke Beranda</a>
             </div>
 
-        @elseif($isPaid)
-            {{-- ═══ SUKSES tapi credential tidak ada (manual verify) ═══ --}}
-            <div class="success">
-                <svg class="ok-big" viewBox="0 0 84 84">
-                    <circle cx="42" cy="42" r="40"/>
-                    <path d="M27 43.5l10 10 20-22"/>
-                </svg>
-                <h2>Pembayaran Berhasil!</h2>
-                <p>Kredensial login telah dikirim ke email Anda.</p>
-                <div class="reg-code">
-                    <small>NOMOR REGISTRASI</small>
-                    <b>{{ $pendaftaran->DokuInvoiceNumber }}</b>
+       @elseif($isPaid)
+    {{-- ═══ SUKSES: Tampilkan Kredensial (Fresh atau Recovery) ═══ --}}
+    <div class="success">
+        <svg class="ok-big" viewBox="0 0 84 84">
+            <circle cx="42" cy="42" r="40"/>
+            <path d="M27 43.5l10 10 20-22"/>
+        </svg>
+
+        <h2>Pembayaran Berhasil! 🎉</h2>
+
+        @if(isset($credentials['is_recovered']) && $credentials['is_recovered'])
+            <p style="color: #b45309; background: #fef3c7; border: 1px solid #fde68a; padding: 10px; border-radius: 8px; font-size: .9rem; margin-bottom: 20px;">
+                ⚠️ <strong>Sesi Anda telah berakhir.</strong><br>
+                Password baru telah dibuat otomatis untuk Anda. Harap simpan dan segera ganti setelah login.
+            </p>
+        @else
+            <p>Akun Maurekap Anda sudah aktif dan siap digunakan.</p>
+        @endif
+
+        <div class="reg-code">
+            <small>NOMOR REGISTRASI</small>
+            <b>{{ $pendaftaran->Kode ?? $pendaftaran->DokuInvoiceNumber }}</b>
+        </div>
+
+        @if($credentials)
+            <div class="credentials">
+                <h3>🔐 Kredensial Login Anda</h3>
+                <p class="sub">Gunakan data di bawah untuk login ke dashboard Maurekap:</p>
+
+                <div class="cred-row">
+                    <span class="label">Email</span>
+                    <span class="value email" id="emailValue">{{ $credentials['email'] }}</span>
+                    <button class="copy-btn" data-copy="emailValue">Salin</button>
                 </div>
-                <div class="btn-row">
-                    <a class="btn btn-blue" href="{{ route('login') }}">Ke Halaman Login</a>
+                <div class="cred-row">
+                    <span class="label">Password</span>
+                    <span class="value" id="passValue">{{ $credentials['password'] }}</span>
+                    <button class="copy-btn" data-copy="passValue">Salin</button>
+                </div>
+                <div class="cred-row">
+                    <span class="label">Tenant</span>
+                    <span class="value email">{{ $credentials['tenant'] ?? '-' }}</span>
                 </div>
             </div>
+
+            <div class="btn-row">
+                <a class="btn btn-blue" href="{{ route('login') }}?email={{ urlencode($credentials['email']) }}">
+                    Login Sekarang →
+                </a>
+            </div>
+        @else
+            {{-- Fallback jika user belum ter-create (sangat jarang, race condition) --}}
+            <div class="status-bar">
+                <span class="spinner"></span> Akun sedang diproses, silakan refresh halaman dalam beberapa detik.
+            </div>
+            <script>setTimeout(() => window.location.reload(), 3000);</script>
+        @endif
+
+        <a class="btn btn-ghost" href="{{ url('/') }}" style="margin-top:16px;">← Kembali ke Beranda</a>
+    </div>
 
         @elseif($isFailed || $isExpired)
             {{-- ═══ GAGAL / KADALUARSA ═══ --}}
