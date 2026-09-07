@@ -11,8 +11,17 @@ class DivisiController extends Controller
 {
     public function index(Request $request)
     {
+        // Dapatkan kode tenant dari user login (pastikan field ini ada di tabel user)
+        $kodeTenant = auth()->user()->KodeTenant ?? null;
+
         if ($request->ajax()) {
-            $data = Divisi::select(['id', 'Nama', 'Keterangan']);
+            $data = Divisi::select(['id', 'Nama', 'Keterangan', 'KodeTenant']);
+
+            // Filter hanya data milik tenant terkait (jika ada kode tenant di user)
+            if ($kodeTenant) {
+                $data->where('KodeTenant', $kodeTenant);
+            }
+
             return DataTables::of($data)
                 ->addIndexColumn()
                 ->addColumn('action', function ($row) {
@@ -41,6 +50,10 @@ class DivisiController extends Controller
         ]);
         $data = $request->all();
         $data['UserCreate'] = auth()->user()->name ?? 'System';
+
+        // Tambah kode tenant pada data (jika user login punya kode tenant)
+        $data['KodeTenant'] = auth()->user()->KodeTenant ?? null;
+
         Divisi::create($data);
         return redirect()->route('divisi.index')->with('success', 'Divisi berhasil ditambahkan.');
     }
@@ -58,6 +71,10 @@ class DivisiController extends Controller
         ]);
         $data = $request->all();
         $data['UserUpdate'] = auth()->user()->name ?? 'System';
+
+        // Pastikan KodeTenant tidak diubah (tetap yang lama)
+        unset($data['KodeTenant']);
+
         $divisi->update($data);
         return redirect()->route('divisi.index')->with('success', 'Divisi berhasil diperbarui.');
     }

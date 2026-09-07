@@ -16,7 +16,16 @@ class TagihanPembayaranController extends Controller
     {
         if ($Request->ajax()) {
             $User = auth()->user();
+            $User = auth()->user();
             $Query = TagihanPembayaran::with('Tenant')->latest('id');
+
+            // Tambahkan filter berdasarkan kode tenant jika tersedia pada user login
+            if (isset($User->KodeTenant)) {
+                $Query->whereHas('Tenant', function ($q) use ($User) {
+                    $q->where('Kode', $User->KodeTenant);
+                });
+            }
+
 
             // ✅ TAMBAHAN: Logika Filter Tahun dan Bulan
             $FilterTahun = $Request->FilterTahun ?? null;
@@ -43,6 +52,10 @@ class TagihanPembayaranController extends Controller
 
             return DataTables::of($Query)
                 ->addIndexColumn()
+                // Tambahkan kolom KodeTenant pada datatable
+                ->addColumn('KodeTenant', function ($Row) {
+                    return $Row->Tenant ? $Row->Tenant->Kode : '-';
+                })
                 ->editColumn('NomorTagihan', function ($Row) {
                     return '<span class="fw-semibold text-primary">' . $Row->NomorTagihan . '</span>';
                 })
@@ -83,26 +96,28 @@ class TagihanPembayaranController extends Controller
                     $Btn .= '</div>';
                     return $Btn;
                 })
-                ->rawColumns(['NomorTagihan', 'NamaTenant', 'StatusPembayaran', 'BuktiPembayaran', 'action'])
+                // Tambahkan 'KodeTenant' ke daftar kolom yang boleh mengandung HTML mentah jika ingin ditampilkan dalam bentuk HTML
+                ->rawColumns(['KodeTenant', 'NomorTagihan', 'NamaTenant', 'StatusPembayaran', 'BuktiPembayaran', 'action'])
                 ->make(true);
         }
 
         $User = auth()->user();
         $Tenants = $User->role === 'Superadmin'
-            ? Tenant::select('id', 'Nama')->orderBy('Nama', 'asc')->get()
-            : Tenant::select('id', 'Nama')->where('id', $User->TenantId ?? 0)->get();
+            ? Tenant::select('id', 'Kode', 'Nama')->orderBy('Nama', 'asc')->get()
+            : Tenant::select('id', 'Kode', 'Nama')->where('id', $User->TenantId ?? 0)->get();
 
         return view('tagihan-pembayaran.index', compact('Tenants'));
     }
 
     public function Create()
     {
-        $Tenants = Tenant::where('StatusSubscription', 'Aktif')->get();
+        // KodeTenant ditambahkan ke variabel Tenants supaya bisa dipakai di form create
+        $Tenants = Tenant::where('StatusSubscription', 'Aktif')->get(['id', 'Kode', 'Nama']);
         return view('tagihan-pembayaran.create', compact('Tenants'));
     }
     public function Show(TagihanPembayaran $TagihanPembayaran)
     {
-        // Muat relasi Tenant agar data nama tenant tersedia di view
+        // Muat relasi Tenant agar data nama tenant dan kode tenant tersedia di view
         $TagihanPembayaran->load('Tenant');
         return view('tagihan-pembayaran.show', compact('TagihanPembayaran'));
     }
@@ -132,6 +147,10 @@ class TagihanPembayaranController extends Controller
         $Data['StatusPembayaran'] = 'Lunas'; // Default status saat dibuat
         $Data['UserCreate'] = Auth::user()->name ?? 'System';
 
+        // Tambahkan KodeTenant pada data yang diinsert
+        $tenant = Tenant::find($Request->TenantId);
+        $Data['KodeTenant'] = $tenant ? $tenant->Kode : null;
+
         // 4. Handle Upload File
         if ($Request->hasFile('BuktiPembayaran')) {
             $File = $Request->file('BuktiPembayaran');
@@ -147,9 +166,10 @@ class TagihanPembayaranController extends Controller
 
     public function Edit(TagihanPembayaran $TagihanPembayaran)
     {
-        $Tenants = Tenant::where('StatusSubscription', 'Aktif')->orderBy('Nama', 'asc')->get();
+        // Load data tenants beserta KodeTenant
+        $Tenants = Tenant::where('StatusSubscription', 'Aktif')->orderBy('Nama', 'asc')->get(['id', 'Kode', 'Nama']);
 
-        // Load relasi tenant agar nama tenant tersedia di view
+        // Load relasi tenant agar nama tenant dan kode tenant tersedia di view
         $TagihanPembayaran->load('Tenant');
 
         return view('tagihan-pembayaran.edit', compact('TagihanPembayaran', 'Tenants'));
@@ -176,6 +196,10 @@ class TagihanPembayaranController extends Controller
         $Data['JumlahTagihan'] = $CleanAmount;
         $Data['TanggalJatuhTempo'] = $Request->BerlakuHingga; // Mapping ke DB
         $Data['UserUpdate'] = Auth::user()->name ?? 'System';
+
+        // Update KodeTenant sesuai TenantId yang terbaru
+        $tenant = Tenant::find($Request->TenantId);
+        $Data['KodeTenant'] = $tenant ? $tenant->Kode : null;
 
         // 4. Handle Upload File Baru (Jika ada)
         if ($Request->hasFile('BuktiPembayaran')) {

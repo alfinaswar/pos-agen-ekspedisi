@@ -19,9 +19,11 @@ class AbsensiController extends Controller
 {
     public function index(Request $request)
     {
+        // Dapatkan kode tenant dari user login (pastikan field ini ada di tabel user)
+        $kodeTenant = Auth::user()->KodeTenant ?? null;
+
         if ($request->ajax()) {
             // Tambahkan Status dan Catatan ke select
-            // dd($request->status_verif);
             $query = Absensi::with('getUser', 'getDivisi')->select([
                 'id',
                 'Nama',
@@ -35,8 +37,14 @@ class AbsensiController extends Controller
                 'MulaiLembur',
                 'SelesaiLembur',
                 'Catatan',
-                'StatusVerif'
+                'StatusVerif',
+                'KodeTenant'
             ])->latest('created_at');
+
+            // Filter by KodeTenant
+            if ($kodeTenant) {
+                $query->where('KodeTenant', $kodeTenant);
+            }
 
             $isPrivileged = auth()->check() && in_array(auth()->user()->role, ['Admin', 'Leader']);
 
@@ -172,8 +180,9 @@ class AbsensiController extends Controller
                 ->make(true);
         }
 
-        $users = User::get();
-        $divisis = Divisi::orderBy('Nama', 'asc')->get();
+        // Filter user/divisi berdasarkan tenant (opsional, jika memang field KodeTenant ada di tabel)
+        $users = User::where('KodeTenant', $kodeTenant)->get();
+        $divisis = Divisi::where('KodeTenant', $kodeTenant)->orderBy('Nama', 'asc')->get();
         return view('absensi.index', compact('users', 'divisis'));
     }
 
@@ -183,6 +192,9 @@ class AbsensiController extends Controller
         if (!in_array(auth()->user()->role, ['Admin', 'Leader'])) {
             abort(403, 'Aksi tidak diizinkan.');
         }
+
+        // Ambil kode tenant login
+        $kodeTenant = Auth::user()->KodeTenant ?? null;
 
         $request->validate([
             'ids' => 'required|array|min:1',
@@ -196,7 +208,9 @@ class AbsensiController extends Controller
         $now = now();
 
         foreach ($request->ids as $id) {
-            $absensi = Absensi::find($id);
+            $absensi = Absensi::where('id', $id)
+                            ->where('KodeTenant', $kodeTenant)
+                            ->first();
             if ($absensi) {
                 $absensi->update([
                     'StatusVerif' => $request->StatusVerif,
@@ -216,8 +230,9 @@ class AbsensiController extends Controller
 
     public function create()
     {
-        $user = User::get();
-        $divisi = Divisi::get();
+        $kodeTenant = Auth::user()->KodeTenant ?? null;
+        $user = User::where('KodeTenant', $kodeTenant)->get();
+        $divisi = Divisi::where('KodeTenant', $kodeTenant)->get();
         return view('absensi.create', compact('user', 'divisi'));
     }
 
@@ -229,9 +244,14 @@ class AbsensiController extends Controller
 
     public function approve(Request $request, Absensi $absensi)
     {
-        // Hanya Admin dan Leader yang boleh melakukan ini
         if (!in_array(auth()->user()->role, ['Admin', 'Leader'])) {
             abort(403, 'Aksi tidak diizinkan.');
+        }
+
+        // Pastikan approve hanya untuk tenant yang sesuai
+        $kodeTenant = Auth::user()->KodeTenant ?? null;
+        if ($absensi->KodeTenant !== $kodeTenant) {
+            abort(403, 'Aksi tidak diizinkan pada tenant ini.');
         }
 
         $request->validate([
@@ -253,6 +273,7 @@ class AbsensiController extends Controller
 
     public function Store(Request $Request)
     {
+        $kodeTenant = Auth::user()->KodeTenant ?? null;
         // 1. Validasi Input (Disesuaikan dengan form baru)
         $Request->validate([
             'Divisi' => 'required|string|max:100',
@@ -265,13 +286,14 @@ class AbsensiController extends Controller
             'MulaiLembur' => 'required_if:Lembur,Y|nullable|date_format:H:i',
             'SelesaiLembur' => 'required_if:Lembur,Y|nullable|date_format:H:i',
             'AlasanLembur' => 'required_if:Lembur,Y|nullable|string|max:500',
-            'FotoAbsenMasuk' => 'required|image|mimes:jpeg,png,jpg,webp|max:5120',  // Maks 5MB
-            'FotoAbsenKeluar' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',  // Maks 5MB
+            'FotoAbsenMasuk' => 'required|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'FotoAbsenKeluar' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
 
-        // 2. Cek Duplikasi: User + Tanggal yang sama
+        // 2. Cek Duplikasi: User + Tanggal yang sama, hanya untuk tenant aktif
         $Existing = Absensi::where('Nama', $Request->UserId)
             ->where('Tanggal', $Request->Tanggal)
+            ->where('KodeTenant', $kodeTenant)
             ->first();
 
         if ($Existing) {
@@ -297,6 +319,7 @@ class AbsensiController extends Controller
         ]);
 
         $Data['UserCreate'] = Auth::user()->name ?? 'System';
+        $Data['KodeTenant'] = $kodeTenant;
 
         // 4. Simpan file FotoAbsenMasuk tanpa kompresi
         if ($Request->hasFile('FotoAbsenMasuk')) {
@@ -314,7 +337,6 @@ class AbsensiController extends Controller
             $Data['FotoAbsenKeluar'] = 'absensi/' . $FileNameKeluar;
         }
 
-        // 6. Simpan ke Database
         Absensi::create($Data);
 
         return redirect()->route('absensi.index')->with('success', 'Data absensi berhasil ditambahkan.');
@@ -322,6 +344,8 @@ class AbsensiController extends Controller
 
     public function export(Request $request)
     {
+        $kodeTenant = Auth::user()->KodeTenant ?? null;
+
         $query = Absensi::select([
             'id',
             'Nama',
@@ -333,18 +357,22 @@ class AbsensiController extends Controller
             'Status',
             'Lembur',
             'MulaiLembur',
-            'SelesaiLembur'
+            'SelesaiLembur',
+            'KodeTenant'
         ])->orderBy('Tanggal', 'desc');
+
+        // Filter by kode tenant
+        if ($kodeTenant) {
+            $query->where('KodeTenant', $kodeTenant);
+        }
 
         $filterParts = [];
 
-        // Filter Bulan
         if ($request->filled('bulan')) {
             $query->whereMonth('Tanggal', $request->bulan);
             $filterParts[] = 'Bulan: ' . Carbon::create()->month($request->bulan)->isoFormat('MMMM');
         }
 
-        // Filter Status
         if ($request->filled('status')) {
             $query->where('Status', $request->status);
             $statusLabels = [
@@ -356,7 +384,6 @@ class AbsensiController extends Controller
             $filterParts[] = 'Status: ' . ($statusLabels[$request->status] ?? $request->status);
         }
 
-        // Filter User
         if ($request->filled('user_name')) {
             $query->where('Nama', $request->user_name);
             $filterParts[] = 'Karyawan: ' . $request->user_name;
@@ -375,14 +402,21 @@ class AbsensiController extends Controller
 
     public function edit(Absensi $absensi)
     {
-        $user = User::get();
-        $divisi = Divisi::get();
+        $kodeTenant = Auth::user()->KodeTenant ?? null;
+        $user = User::where('KodeTenant', $kodeTenant)->get();
+        $divisi = Divisi::where('KodeTenant', $kodeTenant)->get();
         return view('absensi.edit', compact('absensi', 'user', 'divisi'));
     }
 
     public function Update(Request $Request, Absensi $Absensi)
     {
-        // 1. Validasi Input (Disesuaikan dengan form edit terbaru)
+        $kodeTenant = Auth::user()->KodeTenant ?? null;
+
+        // Pastikan hanya edit absensi tenant sendiri
+        if ($Absensi->KodeTenant !== $kodeTenant) {
+            abort(403, 'Aksi tidak diizinkan pada data tenant lain.');
+        }
+
         $Request->validate([
             'Nama' => 'required',
             'Divisi' => 'required|string|max:100',
@@ -395,10 +429,9 @@ class AbsensiController extends Controller
             'MulaiLembur' => 'required_if:Lembur,Y|nullable|date_format:H:i',
             'SelesaiLembur' => 'required_if:Lembur,Y|nullable|date_format:H:i',
             'AlasanLembur' => 'required_if:Lembur,Y|nullable|string|max:500',
-            'FotoAbsenMasuk' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',  // Maks 5MB
-            'FotoAbsenKeluar' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',  // Maks 5MB
+            'FotoAbsenMasuk' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'FotoAbsenKeluar' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
-        // 2. Siapkan Data Dasar (Kecualikan file agar tidak error saat mass assignment)
         $Data = $Request->only([
             'Nama',
             'Divisi',
@@ -414,34 +447,28 @@ class AbsensiController extends Controller
         ]);
 
         $Data['UserUpdate'] = Auth::user()->name ?? 'System';
+        $Data['KodeTenant'] = $kodeTenant; // Update kode tenant jika diperlukan
 
-        // 3. Proses Upload Foto Absen Masuk (JIKA ADA FILE BARU)
         if ($Request->hasFile('FotoAbsenMasuk')) {
-            // Hapus foto lama dari storage jika ada
             if ($Absensi->FotoAbsenMasuk && Storage::disk('public')->exists($Absensi->FotoAbsenMasuk)) {
                 Storage::disk('public')->delete($Absensi->FotoAbsenMasuk);
             }
-            // Simpan file baru langsung tanpa kompres
             $FileMasuk = $Request->file('FotoAbsenMasuk');
             $FileNameMasuk = time() . '_masuk_' . uniqid() . '.' . $FileMasuk->getClientOriginalExtension();
             $FileMasuk->storeAs('absensi', $FileNameMasuk, 'public');
             $Data['FotoAbsenMasuk'] = 'absensi/' . $FileNameMasuk;
         }
 
-        // 4. Proses Upload Foto Absen Keluar (JIKA ADA FILE BARU)
         if ($Request->hasFile('FotoAbsenKeluar')) {
-            // Hapus foto lama dari storage jika ada
             if ($Absensi->FotoAbsenKeluar && Storage::disk('public')->exists($Absensi->FotoAbsenKeluar)) {
                 Storage::disk('public')->delete($Absensi->FotoAbsenKeluar);
             }
-            // Simpan file baru langsung tanpa kompres
             $FileKeluar = $Request->file('FotoAbsenKeluar');
             $FileNameKeluar = time() . '_keluar_' . uniqid() . '.' . $FileKeluar->getClientOriginalExtension();
             $FileKeluar->storeAs('absensi', $FileNameKeluar, 'public');
             $Data['FotoAbsenKeluar'] = 'absensi/' . $FileNameKeluar;
         }
 
-        // 5. Update Data ke Database
         $Absensi->update($Data);
 
         return redirect()->route('absensi.index')->with('success', 'Data absensi berhasil diperbarui.');
@@ -449,6 +476,12 @@ class AbsensiController extends Controller
 
     public function destroy(Absensi $absensi)
     {
+        $kodeTenant = Auth::user()->KodeTenant ?? null;
+        // Hanya boleh menghapus absensi dari tenant sendiri
+        if ($absensi->KodeTenant !== $kodeTenant) {
+            return response()->json(['success' => false, 'status' => 403, 'message' => 'Tidak diizinkan menghapus data tenant lain.'], 403);
+        }
+
         try {
             $absensi->update(['UserDelete' => auth()->user()->name ?? 'System']);
             $absensi->delete();
