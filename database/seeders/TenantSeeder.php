@@ -16,8 +16,6 @@ class TenantSeeder extends Seeder
     {
         // Buat 1 Tenant saja sesuai permintaan
         Tenant::create([
-            'doku_invoice_number' => 'INV-ANGGITYUDA-001',
-            'payment_status' => 'paid',
             'Nama' => 'Anggit Yuda Pradana',
             'Kode' => 'TEN-0001',
             'Email' => 'anggityudapradana@gmail.com',
