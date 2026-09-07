@@ -27,20 +27,18 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
+Auth::routes();
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [LandingPageController::class, 'index'])->name('landing-page');
 Route::get('/landing-page', [LandingPageController::class, 'index'])->name('landing-page');
 Route::get('/daftar', [LandingPageController::class, 'daftar'])->name('daftar');
 Route::post('/pendaftaran-tenant/kirim', [PendaftaranTenantController::class, 'store'])->name('pendaftaran-tenant.store');
 
-Auth::routes();
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
     Route::get('/manajemen-tenant', [DashboardController::class, 'indexTenant'])->name('dashboard.manajemen-tenant');
-    Route::get('/', [DashboardController::class, 'index'])->name('home');
+    Route::get('/home', [DashboardController::class, 'index'])->name('home');
     Route::get('/ekspedisi', [App\Http\Controllers\EkspedisiController::class, 'index'])->name('ekspedisi.index');
     Route::get('/ekspedisi/data', [App\Http\Controllers\EkspedisiController::class, 'data'])->name('ekspedisi.data');
     Route::get('/ekspedisi/create', [App\Http\Controllers\EkspedisiController::class, 'create'])->name('ekspedisi.create');
