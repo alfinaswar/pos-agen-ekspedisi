@@ -112,10 +112,10 @@ class TenantProvisioningService
                 'BerlakuHingga' => $TanggalBerakhir,
                 'BuktiPembayaran' => $buktiBayarRef,
                 'Catatan' => 'Pembayaran via DOKU - Token: ' . ($pendaftaran->DokuTokenId ?? '-'),
-                'Status' => 'N/A',
-                'CatatanVerifikasi' => null,
-                'VerifPada' => null,
-                'VerifOleh' => null,
+                'Status' => 'Y',
+                'CatatanVerifikasi' => 'Verifikasi Pembayaran via DOKU - Token: ' . ($pendaftaran->DokuTokenId ?? '-'),
+                'VerifPada' => now(),
+                'VerifOleh' => 'DOKU',
                 'UserCreate' => $verifiedBy,
             ]);
 
