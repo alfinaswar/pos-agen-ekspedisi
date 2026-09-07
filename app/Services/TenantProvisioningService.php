@@ -89,6 +89,7 @@ class TenantProvisioningService
 
             User::create([
                 'tenant_id' => $NewTenant->Kode,
+                'KodeTenant' => $NewTenant->Kode,
                 'name' => $UserName,
                 'email' => $UserEmail,
                 'password' => Hash::make($PasswordPlain),
