@@ -6,11 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Akun Maurekap Anda Aktif</title>
-    <!--[if mso]>
-<style type="text/css">
-body, table, td { font-family: Arial, sans-serif !important; }
-</style>
-<![endif]-->
 </head>
 
 <body
@@ -94,7 +89,7 @@ body, table, td { font-family: Arial, sans-serif !important; }
                                             Password Sementara</div>
                                         <div
                                             style="font-size: 15px; color: #dc2626; font-weight: 700; word-break: break-all; font-family: 'Courier New', monospace; background: #ffffff; padding: 10px 12px; border-radius: 6px; border: 1px solid #fecaca; letter-spacing: 1px;">
-                                            {{ $Password }}
+                                            {{ $PasswordPlain }}
                                         </div>
                                     </td>
                                 </tr>

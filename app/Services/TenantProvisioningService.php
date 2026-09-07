@@ -2,17 +2,18 @@
 
 namespace App\Services;
 
+use App\Mail\TenantApprovedMail;
 use App\Models\PendaftaranTenant;
+use App\Models\TagihanPembayaran;
 use App\Models\Tenant;
 use App\Models\User;
-use App\Models\TagihanPembayaran;
-use App\Mail\TenantApprovedMail;
 use Carbon\Carbon;
-use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
+use Exception;
 
 class TenantProvisioningService
 {
@@ -62,7 +63,8 @@ class TenantProvisioningService
             // ═══════════════════════════════════════════════════
             $TanggalJoin = now();
             $durasiBulan = (int) ($paket->DurasiBulan ?? 1);
-            $PasswordPlain = Carbon::parse($pendaftaran->created_at)->format('Ymd'); // misal: 20260907
+            $PasswordPlain = Carbon::parse($pendaftaran->created_at)->format('Ymd') . Str::random(4);
+
             $TanggalBerakhir = $TanggalJoin->copy()->addMonths($durasiBulan);
 
             $NewTenant = Tenant::create([
@@ -85,7 +87,7 @@ class TenantProvisioningService
             // 2B. BUAT USER ADMIN
             // ═══════════════════════════════════════════════════
             $UserName = $pendaftaran->NamaPIC ?: $pendaftaran->Nama;
-            $UserEmail = $pendaftaran->EmailPIC ?: $pendaftaran->Email;
+            $UserEmail = $pendaftaran->EmailPIC ?: $pendaftaran->EmailPIC;
 
             User::create([
                 'tenant_id' => $NewTenant->Kode,
@@ -148,9 +150,9 @@ class TenantProvisioningService
                         $UserEmail,
                         $PasswordPlain,
                         url('/login'),
-                        $paket->NamaPaket ?? null,                                  // PaketNama
-                        $TanggalJoin->translatedFormat('d F Y'),                   // TanggalMulai
-                        $TanggalBerakhir->translatedFormat('d F Y')                // TanggalBerakhir
+                        $paket->NamaPaket ?? null,  // PaketNama
+                        $TanggalJoin->translatedFormat('d F Y'),  // TanggalMulai
+                        $TanggalBerakhir->translatedFormat('d F Y')  // TanggalBerakhir
                     ));
                     Log::info('✅ Email approval terkirim ke ' . $UserEmail);
                 } catch (Exception $mailEx) {

@@ -1038,22 +1038,22 @@
                             @enderror
                         </span>
                     </div>
-                  <div class="field @error('Telepon') invalid @enderror">
-    <label for="Telepon" class="req">Telepon</label>
-    <input id="Telepon" name="Telepon" type="tel"
-           placeholder="cth: 081234567890 atau +6281234567890"
-           data-validate="phone" autocomplete="tel" value="{{ old('Telepon') }}">
-    <span class="err">
-        @error('Telepon')
-            {{ $message }}
-        @else
-            Nomor telepon tidak valid (min. 9 digit).
-        @enderror
-    </span>
-    <small style="color:var(--muted); font-size:.75rem; margin-top:4px;">
-        Format: 08xxx, 628xxx, atau +628xxx
-    </small>
-</div>
+                    <div class="field @error('Telepon') invalid @enderror">
+                        <label for="Telepon" class="req">Telepon</label>
+                        <input id="Telepon" name="Telepon" type="tel"
+                            placeholder="cth: 081234567890 atau +6281234567890" data-validate="phone"
+                            autocomplete="tel" value="{{ old('Telepon') }}">
+                        <span class="err">
+                            @error('Telepon')
+                                {{ $message }}
+                            @else
+                                Nomor telepon tidak valid (min. 9 digit).
+                            @enderror
+                        </span>
+                        <small style="color:var(--muted); font-size:.75rem; margin-top:4px;">
+                            Format: 08xxx, 628xxx, atau +628xxx
+                        </small>
+                    </div>
                     <div class="field span2 @error('Alamat') invalid @enderror">
                         <label for="Alamat" class="req">Alamat</label>
                         <textarea id="Alamat" name="Alamat" rows="3" placeholder="Nama jalan, nomor, kecamatan, kota, kode pos"
@@ -1134,74 +1134,82 @@
                 </div>
 
                 <!-- HAPUS seluruh section 3 (Bukti Pembayaran) -->
-<!-- Hapus: .pay-info, #drop, #buktibayar, #filePrev, dll. -->
+                <!-- Hapus: .pay-info, #drop, #buktibayar, #filePrev, dll. -->
 
-<!-- Ganti section 3 menjadi info pembayaran: -->
+                <!-- Ganti section 3 menjadi info pembayaran: -->
 
-<!-- 3. INFORMASI PEMBAYARAN -->
-<div class="form-sec" style="margin-bottom:24px;">
-    <span class="sec-num" style="margin-right:12px;">3</span>
-    <div>
-        <h2 style="margin-bottom:4px;">Informasi Pembayaran</h2>
-        <p style="font-size:1rem; color:#555; margin:0;">
-            Setelah submit, Anda akan diarahkan ke halaman pembayaran <b>DOKU</b>.
-        </p>
-    </div>
-</div>
+                <!-- 3. INFORMASI PEMBAYARAN -->
+                <div class="form-sec" style="margin-bottom:24px;">
+                    <span class="sec-num" style="margin-right:12px;">3</span>
+                    <div>
+                        <h2 style="margin-bottom:4px;">Informasi Pembayaran</h2>
+                        <p style="font-size:1rem; color:#555; margin:0;">
+                            Setelah submit, Anda akan diarahkan ke halaman pembayaran <b>DOKU</b>.
+                        </p>
+                    </div>
+                </div>
 
-<div class="pay-info" style="display:flex; gap:14px; align-items:flex-start; background:#f8fafc; border-radius:8px; padding:20px 18px 20px 16px; margin-bottom:30px; box-shadow:0 2px 8px #0001;">
-    <div style="flex-shrink:0;">
-        <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="6" width="18" height="13" rx="2" />
-            <path d="M3 10h18" />
-            <path d="M7 15h4" />
-        </svg>
-    </div>
-    <div>
-        <p style="margin:0 0 5px 0;font-weight:500;color:#222;">Pilih metode pembayaran:</p>
-        <ul style="margin:0 0 10px 14px; padding:0; display:grid; gap:3px; color:#444; font-size:.97rem; list-style:none;">
-            <li style="display:flex;align-items:center;">
-                <span style="color:#22c55e;font-size:1.1em;margin-right:7px;">&#10004;</span> Virtual Account (BCA, BRI, Mandiri, dll)
-            </li>
-            <li style="display:flex;align-items:center;">
-                <span style="color:#22c55e;font-size:1.1em;margin-right:7px;">&#10004;</span> QRIS (GoPay, OVO, DANA, ShopeePay)
-            </li>
-            <li style="display:flex;align-items:center;">
-                <span style="color:#22c55e;font-size:1.1em;margin-right:7px;">&#10004;</span> Kartu Kredit/Debit
-            </li>
-            <li style="display:flex;align-items:center;">
-                <span style="color:#22c55e;font-size:1.1em;margin-right:7px;">&#10004;</span> E-Wallet
-            </li>
-        </ul>
-        <div style="margin-top:4px; font-size:.93em; color:#8392a8;">
-            Pembayaran diproses melalui <b style="color:#2463eb">DOKU Payment Gateway</b> yang aman &amp; terenkripsi.
-        </div>
-    </div>
-</div>
+                <div class="pay-info"
+                    style="display:flex; gap:14px; align-items:flex-start; background:#f8fafc; border-radius:8px; padding:20px 18px 20px 16px; margin-bottom:30px; box-shadow:0 2px 8px #0001;">
+                    <div style="flex-shrink:0;">
+                        <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#3b82f6"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="6" width="18" height="13" rx="2" />
+                            <path d="M3 10h18" />
+                            <path d="M7 15h4" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p style="margin:0 0 5px 0;font-weight:500;color:#222;">Pilih metode pembayaran:</p>
+                        <ul
+                            style="margin:0 0 10px 14px; padding:0; display:grid; gap:3px; color:#444; font-size:.97rem; list-style:none;">
+                            <li style="display:flex;align-items:center;">
+                                <span style="color:#22c55e;font-size:1.1em;margin-right:7px;">&#10004;</span> Virtual
+                                Account (BCA, BRI, Mandiri, dll)
+                            </li>
+                            <li style="display:flex;align-items:center;">
+                                <span style="color:#22c55e;font-size:1.1em;margin-right:7px;">&#10004;</span> QRIS
+                                (GoPay, OVO, DANA, ShopeePay)
+                            </li>
+                            <li style="display:flex;align-items:center;">
+                                <span style="color:#22c55e;font-size:1.1em;margin-right:7px;">&#10004;</span> Kartu
+                                Kredit/Debit
+                            </li>
+                            <li style="display:flex;align-items:center;">
+                                <span style="color:#22c55e;font-size:1.1em;margin-right:7px;">&#10004;</span> E-Wallet
+                            </li>
+                        </ul>
+                        <div style="margin-top:4px; font-size:.93em; color:#8392a8;">
+                            Pembayaran diproses melalui <b style="color:#2463eb">DOKU Payment Gateway</b> yang aman
+                            &amp; terenkripsi.
+                        </div>
+                    </div>
+                </div>
 
-<div class="terms" id="termsRow" style="margin-bottom:20px;">
-    <input id="terms" name="terms" type="checkbox" {{ old('terms') ? 'checked' : '' }}>
-    <label for="terms" style="font-size:.98em;">
-        Saya menyatakan data di atas benar dan menyetujui
-        <a href="#" style="color:#2563eb;">Syarat &amp; Ketentuan</a>
-        serta
-        <a href="#" style="color:#2563eb;">Kebijakan Privasi</a> Maurekap.
-    </label>
-</div>
+                <div class="terms" id="termsRow" style="margin-bottom:20px;">
+                    <input id="terms" name="terms" type="checkbox" {{ old('terms') ? 'checked' : '' }}>
+                    <label for="terms" style="font-size:.98em;">
+                        Saya menyatakan data di atas benar dan menyetujui
+                        <a href="#" style="color:#2563eb;">Syarat &amp; Ketentuan</a>
+                        serta
+                        <a href="#" style="color:#2563eb;">Kebijakan Privasi</a> Maurekap.
+                    </label>
+                </div>
 
-<div class="submit-row" style="display:flex;align-items:center;gap:18px;">
-    <button type="submit" class="btn btn-blue" style="padding:11px 30px;font-size:1.07em;">
-        Lanjutkan Pembayaran <span class="arr" style="margin-left:7px;">→</span>
-    </button>
-    <span class="secure-note" style="display:flex;align-items:center;font-size:.96em;color:#74918c;">
-        <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="#10b981"
-            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;">
-            <rect x="4" y="10" width="16" height="10" rx="2" />
-            <path d="M8 10V7a4 4 0 0 1 8 0v3" />
-        </svg>
-        Data Anda aman &amp; terenkripsi
-    </span>
-</div>
+                <div class="submit-row" style="display:flex;align-items:center;gap:18px;">
+                    <button type="submit" class="btn btn-blue" style="padding:11px 30px;font-size:1.07em;">
+                        Lanjutkan Pembayaran <span class="arr" style="margin-left:7px;">→</span>
+                    </button>
+                    <span class="secure-note" style="display:flex;align-items:center;font-size:.96em;color:#74918c;">
+                        <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="#10b981"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            style="margin-right:6px;">
+                            <rect x="4" y="10" width="16" height="10" rx="2" />
+                            <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+                        </svg>
+                        Data Anda aman &amp; terenkripsi
+                    </span>
+                </div>
 
             </form>
 
@@ -1405,21 +1413,42 @@
 
             /* 4. ALAMAT PIC = ALAMAT USAHA */
             var same = $('#sameAddr'),
-                alamat = $('#Alamat'),
-                alamatPic = $('#AlamatPIC');
-            if (same && alamat && alamatPic) {
+                namaUsaha = $('#Nama'),
+                emailUsaha = $('#Email'),
+                teleponUsaha = $('#Telepon'),
+                alamatUsaha = $('#Alamat'),
+                namaPIC = $('#NamaPIC'),
+                emailPIC = $('#EmailPIC'),
+                teleponPIC = $('#TeleponPIC'),
+                alamatPIC = $('#AlamatPIC');
+            if (
+                same &&
+                namaUsaha && emailUsaha && teleponUsaha && alamatUsaha &&
+                namaPIC && emailPIC && teleponPIC && alamatPIC
+            ) {
                 same.addEventListener('change', function() {
                     if (same.checked) {
-                        alamatPic.value = alamat.value;
-                        alamatPic.disabled = true;
-                    } else {
-                        alamatPic.disabled = false;
+                        namaPIC.value = namaUsaha.value;
+                        emailPIC.value = emailUsaha.value;
+                        teleponPIC.value = teleponUsaha.value;
+                        alamatPIC.value = alamatUsaha.value;
                     }
                 });
-                alamat.addEventListener('input', function() {
-                    if (same.checked) alamatPic.value = alamat.value;
+
+                // Sinkronisasi jika data usaha berubah & cekboks aktif
+                [namaUsaha, emailUsaha, teleponUsaha, alamatUsaha].forEach(function(input, idx) {
+                    input.addEventListener('input', function() {
+                        if (same.checked) {
+                            if (idx === 0) namaPIC.value = namaUsaha.value;
+                            if (idx === 1) emailPIC.value = emailUsaha.value;
+                            if (idx === 2) teleponPIC.value = teleponUsaha.value;
+                            if (idx === 3) alamatPIC.value = alamatUsaha.value;
+                        }
+                    });
                 });
             }
+
+
 
             // Kode untuk handle file upload, preview, validasi, dan event fDel telah dihapus sesuai permintaan.
 
