@@ -48,7 +48,7 @@
 
                             <h1
                                 style="margin: 0 0 8px; font-size: 28px; font-weight: 800; color: #0f172a; line-height: 1.2;">
-                                Selamat, {{ $Nama }}! 🎉
+                                Selamat, {{ $Nama ?? '-' }}! 🎉
                             </h1>
                             <p style="margin: 0; color: #64748b; font-size: 15px; line-height: 1.5;">
                                 Pembayaran Anda telah kami terima dan akun Maurekap Anda sudah <strong
@@ -78,7 +78,7 @@
                                             Email / Username</div>
                                         <div
                                             style="font-size: 15px; color: #0f172a; font-weight: 600; word-break: break-all; font-family: 'Courier New', monospace; background: #ffffff; padding: 10px 12px; border-radius: 6px; border: 1px solid #e2e8f0;">
-                                            {{ $Email }}
+                                            {{ $Email ?? '-' }}
                                         </div>
                                     </td>
                                 </tr>
@@ -89,7 +89,7 @@
                                             Password Sementara</div>
                                         <div
                                             style="font-size: 15px; color: #dc2626; font-weight: 700; word-break: break-all; font-family: 'Courier New', monospace; background: #ffffff; padding: 10px 12px; border-radius: 6px; border: 1px solid #fecaca; letter-spacing: 1px;">
-                                            {{ $PasswordPlain }}
+                                            {{ $PasswordPlain ?? '-' }}
                                         </div>
                                     </td>
                                 </tr>
@@ -100,19 +100,19 @@
                     <!-- ══════════ CTA BUTTON ══════════ -->
                     <tr>
                         <td style="padding: 0 32px 8px; text-align: center;">
-                            <a href="{{ $LoginUrl }}"
+                            <a href="{{ $LoginUrl ?? '#' }}"
                                 style="display: inline-block; background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); color: #ffffff !important; text-decoration: none; padding: 14px 36px; border-radius: 10px; font-weight: 700; font-size: 15px; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);">
                                 Login ke Dashboard →
                             </a>
                             <div style="font-size: 12px; color: #94a3b8; margin-top: 12px;">
                                 Atau salin link: <span
-                                    style="color: #64748b; font-family: monospace;">{{ $LoginUrl }}</span>
+                                    style="color: #64748b; font-family: monospace;">{{ $LoginUrl ?? '-' }}</span>
                             </div>
                         </td>
                     </tr>
 
                     <!-- ══════════ DETAIL LANGGANAN (opsional) ══════════ -->
-                    @if ($PaketNama || $TanggalMulai || $TanggalBerakhir)
+                    @if (!empty($PaketNama) || !empty($TanggalMulai) || !empty($TanggalBerakhir))
                         <tr>
                             <td style="padding: 24px 32px 8px;">
                                 <div
@@ -120,32 +120,32 @@
                                     Detail Langganan Anda</div>
                                 <table role="presentation" cellpadding="0" cellspacing="0" width="100%"
                                     style="background-color: #eff6ff; border: 1px solid #dbeafe; border-radius: 10px;">
-                                    @if ($PaketNama)
+                                    @if (!empty($PaketNama))
                                         <tr>
                                             <td
                                                 style="padding: 12px 16px; border-bottom: 1px solid #dbeafe; font-size: 13px;">
                                                 <span style="color: #64748b;">Paket</span>
                                                 <span
-                                                    style="float: right; font-weight: 700; color: #1e40af;">{{ $PaketNama }}</span>
+                                                    style="float: right; font-weight: 700; color: #1e40af;">{{ $PaketNama ?? '-' }}</span>
                                             </td>
                                         </tr>
                                     @endif
-                                    @if ($TanggalMulai)
+                                    @if (!empty($TanggalMulai))
                                         <tr>
                                             <td
                                                 style="padding: 12px 16px; border-bottom: 1px solid #dbeafe; font-size: 13px;">
                                                 <span style="color: #64748b;">Berlaku sejak</span>
                                                 <span
-                                                    style="float: right; font-weight: 600; color: #0f172a;">{{ $TanggalMulai }}</span>
+                                                    style="float: right; font-weight: 600; color: #0f172a;">{{ $TanggalMulai ?? '-' }}</span>
                                             </td>
                                         </tr>
                                     @endif
-                                    @if ($TanggalBerakhir)
+                                    @if (!empty($TanggalBerakhir))
                                         <tr>
                                             <td style="padding: 12px 16px; font-size: 13px;">
                                                 <span style="color: #64748b;">Berakhir pada</span>
                                                 <span
-                                                    style="float: right; font-weight: 600; color: #0f172a;">{{ $TanggalBerakhir }}</span>
+                                                    style="float: right; font-weight: 600; color: #0f172a;">{{ $TanggalBerakhir ?? '-' }}</span>
                                             </td>
                                         </tr>
                                     @endif
@@ -293,7 +293,7 @@
                             </div>
 
                             <div style="color: #64748b; font-size: 11px; line-height: 1.6;">
-                                Email ini dikirim ke <strong style="color: #cbd5e1;">{{ $Email }}</strong>
+                                Email ini dikirim ke <strong style="color: #cbd5e1;">{{ $Email ?? '-' }}</strong>
                                 karena Anda mendaftar sebagai mitra Maurekap.<br>
                                 Mohon tidak membalas email ini. &copy; {{ date('Y') }} Maurekap. All rights
                                 reserved.

@@ -346,6 +346,101 @@ footer ul a:hover{color:#fff;padding-left:4px}
   .chart-area,.chart-dot{opacity:1}
   .annot .draw{stroke-dashoffset:0}
 }
+/* ================= FLOATING WHATSAPP ================= */
+.wa-float {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  width: 60px;
+  height: 60px;
+  background: var(--green); /* Menggunakan variabel hijau yang sudah ada */
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(22, 163, 74, 0.4);
+  z-index: 9999;
+  text-decoration: none;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+}
+
+.wa-float:hover {
+  transform: scale(1.1) translateY(-4px);
+  box-shadow: 0 12px 32px rgba(22, 163, 74, 0.5);
+}
+
+.wa-float svg {
+  width: 32px;
+  height: 32px;
+  fill: currentColor;
+  position: relative;
+  z-index: 2;
+}
+
+/* Efek Pulse / Berdenyut */
+.wa-float::before {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--green);
+  opacity: 0.6;
+  z-index: 1;
+  animation: wa-pulse 2.5s infinite;
+}
+
+@keyframes wa-pulse {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+/* Tooltip (Muncul saat hover di desktop) */
+.wa-tooltip {
+  position: absolute;
+  right: 72px;
+  background: var(--navy);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateX(10px);
+  transition: all 0.3s ease;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(15, 27, 51, 0.15);
+}
+
+.wa-tooltip::after {
+  content: "";
+  position: absolute;
+  right: -6px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-width: 6px 0 6px 6px;
+  border-style: solid;
+  border-color: transparent transparent transparent var(--navy);
+}
+
+.wa-float:hover .wa-tooltip {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Penyesuaian Mobile */
+@media (max-width: 640px) {
+  .wa-float {
+    width: 54px;
+    height: 54px;
+    bottom: 20px;
+    right: 20px;
+  }
+  .wa-float svg { width: 28px; height: 28px; }
+  .wa-tooltip { display: none; } /* Sembunyikan tooltip di HP agar tidak mengganggu */
+}
 </style>
 </head>
 <body>
@@ -421,9 +516,10 @@ footer ul a:hover{color:#fff;padding-left:4px}
       </ul>
 
       <div class="hero-cta" data-rv style="--d:.32s">
-        <a href="#cta" class="btn btn-blue">Coba Gratis 7 Hari <span class="arr">→</span></a>
+        <a href="#cta" class="btn btn-blue">Daftar Sekarang <span class="arr">→</span></a>
         <a href="#cara-kerja" class="btn btn-outline">Lihat Demo</a>
       </div>
+
       <div class="micro" data-rv style="--d:.4s">
         <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></svg>Tanpa kartu kredit</span>
         <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Setup cepat</span>
@@ -519,28 +615,28 @@ footer ul a:hover{color:#fff;padding-left:4px}
 
       <div class="phone" aria-hidden="true">
         <div class="phone-screen">
-          <div class="ph-head">Bukti Transfer <span>✕</span></div>
+          {{-- <div class="ph-head">Bukti Transfer <span>✕</span></div>
           <div class="ph-row"><p class="lb">Dari</p><p class="vl">Rizky Rudy</p></div>
           <div class="ph-row"><p class="lb">Nominal</p><p class="vl big">QRIS · Rp 85.000</p></div>
           <div class="ph-row"><p class="lb">Waktu</p><p class="vl">12 Mei 2026 · 14:36</p></div>
-          <span class="ph-status">✓ Terverifikasi</span>
+          <span class="ph-status">✓ Terverifikasi</span> --}}
           <div class="qr-box">
-            <svg viewBox="0 0 21 21" shape-rendering="crispEdges" fill="#0F172A" aria-hidden="true">
-              <path d="M0 0h7v7H0z"/><rect x="2" y="2" width="3" height="3" fill="#fff"/><rect x="3" y="3" width="1" height="1"/>
-              <path d="M14 0h7v7h-7z"/><rect x="16" y="2" width="3" height="3" fill="#fff"/><rect x="17" y="3" width="1" height="1"/>
-              <path d="M0 14h7v7H0z"/><rect x="2" y="16" width="3" height="3" fill="#fff"/><rect x="3" y="17" width="1" height="1"/>
-              <rect x="9" y="0" width="1" height="1"/><rect x="11" y="1" width="1" height="2"/><rect x="9" y="3" width="2" height="1"/><rect x="12" y="4" width="1" height="1"/>
-              <rect x="0" y="9" width="2" height="1"/><rect x="3" y="10" width="1" height="1"/><rect x="5" y="9" width="1" height="2"/><rect x="8" y="9" width="1" height="1"/>
-              <rect x="10" y="10" width="2" height="1"/><rect x="13" y="9" width="1" height="2"/><rect x="15" y="10" width="1" height="1"/><rect x="18" y="9" width="2" height="1"/>
-              <rect x="20" y="11" width="1" height="2"/><rect x="9" y="12" width="1" height="2"/><rect x="11" y="13" width="2" height="1"/><rect x="14" y="12" width="1" height="1"/>
-              <rect x="16" y="13" width="2" height="1"/><rect x="19" y="14" width="1" height="1"/><rect x="9" y="16" width="2" height="1"/><rect x="12" y="15" width="1" height="2"/>
-              <rect x="14" y="17" width="1" height="1"/><rect x="16" y="16" width="1" height="2"/><rect x="18" y="18" width="2" height="1"/><rect x="9" y="19" width="1" height="1"/>
-              <rect x="11" y="18" width="1" height="2"/><rect x="14" y="19" width="2" height="1"/><rect x="20" y="17" width="1" height="2"/>
-            </svg>
+            <!-- Ganti QR code jadi video portrait -->
+            <video
+              src="{{ asset('img/video-promo.webm') }}"
+              playsinline
+              muted
+              autoplay
+              loop
+              style="width:110px;height:196px;display:block;border-radius:12px;box-shadow:0 2px 24px rgba(0,0,0,0.12);background:#111;">
+              Maaf, browser Anda tidak mendukung video.
+            </video>
+
           </div>
           <span class="ph-btn">Lihat Detail</span>
         </div>
       </div>
+
 
       <div class="annot" aria-hidden="true">
         <p>Semua transaksi dalam satu dashboard</p>
@@ -792,7 +888,7 @@ footer ul a:hover{color:#fff;padding-left:4px}
     <div class="sec-head" data-rv>
       <span class="sec-tag">Pilihan Paket</span>
       <h2>Pilih Paket yang Cocok untuk Agen Anda</h2>
-      <p>Mulai lebih rapi dengan promo spesial untuk periode terbatas. Coba gratis 7 hari dan rasakan sendiri kemudahannya.</p>
+      <p>Mulai lebih rapi dengan promo spesial untuk periode terbatas. segera daftar dan rasakan sendiri kemudahannya.</p>
       <p style="margin-top:8px;font-size:.88rem;color:var(--blue);font-weight:600">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         Promo tersedia untuk periode terbatas
@@ -865,7 +961,7 @@ footer ul a:hover{color:#fff;padding-left:4px}
           </div>
 
           @if($item->DurasiBulan == 1)
-            <a href="#" class="btn btn-blue" style="width:100%;justify-content:center;margin-top:8px">Coba Gratis 7 Hari</a>
+            <a href="#" class="btn btn-blue" style="width:100%;justify-content:center;margin-top:8px">Daftar Sekarang</a>
           @elseif($item->DurasiBulan == 12)
             <a href="#" class="btn btn-blue" style="width:100%;justify-content:center;margin-top:8px;box-shadow:0 8px 24px rgba(37,99,235,.35)">Pilih Paket Tahunan</a>
           @endif
@@ -885,8 +981,9 @@ footer ul a:hover{color:#fff;padding-left:4px}
         <div style="width:48px;height:48px;background:var(--blue-50);border-radius:12px;display:grid;place-items:center;margin:0 auto 12px;color:var(--blue)">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         </div>
-        <h4 style="font-size:.95rem;font-weight:800;margin-bottom:6px;color:var(--navy)">Gratis coba 7 hari</h4>
-        <p style="font-size:.85rem;color:var(--muted);line-height:1.5">Coba semua fitur Maurekap selama 7 hari penuh.</p>
+        <h4 style="font-size:.95rem;font-weight:800;margin-bottom:6px;color:var(--navy)">Akses semua fitur</h4>
+        <p style="font-size:.85rem;color:var(--muted);line-height:1.5">Nikmati kemudahan menggunakan seluruh fitur Maurekap tanpa batasan.</p>
+
       </div>
       <div style="padding:20px">
         <div style="width:48px;height:48px;background:var(--blue-50);border-radius:12px;display:grid;place-items:center;margin:0 auto 12px;color:var(--blue)">
@@ -958,18 +1055,31 @@ footer ul a:hover{color:#fff;padding-left:4px}
       <div class="cta-txt">
         <span class="sec-tag">Mulai Sekarang</span>
         <h2>Kelola Pembayaran Jadi Lebih Mudah</h2>
-        <p>Fokus kembangkan usaha, biar Maurekap yang urus rekapnya. Gratis 7 hari untuk merasakan sendiri bedanya.</p>
+        <p>Fokus kembangkan usaha, biar Maurekap yang urus rekapnya. Rasakan sendiri kemudahannya untuk bisnis Anda.</p>
       </div>
       <div class="cta-right">
-        <a href="#" class="btn btn-orange">Coba Gratis Sekarang <span class="arr">→</span></a>
-        <small>Gratis 7 hari &nbsp;•&nbsp; Tanpa kartu kredit</small>
+        <a href="#" class="btn btn-orange">Coba Sekarang <span class="arr">→</span></a>
+        <small>Tanpa kartu kredit</small>
       </div>
     </div>
   </div>
 </section>
 
 </main>
+<!-- Floating WhatsApp Button -->
+<a href="https://wa.me/628985326712?text=Halo%20Maurekap,%20saya%20tertarik%20dengan%20sistem%20rekap%20pembayaran%20ini.%20Boleh%20minta%20info%20lebih%20lanjut?"
+   class="wa-float"
+   target="_blank"
+   rel="noopener noreferrer"
+   aria-label="Chat dengan kami via WhatsApp">
 
+  <span class="wa-tooltip">Chat dengan kami</span>
+
+  <!-- Ikon WhatsApp SVG -->
+  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+  </svg>
+</a>
 <!-- ============ FOOTER ============ -->
 <footer>
   <div class="container">
@@ -1012,8 +1122,8 @@ footer ul a:hover{color:#fff;padding-left:4px}
       <div>
         <h4>HUBUNGI KAMI</h4>
         <ul class="contact">
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 0 0-7.8 13.5L3 21l4.7-1.2A9 9 0 1 0 12 3z"/></svg><span>WhatsApp<br>0812-3456-7890</span></li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><span>Email<br>support@maurekap.id</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 0 0-7.8 13.5L3 21l4.7-1.2A9 9 0 1 0 12 3z"/></svg><span>WhatsApp<br>0898-5326-712</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><span>Email<br>support@maurekap.com</span></li>
         </ul>
       </div>
     </div>
