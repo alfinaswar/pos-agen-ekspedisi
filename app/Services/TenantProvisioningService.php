@@ -157,7 +157,6 @@ class TenantProvisioningService
                     Log::info('✅ Email approval terkirim ke ' . $UserEmail);
                 } catch (Exception $mailEx) {
                     Log::error('❌ Gagal kirim email: ' . $mailEx->getMessage());
-                    // Provisioning tetap sukses meski email gagal
                 }
             }
 

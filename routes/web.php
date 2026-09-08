@@ -89,12 +89,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('tagihan-pembayaran/{TagihanPembayaran}/konfirmasi', [TagihanPembayaranController::class, 'KonfirmasiForm'])->name('tagihan-pembayaran.konfirmasi');
     Route::post('tagihan-pembayaran/{TagihanPembayaran}/konfirmasi', [TagihanPembayaranController::class, 'KonfirmasiProses'])->name('tagihan-pembayaran.konfirmasi.proses');
 
-    Route::get('/tagihan/payment-finish/{id}', [TagihanPembayaranController::class, 'paymentFinish'])
+    Route::get('/tagihan/detail/{id}', [TagihanPembayaranController::class, 'paymentFinish'])
         ->name('tagihan-pembayaran.payment-finish');
 
     Route::get('/tagihan/payment-status/{id}', [TagihanPembayaranController::class, 'checkPaymentStatus'])
         ->name('tagihan-pembayaran.payment-status');
-
+    Route::get('/tagihan/retry/{id}', [TagihanPembayaranController::class, 'retry'])
+        ->name('tagihan-pembayaran.retry');
     // ✅ Route Bulk Approve
     Route::post('tagihan-pembayaran/bulk-approve', [TagihanPembayaranController::class, 'BulkApprove'])->name('tagihan-pembayaran.bulkApprove');
 });

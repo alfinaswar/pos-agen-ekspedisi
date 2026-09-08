@@ -20,13 +20,16 @@ class TagihanPembayaran extends Model
     protected $guarded = ['id'];
 
     protected $casts = [
-        'TanggalJatuhTempo' => 'date',
-        'TanggalPembayaran' => 'date',
-        'BerlakuHingga' => 'date',
-        'PaymentExpiredAt' => 'datetime',
-        'PaidAt' => 'datetime',
-        'VerifPada' => 'datetime',
-        'JumlahTagihan' => 'integer',
+        'TanggalJatuhTempo'          => 'date',
+        'TanggalPembayaran'          => 'date',
+        'BerlakuHingga'              => 'date',
+        'PaymentExpiredAt'           => 'datetime',
+        'PaidAt'                     => 'datetime',
+        'VerifPada'                  => 'datetime',
+        'JumlahTagihan'              => 'integer',
+        'TanggalJoin'                => 'datetime',
+        'TanggalMulaiSubscription'   => 'datetime', // ← WAJIB ADA
+        'TanggalAkhirSubscription'   => 'datetime', // ← WAJIB ADA
     ];
 
     // Nomor tagihan akan di-generate otomatis dengan format: INV26(TAHUN)(BULAN)(NO URUT)
@@ -61,9 +64,12 @@ class TagihanPembayaran extends Model
 
     public function Tenant()
     {
-        return $this->hasOne(Tenant::class, 'Kode', 'TenantId');
+        return $this->hasOne(Tenant::class, 'Kode', 'KodeTenant');
     }
-
+    public function Paket()
+    {
+        return $this->belongsTo(MasterPaketHarga::class, 'Paket', 'id');
+    }
     public function ScopeBelumLunas($Query)
     {
         return $Query->whereIn('StatusPembayaran', ['Belum Bayar', 'Terlambat']);

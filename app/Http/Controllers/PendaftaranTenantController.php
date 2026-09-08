@@ -88,11 +88,12 @@ class PendaftaranTenantController extends Controller
         $validated = $request->validate([
             'Nama' => 'required|string|max:255',
             'Paket' => 'required|string|max:255',
-            'Email' => 'required|email|max:255',
+            'Email' => 'required|email|max:255|unique:pendaftaran_tenants,Email',
             'Telepon' => 'required|string|min:9|max:20',
             'Alamat' => 'required|string|max:500',
             'NamaPIC' => 'required|string|max:255',
-            'EmailPIC' => 'required|email|max:255',
+            'EmailPIC' => 'required|email|max:255|unique:pendaftaran_tenants,EmailPIC',
+
             'TeleponPIC' => 'nullable|string|max:20',
             'AlamatPIC' => 'nullable|string|max:500',
         ], [
@@ -100,8 +101,11 @@ class PendaftaranTenantController extends Controller
             'email' => ':attribute harus berupa email yang valid.',
             'min' => ':attribute minimal :min karakter.',
             'max' => ':attribute maksimal :max karakter.',
+            'Email.unique' => 'Email pendaftar sudah pernah digunakan.',
+            'EmailPIC.unique' => 'Email PIC sudah pernah digunakan.',
         ]);
 
+// dd(123);
         $paket = MasterPaketHarga::findOrFail($validated['Paket']);
         $invoiceNumber = 'MRK-' . date('Ymd') . '-' . strtoupper(Str::random(6));
 

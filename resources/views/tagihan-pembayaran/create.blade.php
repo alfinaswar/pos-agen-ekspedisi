@@ -143,21 +143,10 @@
                                             @enderror
                                         </div>
 
-                                        <div class="mb-4">
-                                            <label for="PeriodeBulan" class="form-label fw-semibold">
-                                                <i class="ti ti-calendar-month me-1 text-primary"></i> Periode Bulan <span
-                                                    class="text-danger">*</span>
-                                            </label>
-                                            <input type="month"
-                                                class="form-control @error('PeriodeBulan') is-invalid @enderror"
-                                                id="PeriodeBulan" name="PeriodeBulan"
-                                                value="{{ old('PeriodeBulan', now()->format('Y-m')) }}" required>
-                                            @error('PeriodeBulan')
-                                                <div class="invalid-feedback d-block error-fade-in">
-                                                    <i class="ti ti-alert-circle me-1"></i>{{ $message }}
-                                                </div>
-                                            @enderror
-                                        </div>
+                                        <input type="hidden"
+                                            id="PeriodeBulan" name="PeriodeBulan"
+                                            value="{{ old('PeriodeBulan', now()->format('Y-m')) }}">
+
 
                                         {{-- Otomatis dari Paket, fieldnya "harga" --}}
                                         <div class="mb-4">
@@ -282,64 +271,19 @@
                 return angka.toLocaleString('id-ID');
             }
 
-            // Ambil elemen-elemen yang dibutuhkan
+            // Element references
             const paketSelect = document.getElementById('Paket');
             const hargaInput = document.getElementById('harga');
-
-            // Perhatikan: harga bisa 125000 atau 1250000
-            // Beberapa harga 6 digit, beberapa 7 digit. Problem double zero karena durasi juga ribuan?
-            // Suspect: durasi bulan pada form adalah "12", tapi harga kadang juga sudah dikali 12 sebelumnya.
-            // Namun data-harga itu adalah harga/bulan. Fix: pastikan harga selalu berupa angka, tanpa format.
-            // Patch: Kalau harga >= 1000000, jangan dikali durasi. Tapi, pastikan business logic.
-            // Asumsi: harga adalah untuk 1 bulan, dikali durasi.
-
-            // FIX: Jangan kalikan durasi jika durasi == 1. Hanya kalikan jika durasi > 1.
-
-            function updateHargaFromPaket() {
-                if (!paketSelect || !hargaInput) return;
-                let selected = paketSelect.options[paketSelect.selectedIndex];
-                let harga = selected.getAttribute('data-harga');
-                let durasi = selected.getAttribute('data-durasibulan');
-
-                let durasiNum = 1;
-                if (durasi && !isNaN(durasi) && Number(durasi) > 0) {
-                    durasiNum = Number(durasi);
-                }
-
-                if (selected.value && harga) {
-                    let hargaInt = parseInt(harga, 10);
-
-                    // Patch: Hanya kalikan dengan durasi jika durasi > 1, jika durasi == 1, pakai harga saja.
-                    let totalHarga;
-                    if (durasiNum > 1) {
-                        totalHarga = hargaInt;
-                    } else {
-                        totalHarga = hargaInt;
-                    }
-                    hargaInput.value = formatRupiah(totalHarga);
-                } else {
-                    hargaInput.value = "";
-                }
-            }
-
-            if (paketSelect && hargaInput) {
-                paketSelect.addEventListener('change', updateHargaFromPaket);
-                // On mount: fill if old value not set
-                @if (!old('harga'))
-                    updateHargaFromPaket();
-                @endif
-            }
-
-            // Sync BerlakuHingga (expired date) with selected Paket and TanggalJatuhTempo
+            const periodeInput = document.getElementById('PeriodeBulan');
             const jatuhTempoInput = document.getElementById('TanggalJatuhTempo');
             const berlakuHinggaInput = document.getElementById('BerlakuHingga');
 
+            // Helper
             function padLeft(n) {
                 return n < 10 ? '0' + n : n;
             }
 
             function addMonth(dateString, monthCount) {
-                // dateString in 'YYYY-MM-DD'
                 let date = new Date(dateString);
                 if (isNaN(date)) return '';
                 let day = date.getDate();
@@ -356,26 +300,81 @@
                 return year + '-' + padLeft(month + 1) + '-' + padLeft(day);
             }
 
+            function addMonthForInputMonth(dateString, monthCount) {
+                // dateString: 'YYYY-MM-DD' or 'YYYY-MM'
+                let date;
+                if (/^\d{4}-\d{2}-\d{2}/.test(dateString)) {
+                    date = new Date(dateString);
+                } else if (/^\d{4}-\d{2}/.test(dateString)) {
+                    date = new Date(dateString + '-01');
+                } else {
+                    date = new Date();
+                }
+                if (isNaN(date)) return '';
+                let month = date.getMonth();
+                let year = date.getFullYear();
+                month += monthCount;
+                while (month > 11) {
+                    month -= 12;
+                    year += 1;
+                }
+                return year + '-' + padLeft(month + 1);
+            }
+
+            // Harga Otomatis
+            function updateHargaFromPaket() {
+                if (!paketSelect || !hargaInput) return;
+                let selected = paketSelect.options[paketSelect.selectedIndex];
+                let harga = selected.getAttribute('data-harga');
+                // let durasi = selected.getAttribute('data-durasibulan'); // not needed for total?
+                if (selected.value && harga) {
+                    let hargaInt = parseInt(harga, 10);
+                    hargaInput.value = formatRupiah(hargaInt);
+                } else {
+                    hargaInput.value = "";
+                }
+            }
+
+            // Periode Bulan otomatis: sesuai bulan Tanggal Jatuh Tempo
+            function updatePeriodeBulan() {
+                if (!periodeInput || !jatuhTempoInput) return;
+                let jatuhTempoVal = jatuhTempoInput.value;
+                if (jatuhTempoVal && /^\d{4}-\d{2}-\d{2}$/.test(jatuhTempoVal)) {
+                    let [year, month] = jatuhTempoVal.split('-');
+                    periodeInput.value = year + '-' + month;
+                }
+            }
+
+            // Berlaku Hingga otomatis dari jatuh tempo + durasi paket
             function updateBerlakuHingga() {
                 if (!paketSelect || !jatuhTempoInput || !berlakuHinggaInput) return;
                 let paket = paketSelect.options[paketSelect.selectedIndex];
                 let durasi = paket.getAttribute('data-durasibulan');
                 let jatuhTempo = jatuhTempoInput.value;
-
                 let months = 1;
                 if (durasi && !isNaN(durasi) && Number(durasi) > 0) {
                     months = Number(durasi);
                 }
-
                 if (jatuhTempo && paket.value) {
                     berlakuHinggaInput.value = addMonth(jatuhTempo, months);
                 }
             }
 
+            // Event bindings
+            if (paketSelect && hargaInput) {
+                paketSelect.addEventListener('change', updateHargaFromPaket);
+                @if (!old('harga'))
+                    updateHargaFromPaket();
+                @endif
+            }
             if (paketSelect && jatuhTempoInput && berlakuHinggaInput) {
                 paketSelect.addEventListener('change', updateBerlakuHingga);
                 jatuhTempoInput.addEventListener('change', updateBerlakuHingga);
                 updateBerlakuHingga();
+            }
+            if (periodeInput && jatuhTempoInput) {
+                jatuhTempoInput.addEventListener('change', updatePeriodeBulan);
+                updatePeriodeBulan();
             }
         });
     </script>

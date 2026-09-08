@@ -28,6 +28,7 @@ class AppServiceProvider extends ServiceProvider
         // View Composer: Mengirim data ke layout 'layouts.app'
         View::composer('layouts.app', function ($View) {
             $RecentAnnouncements = Pengumuman::latest()
+            ->where('KodeTenant', auth()->user()->KodeTenant)
                 ->limit(5)
                 ->get();
             $UnreadCount = $RecentAnnouncements->count();

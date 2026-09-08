@@ -21,13 +21,9 @@ class TagihanPembayaranController extends Controller
             $User = auth()->user();
             $User = auth()->user();
             $Query = TagihanPembayaran::with('Tenant')->latest('id');
-
+            $Query = $Query->where('KodeTenant', auth()->user()->KodeTenant);
             // Tambahkan filter berdasarkan kode tenant jika tersedia pada user login
-            if (isset($User->KodeTenant)) {
-                $Query->whereHas('Tenant', function ($q) use ($User) {
-                    $q->where('Kode', $User->KodeTenant);
-                });
-            }
+
 
             // ✅ TAMBAHAN: Logika Filter Tahun dan Bulan
             $FilterTahun = $Request->FilterTahun ?? null;
@@ -461,32 +457,19 @@ class TagihanPembayaranController extends Controller
 
     public function paymentFinish(Request $request, $id)
     {
-        $tagihan = TagihanPembayaran::with('tenant')->findOrFail($id);
+        $tagihan = TagihanPembayaran::with(['Tenant', 'Paket'])->findOrFail($id);
 
-        // Auto-provision update kalau sudah PAID
+        // Cek status DOKU sekali (user-facing request)
         if ($tagihan->PaymentStatus === 'PENDING' && $tagihan->DokuInvoiceNumber) {
             $doku = app(DokuService::class);
             $result = $doku->checkPaymentStatus($tagihan->DokuInvoiceNumber);
 
             if ($result['success'] && isset($result['body']['transaction']['status'])) {
                 $dokuStatus = strtoupper($result['body']['transaction']['status']);
+                $channel = $result['body']['channel']['id'] ?? null;
 
-                if ($dokuStatus === 'SUCCESS') {
-                    $tagihan->update([
-                        'PaymentStatus' => 'PAID',
-                        'StatusPembayaran' => 'Lunas',
-                        'TanggalPembayaran' => now(),
-                        'PaidAt' => now(),
-                        'PaymentChannel' => $result['body']['channel']['id'] ?? null,
-                        'BuktiPembayaran' => 'DOKU-' . $tagihan->DokuInvoiceNumber,
-                        'UserUpdate' => Auth::user()->name ?? 'System (DOKU)',
-                    ]);
-                    $tagihan->refresh();
-                } elseif ($dokuStatus === 'FAILED') {
-                    $tagihan->update(['PaymentStatus' => 'FAILED']);
-                } elseif ($dokuStatus === 'EXPIRED') {
-                    $tagihan->update(['PaymentStatus' => 'EXPIRED']);
-                }
+                $this->handleDokuStatusUpdate($tagihan, $dokuStatus, $channel);
+                $tagihan->refresh();
             }
         }
 
@@ -495,33 +478,24 @@ class TagihanPembayaranController extends Controller
 
     public function checkPaymentStatus(Request $request, $id)
     {
-        $tagihan = TagihanPembayaran::find($id);
+        // ✅ Eager load Tenant & Paket (penting untuk update subscription)
+        $tagihan = TagihanPembayaran::with(['Tenant', 'Paket'])->find($id);
+
         if (!$tagihan) {
             return response()->json(['success' => false, 'error' => 'Not found'], 404);
         }
 
+        // Cek status DOKU kalau masih PENDING
         if ($tagihan->PaymentStatus === 'PENDING' && $tagihan->DokuInvoiceNumber) {
             $doku = app(DokuService::class);
             $result = $doku->checkPaymentStatus($tagihan->DokuInvoiceNumber);
 
             if ($result['success'] && isset($result['body']['transaction']['status'])) {
                 $dokuStatus = strtoupper($result['body']['transaction']['status']);
+                $channel = $result['body']['channel']['id'] ?? null;
 
-                if ($dokuStatus === 'SUCCESS') {
-                    $tagihan->update([
-                        'PaymentStatus' => 'PAID',
-                        'StatusPembayaran' => 'Lunas',
-                        'TanggalPembayaran' => now(),
-                        'PaidAt' => now(),
-                        'PaymentChannel' => $result['body']['channel']['id'] ?? null,
-                        'BuktiPembayaran' => 'DOKU-' . $tagihan->DokuInvoiceNumber,
-                        'UserUpdate' => Auth::user()->name ?? 'System (DOKU)',
-                    ]);
-                } elseif ($dokuStatus === 'FAILED') {
-                    $tagihan->update(['PaymentStatus' => 'FAILED']);
-                } elseif ($dokuStatus === 'EXPIRED') {
-                    $tagihan->update(['PaymentStatus' => 'EXPIRED']);
-                }
+                // 🔥 Pakai helper yang SAMA — idempotent, no double-update
+                $this->handleDokuStatusUpdate($tagihan, $dokuStatus, $channel);
                 $tagihan->refresh();
             }
         }
@@ -534,6 +508,98 @@ class TagihanPembayaranController extends Controller
                 'paid_at' => $tagihan->PaidAt?->format('d M Y H:i'),
                 'payment_channel' => $tagihan->PaymentChannel,
             ],
+        ]);
+    }
+    protected function handleDokuStatusUpdate(TagihanPembayaran $tagihan, string $dokuStatus, ?string $channel = null): void
+    {
+        $now = now();
+
+        if ($dokuStatus === 'SUCCESS') {
+            // ✅ Guard: Skip kalau sudah PAID (idempotency)
+            if ($tagihan->PaymentStatus === 'PAID') {
+                \Log::info('⏭️ Skip: tagihan sudah PAID sebelumnya', [
+                    'tagihan_id' => $tagihan->id,
+                ]);
+                return;
+            }
+
+            // 1. Update Tagihan
+            $tagihan->update([
+                'PaymentStatus' => 'PAID',
+                'StatusPembayaran' => 'Lunas',
+                'TanggalPembayaran' => $now,
+                'PaidAt' => $now,
+                'PaymentChannel' => $channel,
+                'BuktiPembayaran' => 'DOKU-' . $tagihan->DokuInvoiceNumber,
+                'UserUpdate' => Auth::user()->name ?? 'System (DOKU)',
+            ]);
+
+            // 2. Update Tenant Subscription (hanya kalau ada relasi)
+            $this->updateTenantSubscription($tagihan, $now);
+
+        } elseif ($dokuStatus === 'FAILED') {
+            if ($tagihan->PaymentStatus !== 'FAILED') {
+                $tagihan->update(['PaymentStatus' => 'FAILED']);
+            }
+        } elseif ($dokuStatus === 'EXPIRED') {
+            if ($tagihan->PaymentStatus !== 'EXPIRED') {
+                $tagihan->update(['PaymentStatus' => 'EXPIRED']);
+            }
+        }
+    }
+
+    /**
+     * Update subscription tenant dengan logika perpanjangan
+     */
+    protected function updateTenantSubscription(TagihanPembayaran $tagihan, Carbon $paidAt): void
+    {
+        $tenant = $tagihan->Tenant;
+
+        if (!$tenant) {
+            \Log::warning('⚠️ Tenant tidak ditemukan', [
+                'tagihan_id' => $tagihan->id,
+                'kode_tenant' => $tagihan->KodeTenant,
+            ]);
+            return;
+        }
+
+        // Ambil durasi dari relasi Paket
+        $durasiBulan = 1;
+        if ($tagihan->Paket && !empty($tagihan->Paket->DurasiBulan)) {
+            $durasiBulan = (int) $tagihan->Paket->DurasiBulan;
+        }
+
+        // ✅ SAFE GUARD: Convert ke Carbon kalau masih string
+        $existingAkhir = $tenant->TanggalAkhirSubscription;
+        if ($existingAkhir && is_string($existingAkhir)) {
+            $existingAkhir = \Carbon\Carbon::parse($existingAkhir);
+        }
+
+        // Logika: perpanjang dari akhir sebelumnya, atau mulai baru
+        if (
+            $tenant->StatusSubscription === 'Aktif'
+            && $existingAkhir
+            && $existingAkhir->gte($paidAt)
+        ) {
+            $mulai = $existingAkhir->copy();
+        } else {
+            $mulai = $paidAt->copy();
+        }
+
+        $akhir = $mulai->copy()->addMonths($durasiBulan);
+
+        $tenant->update([
+            'StatusSubscription' => 'Aktif',
+            'TanggalMulaiSubscription' => $mulai,
+            'TanggalAkhirSubscription' => $akhir,
+            'UserUpdate' => Auth::user()->name ?? 'System (DOKU)',
+        ]);
+
+        \Log::info('✅ Tenant subscription updated', [
+            'tenant_kode' => $tenant->Kode,
+            'durasi_bulan' => $durasiBulan,
+            'mulai' => $mulai->toDateTimeString(),
+            'akhir' => $akhir->toDateTimeString(),
         ]);
     }
 }
