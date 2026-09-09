@@ -441,6 +441,146 @@ footer ul a:hover{color:#fff;padding-left:4px}
   .wa-float svg { width: 28px; height: 28px; }
   .wa-tooltip { display: none; } /* Sembunyikan tooltip di HP agar tidak mengganggu */
 }
+/* ================= FLOATING VIDEO WIDGET ================= */
+.float-video {
+  position: fixed;
+  bottom: 100px; /* Di atas tombol WhatsApp */
+  right: 28px;
+  z-index: 9998;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+/* Tombol Pemicu (Collapsed State) */
+.float-video-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--navy);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(15, 27, 51, 0.25);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 2px solid transparent;
+}
+
+.float-video-trigger:hover {
+  transform: translateY(-3px) scale(1.02);
+  background: var(--blue);
+  box-shadow: 0 12px 32px rgba(37, 99, 235, 0.3);
+}
+
+.float-video-trigger svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+/* Player Video (Expanded State) */
+.float-video-player {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 300px; /* Lebar portrait */
+  height: 533px; /* Rasio aspek ~9:16 */
+  background: #000;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(15, 27, 51, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+
+  /* Animasi muncul */
+  transform: scale(0.8) translateY(20px);
+  transform-origin: bottom right;
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
+}
+
+.float-video-player.active {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.float-video-player video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Header di dalam player */
+.fv-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 12px 14px;
+  background: linear-gradient(to bottom, rgba(15, 27, 51, 0.85), transparent);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 2;
+}
+
+.fv-title {
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.fv-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.fv-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.fv-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.fv-btn svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+/* Penyesuaian Mobile */
+@media (max-width: 640px) {
+  .float-video {
+    right: 16px;
+    bottom: 90px;
+  }
+  .float-video-player {
+    width: 260px;
+    height: 462px;
+  }
+  .float-video-trigger {
+    padding: 10px 16px;
+    font-size: 0.85rem;
+  }
+}
 </style>
 </head>
 <body>
@@ -615,28 +755,28 @@ footer ul a:hover{color:#fff;padding-left:4px}
 
       <div class="phone" aria-hidden="true">
         <div class="phone-screen">
-          {{-- <div class="ph-head">Bukti Transfer <span>✕</span></div>
+          <div class="ph-head">Bukti Transfer <span>✕</span></div>
           <div class="ph-row"><p class="lb">Dari</p><p class="vl">Rizky Rudy</p></div>
           <div class="ph-row"><p class="lb">Nominal</p><p class="vl big">QRIS · Rp 85.000</p></div>
           <div class="ph-row"><p class="lb">Waktu</p><p class="vl">12 Mei 2026 · 14:36</p></div>
-          <span class="ph-status">✓ Terverifikasi</span> --}}
+          <span class="ph-status">✓ Terverifikasi</span>
           <div class="qr-box">
-            <!-- Ganti QR code jadi video portrait -->
-            <video
-              src="{{ asset('img/video-promo.webm') }}"
-              playsinline
-              muted
-              autoplay
-              loop
-              style="width:110px;height:196px;display:block;border-radius:12px;box-shadow:0 2px 24px rgba(0,0,0,0.12);background:#111;">
-              Maaf, browser Anda tidak mendukung video.
-            </video>
-
+            <svg viewBox="0 0 21 21" shape-rendering="crispEdges" fill="#0F172A" aria-hidden="true">
+              <path d="M0 0h7v7H0z"/><rect x="2" y="2" width="3" height="3" fill="#fff"/><rect x="3" y="3" width="1" height="1"/>
+              <path d="M14 0h7v7h-7z"/><rect x="16" y="2" width="3" height="3" fill="#fff"/><rect x="17" y="3" width="1" height="1"/>
+              <path d="M0 14h7v7H0z"/><rect x="2" y="16" width="3" height="3" fill="#fff"/><rect x="3" y="17" width="1" height="1"/>
+              <rect x="9" y="0" width="1" height="1"/><rect x="11" y="1" width="1" height="2"/><rect x="9" y="3" width="2" height="1"/><rect x="12" y="4" width="1" height="1"/>
+              <rect x="0" y="9" width="2" height="1"/><rect x="3" y="10" width="1" height="1"/><rect x="5" y="9" width="1" height="2"/><rect x="8" y="9" width="1" height="1"/>
+              <rect x="10" y="10" width="2" height="1"/><rect x="13" y="9" width="1" height="2"/><rect x="15" y="10" width="1" height="1"/><rect x="18" y="9" width="2" height="1"/>
+              <rect x="20" y="11" width="1" height="2"/><rect x="9" y="12" width="1" height="2"/><rect x="11" y="13" width="2" height="1"/><rect x="14" y="12" width="1" height="1"/>
+              <rect x="16" y="13" width="2" height="1"/><rect x="19" y="14" width="1" height="1"/><rect x="9" y="16" width="2" height="1"/><rect x="12" y="15" width="1" height="2"/>
+              <rect x="14" y="17" width="1" height="1"/><rect x="16" y="16" width="1" height="2"/><rect x="18" y="18" width="2" height="1"/><rect x="9" y="19" width="1" height="1"/>
+              <rect x="11" y="18" width="1" height="2"/><rect x="14" y="19" width="2" height="1"/><rect x="20" y="17" width="1" height="2"/>
+            </svg>
           </div>
           <span class="ph-btn">Lihat Detail</span>
         </div>
       </div>
-
 
       <div class="annot" aria-hidden="true">
         <p>Semua transaksi dalam satu dashboard</p>
@@ -1130,7 +1270,38 @@ footer ul a:hover{color:#fff;padding-left:4px}
     <div class="foot-bottom">© 2026 Maurekap. All rights reserved.</div>
   </div>
 </footer>
+<!-- Floating Video Widget -->
+<div class="float-video" id="floatVideoWidget">
 
+  <!-- Tombol Pemicu -->
+  <button class="float-video-trigger" onclick="toggleFloatVideo()" id="fvTrigger">
+    <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    Lihat Demo Video
+  </button>
+
+  <!-- Player Video -->
+  <div class="float-video-player" id="fvPlayer">
+    <div class="fv-header">
+      <span class="fv-title">Demo Maurekap</span>
+      <div class="fv-controls">
+        <!-- Tombol Mute/Unmute -->
+        <button class="fv-btn" onclick="toggleMute(this)" title="Mute/Unmute" id="fvMuteBtn">
+          <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+        </button>
+        <!-- Tombol Tutup -->
+        <button class="fv-btn" onclick="toggleFloatVideo()" title="Tutup">
+          <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Ganti src dengan path video kamu -->
+    <video id="promoVideo" src="{{ asset('img/video-promo.webm') }}" playsinline loop>
+      Maaf, browser Anda tidak mendukung video.
+    </video>
+  </div>
+
+</div>
 <script>
 (function(){
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1174,6 +1345,51 @@ footer ul a:hover{color:#fff;padding-left:4px}
   });
 })();
 </script>
+<script>
+function toggleFloatVideo() {
+  const player = document.getElementById('fvPlayer');
+  const video = document.getElementById('promoVideo');
+  const trigger = document.getElementById('fvTrigger');
 
+  if (player.classList.contains('active')) {
+    // Tutup Player
+    player.classList.remove('active');
+    video.pause();
+    // Tampilkan tombol trigger lagi setelah animasi selesai
+    setTimeout(() => {
+      trigger.style.display = 'flex';
+    }, 300);
+  } else {
+    // Buka Player
+    trigger.style.display = 'none';
+    player.classList.add('active');
+
+    // Browser modern mewajibkan video di-mute dulu agar bisa autoplay
+    video.muted = true;
+    updateMuteIcon(true);
+
+    video.play().catch(e => {
+      console.log("Autoplay dicegah oleh browser, user perlu klik play manual:", e);
+    });
+  }
+}
+
+function toggleMute(btn) {
+  const video = document.getElementById('promoVideo');
+  video.muted = !video.muted;
+  updateMuteIcon(video.muted);
+}
+
+function updateMuteIcon(isMuted) {
+  const btn = document.getElementById('fvMuteBtn');
+  if (isMuted) {
+    // Ikon Mute (Speaker dicoret)
+    btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73 4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>';
+  } else {
+    // Ikon Unmute (Speaker normal)
+    btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>';
+  }
+}
+</script>
 </body>
 </html>
