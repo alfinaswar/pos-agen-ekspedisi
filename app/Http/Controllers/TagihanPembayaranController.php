@@ -21,7 +21,11 @@ class TagihanPembayaranController extends Controller
             $User = auth()->user();
             $User = auth()->user();
             $Query = TagihanPembayaran::with('Tenant')->latest('id');
-            $Query = $Query->where('KodeTenant', auth()->user()->KodeTenant);
+            // Tampilkan semua jika Superadmin, filter berdasarkan KodeTenant jika bukan
+            if (auth()->user()->role !== 'Superadmin') {
+                $Query = $Query->where('KodeTenant', auth()->user()->KodeTenant);
+            }
+
             // Tambahkan filter berdasarkan kode tenant jika tersedia pada user login
 
 
