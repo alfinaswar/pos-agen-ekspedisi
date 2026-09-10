@@ -121,13 +121,7 @@
                     </li>
 
                     {{-- Hanya menu Pendaftaran --}}
-                    <li class="nav-item">
-                        <a href="{{ route('pendaftaran-tenant.index') }}"
-                           class="nav-link {{ request()->routeIs('pendaftaran.*') ? 'active' : '' }}">
-                            <i class="nav-icon bi bi-person-plus"></i>
-                            <p>Pendaftaran</p>
-                        </a>
-                    </li>
+
                     <li class="nav-item">
                         <a href="{{ route('tenant.index') }}"
                            class="nav-link {{ request()->routeIs('tenant.*') ? 'active' : '' }}">

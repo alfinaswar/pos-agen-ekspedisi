@@ -172,8 +172,9 @@
                                             <span class="fw-semibold">{{ $Item->Tenant->Nama ?? 'N/A' }}</span>
                                         </td>
                                         <td class="text-end">
-                                            <span class="fw-bold text-success">Rp {{ number_format($Item->TotalRevenue, 0, ',', '.') }}</span>
+                                            <span class="fw-bold text-success">Rp {{ number_format($Item['TotalRevenue'], 0, ',', '.') }}</span>
                                         </td>
+
                                     </tr>
                                 @endforeach
                             </tbody>

@@ -51,7 +51,7 @@ class DashboardController extends Controller
         $totalKaryawan = User::where('role', '!=', 'Admin')
             ->where('KodeTenant', $kodeTenant)
             ->count();
-   
+
         $persentaseHadir = $totalKaryawan > 0 ? round(($kehadiranHariIni / $totalKaryawan) * 100, 1) : 0;
 
         $expeditionNames = Ekspedisi::pluck('NamaEkspedisi', 'id')->toArray();
@@ -66,7 +66,7 @@ class DashboardController extends Controller
                 ->groupBy('Ekspedisi')
                 ->orderBy('total', 'desc')
                 ->get();
-           
+
 
             $ekspedisiPerBulanData[$bln] = [
                 'labels' => $expData->pluck('Ekspedisi')->map(fn($exp) => $expeditionNames[$exp] ?? 'Ekspedisi ' . $exp)->toArray(),
@@ -91,7 +91,7 @@ class DashboardController extends Controller
                 'values' => $userData->pluck('total')->toArray()
             ];
         }
-   
+
 
         // 6c. Pendapatan per Divisi per bulan (SEMUA Divisi, tanpa limit)
         $divisiPerBulanData = [];
@@ -110,7 +110,7 @@ class DashboardController extends Controller
                 'values' => $divisiData->pluck('total')->toArray()
             ];
         }
-   
+
 
         // 7. Status Reimbursement
         $reimbursementStatus = [
@@ -236,14 +236,14 @@ class DashboardController extends Controller
             ->orderBy('TotalRevenue', 'desc')
             ->limit(5)
             ->with(['Tenant' => function($q) {
-                $q->select('id', 'KodeTenant', 'NamaTenant');
+                $q->select('id', 'Kode', 'Nama');
             }])
             ->get()
             ->map(function($tp) {
                 return [
                     'TenantId' => $tp->TenantId,
-                    'KodeTenant' => $tp->Tenant ? $tp->Tenant->KodeTenant : null,
-                    'NamaTenant' => $tp->Tenant ? $tp->Tenant->NamaTenant : null,
+                    'KodeTenant' => $tp->Tenant ? $tp->Tenant->Kode : null,
+                    'NamaTenant' => $tp->Tenant ? $tp->Tenant->Nama : null,
                     'TotalRevenue' => $tp->TotalRevenue,
                 ];
             });

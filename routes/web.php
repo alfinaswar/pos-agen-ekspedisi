@@ -32,9 +32,9 @@ Auth::routes();
 Route::get('/', [LandingPageController::class, 'index'])->name('landing-page');
 Route::get('/landing-page', [LandingPageController::class, 'index'])->name('landing-page');
 Route::get('/daftar', [LandingPageController::class, 'daftar'])->name('daftar');
-Route::post('/pendaftaran-tenant/kirim', [PendaftaranTenantController::class, 'store'])->name('pendaftaran-tenant.store');
 
 Route::middleware(['auth'])->group(function () {
+    Route::resource('pendaftaran-tenant', PendaftaranTenantController::class);
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
     Route::get('/manajemen-tenant', [DashboardController::class, 'indexTenant'])->name('dashboard.manajemen-tenant');
     Route::get('/home', [DashboardController::class, 'index'])->name('home');
@@ -74,7 +74,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/laporan/export', [LaporanController::class, 'exportExcel'])->name('laporan.export');
 
     // ROUTE UNTUK MANAJEMEN TENANT\
-    Route::resource('pendaftaran-tenant', PendaftaranTenantController::class);
+
 
     Route::post('pendaftaran-tenant/{PendaftaranTenant}/verifikasi', [PendaftaranTenantController::class, 'Verifikasi'])->name('pendaftaran-tenant.verifikasi');
 
@@ -118,3 +118,4 @@ Route::get('/pendaftaran/payment-status/{id}', [PendaftaranTenantController::cla
 // Webhook tetap ada (optional, sebagai backup)
 Route::post('/webhooks/doku', [DokuWebhookController::class, 'handle'])
     ->name('webhooks.doku');
+Route::post('/pendaftaran-tenant/kirim', [PendaftaranTenantController::class, 'store'])->name('pendaftaran-tenant.store');
