@@ -2073,7 +2073,6 @@
 
                     <div class="hero-cta" data-rv style="--d:.32s">
                         <a href="#cta" class="btn btn-blue">Daftar Sekarang <span class="arr">→</span></a>
-                        <a href="#cara-kerja" class="btn btn-outline">Lihat Demo</a>
                     </div>
 
                     <div class="micro" data-rv style="--d:.4s">
