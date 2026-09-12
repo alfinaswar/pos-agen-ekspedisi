@@ -12,7 +12,7 @@ class TenantApprovedMail extends Mailable
 
     public $Nama;
     public $Email;
-    public $Password;
+    public $PasswordPlain;
     public $LoginUrl;
 
     // ✅ Opsional: detail langganan (boleh tidak diisi)
@@ -23,7 +23,7 @@ class TenantApprovedMail extends Mailable
     public function __construct(
         $Nama = null,
         $Email = null,
-        $Password = null,
+        $PasswordPlain = null,
         $LoginUrl = null,
         $PaketNama = null,
         $TanggalMulai = null,
@@ -31,7 +31,7 @@ class TenantApprovedMail extends Mailable
     ) {
         $this->Nama = $Nama ?? '';
         $this->Email = $Email ?? '';
-        $this->Password = $Password ?? '';
+        $this->PasswordPlain = $PasswordPlain ?? '';
         $this->LoginUrl = $LoginUrl ?? '';
         $this->PaketNama = $PaketNama ?? '';
         $this->TanggalMulai = $TanggalMulai ?? '';

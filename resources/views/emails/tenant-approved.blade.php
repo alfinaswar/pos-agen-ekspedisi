@@ -197,22 +197,7 @@
                                 </tr>
                             </table>
 
-                            <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
-                                <tr>
-                                    <td width="36" valign="top">
-                                        <div
-                                            style="width: 28px; height: 28px; background: #dbeafe; color: #1e40af; border-radius: 50%; line-height: 28px; text-align: center; font-size: 13px; font-weight: 800; font-family: Arial;">
-                                            3</div>
-                                    </td>
-                                    <td valign="top" style="padding-left: 8px;">
-                                        <div
-                                            style="font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 2px;">
-                                            Sesi Onboarding Gratis 🎁</div>
-                                        <div style="font-size: 13px; color: #64748b; line-height: 1.5;">Tim kami akan
-                                            hubungi via WhatsApp untuk sesi pengenalan 30 menit.</div>
-                                    </td>
-                                </tr>
-                            </table>
+
                         </td>
                     </tr>
 
@@ -252,13 +237,14 @@
                             <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
                                 <tr>
                                     <td style="padding: 0 8px;">
-                                        <a href="mailto:support@maurekap.id"
+                                        <a href="mailto:support@maurekap.com"
                                             style="display: inline-block; background-color: #f1f5f9; color: #334155 !important; text-decoration: none; padding: 10px 18px; border-radius: 8px; font-weight: 600; font-size: 13px; border: 1px solid #e2e8f0;">
                                             📧 Email Support
                                         </a>
                                     </td>
                                     <td style="padding: 0 8px;">
-                                        <a href="https://wa.me/6281234567890"
+                                        <a href="https://wa.me/6285143671253"
+
                                             style="display: inline-block; background-color: #dcfce7; color: #166534 !important; text-decoration: none; padding: 10px 18px; border-radius: 8px; font-weight: 600; font-size: 13px; border: 1px solid #bbf7d0;">
                                             💬 WhatsApp
                                         </a>
