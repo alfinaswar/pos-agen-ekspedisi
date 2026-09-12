@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -142,8 +143,9 @@ class TagihanPembayaranController extends Controller
     public function Store(Request $Request, DokuService $doku)
     {
         // 1. Validasi Input (sesuaikan dengan nama field di form view)
+        // dd($Request->all());
         $Request->validate([
-            'KodeTenant' => 'required|exists:tenants,Kode',
+            'TenantId' => 'required|exists:tenants,Kode',
             'Paket' => 'nullable|exists:master_paket_hargas,id',
             'PeriodeBulan' => 'required|date_format:Y-m',
             'harga' => 'required|string',  // ← FIELD DI VIEW = 'harga'
@@ -157,23 +159,22 @@ class TagihanPembayaranController extends Controller
             'date_format' => 'Format :attribute harus YYYY-MM.',
             'after_or_equal' => ':attribute harus sama atau setelah Tanggal Jatuh Tempo.',
         ]);
-
+        // dd($Request->all());
         // 2. Bersihkan format angka (Rp 149.000 → 149000)
         $CleanAmount = (int) preg_replace('/[^0-9]/', '', $Request->harga);
-
         if ($CleanAmount <= 0) {
             return back()->withErrors(['harga' => 'Jumlah tagihan harus lebih dari 0.'])->withInput();
         }
-        // dd('123');
         // 3. Ambil data tenant
-        $tenant = Tenant::where('Kode', $Request->KodeTenant)->firstOrFail();
+        $tenant = Tenant::where('Kode', $Request->TenantId)->first();
+        // dd($tenant);
 
         // 4. Generate nomor invoice DOKU
         $invoiceNumber = 'INV-' . date('Ymd') . '-' . strtoupper(Str::random(6));
-
+        // dd($Request->all());
         // 5. Siapkan data tagihan
         $Data = [
-            'KodeTenant' => $tenant->id,
+            'TenantId' => $tenant->Kode,
             'KodeTenant' => $tenant->Kode,
             'NomorTagihan' => $invoiceNumber,
             'Paket' => $Request->Paket,
@@ -191,13 +192,14 @@ class TagihanPembayaranController extends Controller
             'DokuInvoiceNumber' => $invoiceNumber,
             'UserCreate' => Auth::user()->name ?? 'System',
         ];
-
+        // dd($Data);
         // 6. Simpan tagihan dulu
         $tagihan = TagihanPembayaran::create($Data);
 
         // 7. Normalize phone tenant
         $rawPhone = $tenant->TeleponPIC ?? $tenant->Telepon ?? '';
         $normalizedPhone = $doku->normalizePhone($rawPhone);
+
 
         // 8. 🔥 FIX: Generate URL tanpa forceScheme (sudah di AppServiceProvider)
         $callbackUrl = route('tagihan-pembayaran.payment-finish', $tagihan->id);
@@ -217,7 +219,7 @@ class TagihanPembayaranController extends Controller
         ]);
         // dd($result);
         if (!$result['success']) {
-            \Log::error('DOKU Checkout failed for tagihan', [
+            Log::error('DOKU Checkout failed for tagihan', [
                 'tagihan_id' => $tagihan->id,
                 'status' => $result['status'],
                 'body' => $result['body'],
@@ -226,9 +228,9 @@ class TagihanPembayaranController extends Controller
             $tagihan->update(['PaymentStatus' => 'FAILED']);
 
             return redirect()
-                ->route('tagihan-pembayaran.index')
-                ->with('error', 'Tagihan berhasil dibuat, tapi link pembayaran gagal dibuat: '
-                    . ($result['body']['error']['message'] ?? $result['body']['message'][0] ?? 'Unknown error'));
+            ->route('tagihan-pembayaran.index')
+            ->with('error', 'Tagihan berhasil dibuat, tapi link pembayaran gagal dibuat: '
+            . ($result['body']['error']['message'] ?? $result['body']['message'][0] ?? 'Unknown error'));
         }
 
         $responseBody = $result['body'];
@@ -257,9 +259,9 @@ class TagihanPembayaranController extends Controller
         $tagihan->update($updateData);
 
         return redirect()
-            ->route('tagihan-pembayaran.payment-finish', $tagihan->id)
+        ->route('tagihan-pembayaran.payment-finish', $tagihan->id)
             ->with('success', 'Tagihan berhasil dibuat. Link pembayaran siap dibagikan ke tenant.');
-    }
+        }
 
     public function Edit(TagihanPembayaran $TagihanPembayaran)
     {
@@ -560,7 +562,7 @@ class TagihanPembayaranController extends Controller
         $tenant = $tagihan->Tenant;
 
         if (!$tenant) {
-            \Log::warning('⚠️ Tenant tidak ditemukan', [
+            Log::warning('⚠️ Tenant tidak ditemukan', [
                 'tagihan_id' => $tagihan->id,
                 'kode_tenant' => $tagihan->KodeTenant,
             ]);
@@ -599,7 +601,7 @@ class TagihanPembayaranController extends Controller
             'UserUpdate' => Auth::user()->name ?? 'System (DOKU)',
         ]);
 
-        \Log::info('✅ Tenant subscription updated', [
+        Log::info('✅ Tenant subscription updated', [
             'tenant_kode' => $tenant->Kode,
             'durasi_bulan' => $durasiBulan,
             'mulai' => $mulai->toDateTimeString(),
