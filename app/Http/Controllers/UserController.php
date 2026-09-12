@@ -5,10 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Divisi;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Yajra\DataTables\Facades\DataTables;
 
 class UserController extends Controller
 {
@@ -16,9 +16,7 @@ class UserController extends Controller
     {
         if ($request->ajax()) {
             $data = User::select(['id', 'name', 'email', 'email_verified_at', 'role', 'divisi', 'no_hp', 'created_at'])
-                        ->where('KodeTenant', auth()->user()->KodeTenant);
-
-
+                ->where('KodeTenant', auth()->user()->KodeTenant);
 
             return DataTables::of($data)
                 ->addIndexColumn()
@@ -51,7 +49,6 @@ class UserController extends Controller
                     $divisi = Divisi::find($row->divisi);
                     return $divisi ? $divisi->Nama : '<span class="text-muted">Tidak Diketahui</span>';
                 })
-
                 ->rawColumns(['email_verified_at', 'role', 'divisi', 'no_hp', 'action'])
                 ->make(true);
         }
@@ -61,8 +58,8 @@ class UserController extends Controller
 
     public function create()
     {
-        $divisi = Divisi::get();
-        return view('users.create',compact('divisi'));
+        $divisi = Divisi::where('KodeTenant', auth()->user()->KodeTenant)->get();
+        return view('users.create', compact('divisi'));
     }
 
     public function store(Request $request)
@@ -106,8 +103,8 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
-        $divisi = Divisi::get();
-        return view('users.edit', compact('user','divisi'));
+        $divisi = Divisi::where('KodeTenant', auth()->user()->KodeTenant)->get();
+        return view('users.edit', compact('user', 'divisi'));
     }
 
     public function update(Request $request, User $user)
