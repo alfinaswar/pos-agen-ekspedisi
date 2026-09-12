@@ -62,7 +62,7 @@ class TagihanPembayaranController extends Controller
                     return '<span class="fw-semibold text-primary">' . $Row->NomorTagihan . '</span>';
                 })
                 ->editColumn('NamaTenant', function ($Row) {
-                    return $Row->getTenant ? $Row->getTenant->Nama : '-';
+                    return $Row->Tenant ? $Row->Tenant->Nama : '-';
                 })
                 ->addColumn('TanggalBayar', function ($Row) {
                     if ($Row->TanggalPembayaran) {
