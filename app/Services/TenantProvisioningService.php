@@ -107,6 +107,7 @@ class TenantProvisioningService
 
             TagihanPembayaran::create([
                 'TenantId' => $NewTenant->Kode,
+                'Paket' => $pendaftaran->Paket,
                 'PeriodeBulan' => $PeriodeBulan,
                 'TanggalJatuhTempo' => now(),
                 'JumlahTagihan' => $paket->Harga ?? 0,
