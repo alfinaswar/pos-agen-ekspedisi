@@ -111,7 +111,7 @@ class TagihanPembayaranController extends Controller
         $Now = Carbon::now();
         $SevenDaysFromNow = $Now->copy()->addDays(7);
 
-        $TenantAkanHabis = Tenant::where('StatusSubscription', 'Aktif')
+        $TenantAkanHabis = Tenant::where('StatusSubscription', 'Aktif')->where('Kode', auth()->user()->KodeTenant)
             ->whereBetween('TanggalAkhirSubscription', [$Now, $SevenDaysFromNow])
             ->orderBy('TanggalAkhirSubscription', 'asc')
             ->get();
