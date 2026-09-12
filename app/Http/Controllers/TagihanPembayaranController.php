@@ -20,7 +20,7 @@ class TagihanPembayaranController extends Controller
         if ($Request->ajax()) {
             $User = auth()->user();
             $User = auth()->user();
-            $Query = TagihanPembayaran::with('Tenant')->latest('id');
+            $Query = TagihanPembayaran::with('Tenant','getTenant')->latest('id');
             // Tampilkan semua jika Superadmin, filter berdasarkan KodeTenant jika bukan
             if (auth()->user()->role !== 'Superadmin') {
                 $Query = $Query->where('KodeTenant', auth()->user()->KodeTenant);
@@ -42,14 +42,14 @@ class TagihanPembayaranController extends Controller
                 $Query->where('PeriodeBulan', 'like', $FilterTahun . '-%');
             }
 
-            // Keamanan: Jika bukan Superadmin, paksa filter berdasarkan TenantId
-            if ($User->role !== 'Superadmin' && isset($User->TenantId)) {
-                $Query->where('TenantId', $User->TenantId);
+            // Keamanan: Jika bukan Superadmin, paksa filter berdasarkan KodeTenant
+            if ($User->role !== 'Superadmin' && isset($User->KodeTenant)) {
+                $Query->where('KodeTenant', $User->KodeTenant);
             }
 
             // Filter Tenant (HANYA berlaku jika Superadmin)
-            if ($User->role === 'Superadmin' && $Request->filled('TenantId')) {
-                $Query->where('TenantId', $Request->TenantId);
+            if ($User->role === 'Superadmin' && $Request->filled('KodeTenant')) {
+                $Query->where('KodeTenant', $Request->KodeTenant);
             }
 
             return DataTables::of($Query)
@@ -62,7 +62,7 @@ class TagihanPembayaranController extends Controller
                     return '<span class="fw-semibold text-primary">' . $Row->NomorTagihan . '</span>';
                 })
                 ->editColumn('NamaTenant', function ($Row) {
-                    return $Row->Tenant ? $Row->Tenant->Nama : '-';
+                    return $Row->getTenant ? $Row->getTenant->Nama : '-';
                 })
                 ->addColumn('TanggalBayar', function ($Row) {
                     if ($Row->TanggalPembayaran) {
@@ -106,7 +106,7 @@ class TagihanPembayaranController extends Controller
         $User = auth()->user();
         $Tenants = $User->role === 'Superadmin'
             ? Tenant::select('id', 'Kode', 'Nama')->orderBy('Nama', 'asc')->get()
-            : Tenant::select('id', 'Kode', 'Nama')->where('id', $User->TenantId ?? 0)->get();
+            : Tenant::select('id', 'Kode', 'Nama')->where('id', $User->KodeTenant ?? 0)->get();
         $Now = Carbon::now();
         $SevenDaysFromNow = $Now->copy()->addDays(7);
 
@@ -143,7 +143,7 @@ class TagihanPembayaranController extends Controller
     {
         // 1. Validasi Input (sesuaikan dengan nama field di form view)
         $Request->validate([
-            'TenantId' => 'required|exists:tenants,Kode',
+            'KodeTenant' => 'required|exists:tenants,Kode',
             'Paket' => 'nullable|exists:master_paket_hargas,id',
             'PeriodeBulan' => 'required|date_format:Y-m',
             'harga' => 'required|string',  // ← FIELD DI VIEW = 'harga'
@@ -166,14 +166,14 @@ class TagihanPembayaranController extends Controller
         }
         // dd('123');
         // 3. Ambil data tenant
-        $tenant = Tenant::where('Kode', $Request->TenantId)->firstOrFail();
+        $tenant = Tenant::where('Kode', $Request->KodeTenant)->firstOrFail();
 
         // 4. Generate nomor invoice DOKU
         $invoiceNumber = 'INV-' . date('Ymd') . '-' . strtoupper(Str::random(6));
 
         // 5. Siapkan data tagihan
         $Data = [
-            'TenantId' => $tenant->id,
+            'KodeTenant' => $tenant->id,
             'KodeTenant' => $tenant->Kode,
             'NomorTagihan' => $invoiceNumber,
             'Paket' => $Request->Paket,
@@ -276,7 +276,7 @@ class TagihanPembayaranController extends Controller
     {
         // 1. Validasi Input (Bukti Pembayaran jadi nullable agar tidak wajib diganti)
         $Request->validate([
-            'TenantId' => 'required|exists:tenants,id',
+            'KodeTenant' => 'required|exists:tenants,id',
             'PeriodeBulan' => 'required|date_format:Y-m',
             'JumlahTagihan' => 'required|string',
             'TanggalPembayaran' => 'required|date',
@@ -294,8 +294,8 @@ class TagihanPembayaranController extends Controller
         $Data['TanggalJatuhTempo'] = $Request->BerlakuHingga;  // Mapping ke DB
         $Data['UserUpdate'] = Auth::user()->name ?? 'System';
 
-        // Update KodeTenant sesuai TenantId yang terbaru
-        $tenant = Tenant::find($Request->TenantId);
+        // Update KodeTenant sesuai KodeTenant yang terbaru
+        $tenant = Tenant::find($Request->KodeTenant);
         $Data['KodeTenant'] = $tenant ? $tenant->Kode : null;
 
         // 4. Handle Upload File Baru (Jika ada)
@@ -372,8 +372,8 @@ class TagihanPembayaranController extends Controller
                 }
 
                 // Update tenant subscription if Status is 'Y'
-                if ($Request->Status === 'Y' && $Tagihan->TenantId) {
-                    $tenant = Tenant::where('Kode', $Tagihan->TenantId)->first();
+                if ($Request->Status === 'Y' && $Tagihan->KodeTenant) {
+                    $tenant = Tenant::where('Kode', $Tagihan->KodeTenant)->first();
                     if ($tenant) {
                         $tenant->StatusSubscription = 'Aktif';
                         $tenant->TanggalMulaiSubscription = now();
@@ -441,8 +441,8 @@ class TagihanPembayaranController extends Controller
         }
 
         // Jika status Y, update data subscription di model Tenant terkait
-        if ($StatusVerifikasi === 'Y' && $TagihanPembayaran->TenantId) {
-            $tenant = Tenant::where('Kode', $TagihanPembayaran->TenantId)->first();
+        if ($StatusVerifikasi === 'Y' && $TagihanPembayaran->KodeTenant) {
+            $tenant = Tenant::where('Kode', $TagihanPembayaran->KodeTenant)->first();
             if ($tenant) {
                 $tenant->StatusSubscription = 'Aktif';
                 $tenant->TanggalMulaiSubscription = now();

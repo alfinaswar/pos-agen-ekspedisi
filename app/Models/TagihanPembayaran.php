@@ -66,6 +66,10 @@ class TagihanPembayaran extends Model
     {
         return $this->hasOne(Tenant::class, 'Kode', 'KodeTenant');
     }
+    public function getTenant()
+    {
+        return $this->hasOne(Tenant::class, 'id', 'TenantId');
+    }
     public function Paket()
     {
         return $this->belongsTo(MasterPaketHarga::class, 'Paket', 'id');
