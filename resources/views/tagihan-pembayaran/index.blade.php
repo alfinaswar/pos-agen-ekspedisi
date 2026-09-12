@@ -77,10 +77,10 @@
                                     <i class="ti ti-checklist"></i> Setujui Terpilih (<span id="SelectedCount">0</span>)
                                 </button>
                             @endif
-                            <a href="{{ route('tagihan-pembayaran.create') }}"
+                            {{-- <a href="{{ route('tagihan-pembayaran.create') }}"
                                 class="btn btn-primary btn-sm d-flex align-items-center gap-1">
                                 <i class="ti ti-plus"></i> Buat Tagihan
-                            </a>
+                            </a> --}}
                         </div>
                     </div>
 
