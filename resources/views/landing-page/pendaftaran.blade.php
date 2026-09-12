@@ -937,7 +937,8 @@
                         stroke-linejoin="round">
                         <path d="M19 12H5m0 0l6-6m-6 6l6 6" />
                     </svg><span>Kembali ke Beranda</span></a>
-                <a class="btn btn-outline btn-sm" href="#">Butuh Bantuan?</a>
+                <a class="btn btn-outline btn-sm" href="https://wa.me/6285143671253?text=Halo%20Maurekap,%20saya%20butuh%20bantuan%20terkait%20pendaftaran%20mitra." target="_blank" rel="noopener noreferrer">Chat via WhatsApp</a>
+
             </div>
         </div>
     </header>
@@ -1190,11 +1191,10 @@
                     <input id="terms" name="terms" type="checkbox" {{ old('terms') ? 'checked' : '' }}>
                     <label for="terms" style="font-size:.98em;">
                         Saya menyatakan data di atas benar dan menyetujui
-                        <a href="#" style="color:#2563eb;">Syarat &amp; Ketentuan</a>
-                        serta
-                        <a href="#" style="color:#2563eb;">Kebijakan Privasi</a> Maurekap.
+                        <a href="{{ asset('img/Syarat_dan_Ketentuan_Maurekap.pdf') }}" style="color:#2563eb;" target="_blank" rel="noopener">Syarat &amp; Ketentuan</a> Maurekap.
                     </label>
                 </div>
+
 
                 <div class="submit-row" style="display:flex;align-items:center;gap:18px;">
                     <button type="submit" class="btn btn-blue" style="padding:11px 30px;font-size:1.07em;">
@@ -1297,15 +1297,19 @@
                     <ol>
                         <li>Tim kami memverifikasi data &amp; bukti bayar Anda (maks. 1×24 jam kerja).</li>
                         <li>Akun diaktifkan, kredensial login dikirim ke email PIC.</li>
-                        <li>Sesi onboarding gratis 30 menit via Zoom/WhatsApp — tim langsung mahir.</li>
                     </ol>
                 </div>
 
                 <div class="side-card help-card" data-rv style="--d:.24s">
                     <h3>Butuh Bantuan?</h3>
                     <p class="sub">Tim support siap membantu Senin–Sabtu, 08.00–20.00 WIB.</p>
-                    <a class="btn btn-blue" href="#">Chat via WhatsApp</a>
+                    <a class="btn btn-blue"
+                        href="https://wa.me/6285143671253?text=Halo%20Maurekap,%20saya%20perlu%20bantuan%20terkait%20pendaftaran%20di%20website%20Maurekap."
+                        target="_blank" rel="noopener noreferrer" aria-label="Chat dengan kami via WhatsApp">
+                        Chat via WhatsApp
+                    </a>
                 </div>
+
             </aside>
         </div>
 
@@ -1342,13 +1346,17 @@
     </main>
 
     <!-- ============ FOOTER MINI ============ -->
-    <footer class="foot-mini">
-        <div class="container">
-            <span>© 2026 Maurekap — PT Maurekap Teknologi Logistik</span>
-            <span><a href="#">Kebijakan Privasi</a> &nbsp;·&nbsp; <a href="#">Syarat &amp; Ketentuan</a>
-                &nbsp;·&nbsp; support@maurekap.id</span>
-        </div>
-    </footer>
+<footer class="foot-mini">
+    <div class="container">
+        <span>© 2026 Maurekap — PT Maurekap Teknologi Logistik</span>
+        <span>
+            <a href="{{ asset('img/Syarat_dan_Ketentuan_Maurekap.pdf') }}" target="_blank" rel="noopener">
+                Syarat &amp; Ketentuan
+            </a>
+            &nbsp;·&nbsp; support@maurekap.id
+        </span>
+    </div>
+</footer>
 
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

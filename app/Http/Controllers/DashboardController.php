@@ -230,9 +230,9 @@ class DashboardController extends Controller
         }
 
         // 7. Top 5 Tenant by Revenue, beserta KodeTenant
-        $TopTenant = TagihanPembayaran::select('TenantId', DB::raw('SUM(JumlahTagihan) as TotalRevenue'))
+        $TopTenant = TagihanPembayaran::select('KodeTenant', DB::raw('SUM(JumlahTagihan) as TotalRevenue'))
             ->where('StatusPembayaran', 'Lunas')
-            ->groupBy('TenantId')
+            ->groupBy('KodeTenant')
             ->orderBy('TotalRevenue', 'desc')
             ->limit(5)
             ->with(['Tenant' => function($q) {

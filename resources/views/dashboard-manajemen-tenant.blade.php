@@ -169,7 +169,7 @@
                                     <tr>
                                         <td class="text-center">{{ $Index + 1 }}</td>
                                         <td>
-                                            <span class="fw-semibold">{{ $Item->Tenant->Nama ?? 'N/A' }}</span>
+                                            <span class="fw-semibold">{{ $Item['NamaTenant'] ?? 'N/A' }}</span>
                                         </td>
                                         <td class="text-end">
                                             <span class="fw-bold text-success">Rp {{ number_format($Item['TotalRevenue'], 0, ',', '.') }}</span>

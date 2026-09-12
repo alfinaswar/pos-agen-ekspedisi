@@ -40,6 +40,7 @@
                                         <th style="width: 50px;" class="text-center">#</th>
                                         <th>Nama Tenant</th>
                                         <th>Kode</th>
+                                        <th>Email PIC</th>
                                         <th>Tanggal Join</th>
                                         <th class="text-center">Status Subscription</th>
                                         <th>Kode Referal</th>
@@ -115,13 +116,14 @@
                 responsive: true, serverSide: true, processing: true, destroy: true, autoWidth: false,
                 ajax: { url: "{{ route('tenant.index') }}", type: 'GET' },
                 columnDefs: [
-                    { className: 'text-center', targets: [0, 4, 8] },
-                    { orderable: false, targets: [0, 8] }
+                    { className: 'text-center', targets: [0, 5, 9] },
+                    { orderable: false, targets: [0, 9] }
                 ],
                 columns: [
                     { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false },
                     { data: 'Nama', name: 'Nama', render: function(Data) { return `<span class="fw-semibold text-dark">${Data}</span>`; } },
                     { data: 'Kode', name: 'Kode' },
+                    { data: 'EmailPIC', name: 'EmailPIC', render: function(Data) { return Data ? `<span class="text-dark">${Data}</span>` : '<span class="text-muted">-</span>'; } },
                     { data: 'TanggalJoin', name: 'TanggalJoin' },
                     { data: 'StatusSubscription', name: 'StatusSubscription' },
                     { data: 'KodeReferal', name: 'KodeReferal', render: function(Data) { return Data ? `<span class="badge bg-light text-dark border">${Data}</span>` : '<span class="text-muted">-</span>'; } },
