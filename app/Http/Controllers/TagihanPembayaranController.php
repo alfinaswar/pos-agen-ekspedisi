@@ -107,7 +107,7 @@ class TagihanPembayaranController extends Controller
         $User = auth()->user();
         $Tenants = $User->role === 'Superadmin'
             ? Tenant::select('id', 'Kode', 'Nama')->orderBy('Nama', 'asc')->get()
-            : Tenant::select('id', 'Kode', 'Nama')->where('id', $User->KodeTenant ?? 0)->get();
+            : Tenant::select('id', 'Kode', 'Nama')->where('Kode', $User->KodeTenant ?? 0)->get();
         $Now = Carbon::now();
         $SevenDaysFromNow = $Now->copy()->addDays(7);
 
