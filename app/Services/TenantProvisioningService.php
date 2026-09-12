@@ -116,6 +116,7 @@ class TenantProvisioningService
                 'BuktiPembayaran' => $buktiBayarRef,
                 'Catatan' => 'Pembayaran via DOKU - Token: ' . ($pendaftaran->DokuTokenId ?? '-'),
                 'Status' => 'Y',
+                'KodeTenant' => $NewTenant->Kode,
                 'CatatanVerifikasi' => 'Verifikasi Pembayaran via DOKU - Token: ' . ($pendaftaran->DokuTokenId ?? '-'),
                 'VerifPada' => now(),
                 'VerifOleh' => 'DOKU',
