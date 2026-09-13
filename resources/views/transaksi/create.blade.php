@@ -363,13 +363,22 @@
     <!-- SweetAlert2 CDN -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        // Ambil user id saat ini dari backend (Laravel blade)
+        const currentUserId = @json(auth()->id());
+
         // Handler untuk menampilkan alert jika ada session error (misal error: Divisi belum diisi)
         document.addEventListener('DOMContentLoaded', function() {
+            // currentUserId sekarang sudah tersedia untuk JS
             @if (session('error'))
                 Swal.fire({
                     icon: 'error',
                     title: 'Oops...',
-                    text: "{{ session('error') }}",
+                    html: `{{ str_contains(session('error'), 'Divisi')
+                        ? session('error') .
+                            ' <br><a href="' .
+                            route('users.edit') .
+                            '" style="font-weight:bold;color:#2476ed;" target="_blank">Update Profil Sekarang</a>'
+                        : session('error') }}`,
                     timer: 3500,
                     timerProgressBar: true,
                     showConfirmButton: false
