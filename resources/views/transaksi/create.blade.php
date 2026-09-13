@@ -360,6 +360,8 @@
         </div>
     </div>
 
+    <!-- SweetAlert2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         // Handler untuk menampilkan alert jika ada session error (misal error: Divisi belum diisi)
         document.addEventListener('DOMContentLoaded', function() {
@@ -374,148 +376,145 @@
                 });
             @endif
         });
-        document.addEventListener('DOMContentLoaded', function() {
-            // 1. Logika Format Rupiah Otomatis & Pendapatan Bersih
-
-            const inputFormatted = document.getElementById('PendapatanFormatted');
-            const inputRaw = document.getElementById('PendapatanRaw');
-
-            const diskonFormatted = document.getElementById('DiskonFormatted');
-            const diskonRaw = document.getElementById('DiskonRaw');
-
-            const pendapatanBersihFormatted = document.getElementById('PendapatanBersihFormatted');
-            const pendapatanBersihRaw = document.getElementById('PendapatanBersihRaw');
-
-            const diskonErrorMsg = document.getElementById('DiskonErrorMsg');
-            const form = document.getElementById('formTransaksi');
-
-            // Fungsi format Rupiah
-            const formatRupiah = (number) => {
-                number = parseInt(number) || 0;
-                return new Intl.NumberFormat('id-ID').format(number);
-            };
-
-            // Set nilai awal jika ada old input (misal validasi gagal)
-            const initialPendapatan = inputRaw.value;
-            if (initialPendapatan && initialPendapatan != '0') {
-                inputFormatted.value = 'Rp ' + formatRupiah(initialPendapatan);
-            }
-
-            const initialDiskon = diskonRaw.value;
-            if (initialDiskon && initialDiskon != '0') {
-                diskonFormatted.value = 'Rp ' + formatRupiah(initialDiskon);
-            }
-
-            // Set initial Pendapatan Bersih
-            function updatePendapatanBersih() {
-                let p = parseInt(inputRaw.value) || 0;
-                let d = parseInt(diskonRaw.value) || 0;
-                let bersih = p - d;
-                if (bersih < 0) bersih = 0;
-                pendapatanBersihFormatted.value = 'Rp ' + formatRupiah(bersih);
-                pendapatanBersihRaw.value = bersih;
-            }
-
-            // Validate: Diskon tidak boleh > Pendapatan, show/hide message & prevent submit
-            function validateDiskon(showError = true) {
-                let p = parseInt(inputRaw.value) || 0;
-                let d = parseInt(diskonRaw.value) || 0;
-                if (d > p) {
-                    if (showError) {
-                        diskonErrorMsg.style.display = 'inline';
-                    }
-                    return false;
-                } else {
-                    diskonErrorMsg.style.display = 'none';
-                    return true;
-                }
-            }
-
-            updatePendapatanBersih();
-            validateDiskon();
-
-            inputFormatted.addEventListener('input', function(e) {
-                let rawValue = this.value.replace(/[^0-9]/g, '');
-                inputRaw.value = rawValue;
-                diskonFormatted.setAttribute('max', rawValue);
-
-                if (rawValue === '') {
-                    this.value = '';
-                } else {
-                    this.value = 'Rp ' + formatRupiah(rawValue);
-                }
-                if (parseInt(diskonRaw.value) > parseInt(rawValue)) {
-                    diskonRaw.value = rawValue;
-                    diskonFormatted.value = rawValue === "" ? "" : 'Rp ' + formatRupiah(rawValue);
-                }
-                updatePendapatanBersih();
-                validateDiskon();
-            });
-
-            diskonFormatted.addEventListener('input', function(e) {
-                let rawValue = this.value.replace(/[^0-9]/g, '');
-                let pendapatanValue = parseInt(inputRaw.value) || 0;
-                if (rawValue !== "" && parseInt(rawValue) > pendapatanValue) {
-                    rawValue = pendapatanValue.toString();
-                }
-                diskonRaw.value = rawValue;
-                if (rawValue === '') {
-                    this.value = '';
-                } else {
-                    this.value = 'Rp ' + formatRupiah(rawValue);
-                }
-                updatePendapatanBersih();
-                validateDiskon();
-            });
-
-            form.addEventListener('submit', function(e) {
-                if (!validateDiskon(true)) {
-                    diskonFormatted.focus();
-                    e.preventDefault();
-                }
-            });
-
-            // 2. Logika Show/Hide Field (Tagihan, QRIS, Transfer)
-
-            const metodeSelect = document.getElementById('Metode');
-            // const kodeBayarWrapper = document.getElementById('KodeBayarWrapper'); // tetap disable
-            const buktiBayarWrapper = document.getElementById('BuktiBayarWrapper');
-            // const kodeBayarInput = document.getElementById('KodeBayar');
-            const tanggalJatuhTempoMetodeWrapper = document.getElementById('TanggalJatuhTempoMetodeWrapper');
-            const tanggalJatuhTempoMetodeInput = document.getElementById('TanggalJatuhTempoMetode');
-
-            function isNonTunaiMetode(val) {
-                // Metode "Qris" dan "Transfer" dianggap non tunai
-                return val === 'Qris' || val === 'Transfer';
-            }
-
-            function toggleMetodeFields() {
-                // Hanya tampilkan Bukti Bayar jika non tunai (Qris atau Transfer)
-                if (isNonTunaiMetode(metodeSelect.value)) {
-                    buktiBayarWrapper.style.display = 'block';
-                    document.getElementById('BuktiBayar').setAttribute('required', 'required');
-                } else {
-                    buktiBayarWrapper.style.display = 'none';
-                    document.getElementById('BuktiBayar').removeAttribute('required');
-                    document.getElementById('BuktiBayar').value = '';
-                }
-
-                // Tagihan:
-                if (metodeSelect.value === 'Tagihan') {
-                    tanggalJatuhTempoMetodeWrapper.style.display = 'block';
-                    tanggalJatuhTempoMetodeInput.setAttribute('required', 'required');
-                } else {
-                    tanggalJatuhTempoMetodeWrapper.style.display = 'none';
-                    tanggalJatuhTempoMetodeInput.removeAttribute('required');
-                    tanggalJatuhTempoMetodeInput.value = '';
-                }
-            }
-
-            // Jalankan saat halaman dimuat (untuk handle old input)
-            toggleMetodeFields();
-
-            // Jalankan saat user mengganti pilihan
-            metodeSelect.addEventListener('change', toggleMetodeFields);
-        });
     </script>
-@endsection
+    document.addEventListener('DOMContentLoaded', function() {
+    // 1. Logika Format Rupiah Otomatis & Pendapatan Bersih
+
+    const inputFormatted = document.getElementById('PendapatanFormatted');
+    const inputRaw = document.getElementById('PendapatanRaw');
+
+    const diskonFormatted = document.getElementById('DiskonFormatted');
+    const diskonRaw = document.getElementById('DiskonRaw');
+
+    const pendapatanBersihFormatted = document.getElementById('PendapatanBersihFormatted');
+    const pendapatanBersihRaw = document.getElementById('PendapatanBersihRaw');
+
+    const diskonErrorMsg = document.getElementById('DiskonErrorMsg');
+    const form = document.getElementById('formTransaksi');
+
+    // Fungsi format Rupiah
+    const formatRupiah = (number) => {
+    number = parseInt(number) || 0;
+    return new Intl.NumberFormat('id-ID').format(number);
+    };
+
+    // Set nilai awal jika ada old input (misal validasi gagal)
+    const initialPendapatan = inputRaw.value;
+    if (initialPendapatan && initialPendapatan != '0') {
+    inputFormatted.value = 'Rp ' + formatRupiah(initialPendapatan);
+    }
+
+    const initialDiskon = diskonRaw.value;
+    if (initialDiskon && initialDiskon != '0') {
+    diskonFormatted.value = 'Rp ' + formatRupiah(initialDiskon);
+    }
+
+    // Set initial Pendapatan Bersih
+    function updatePendapatanBersih() {
+    let p = parseInt(inputRaw.value) || 0;
+    let d = parseInt(diskonRaw.value) || 0;
+    let bersih = p - d;
+    if (bersih < 0) bersih=0; pendapatanBersihFormatted.value = 'Rp ' + formatRupiah(bersih);
+        pendapatanBersihRaw.value=bersih; } // Validate: Diskon tidak boleh> Pendapatan, show/hide message & prevent submit
+        function validateDiskon(showError = true) {
+        let p = parseInt(inputRaw.value) || 0;
+        let d = parseInt(diskonRaw.value) || 0;
+        if (d > p) {
+        if (showError) {
+        diskonErrorMsg.style.display = 'inline';
+        }
+        return false;
+        } else {
+        diskonErrorMsg.style.display = 'none';
+        return true;
+        }
+        }
+
+        updatePendapatanBersih();
+        validateDiskon();
+
+        inputFormatted.addEventListener('input', function(e) {
+        let rawValue = this.value.replace(/[^0-9]/g, '');
+        inputRaw.value = rawValue;
+        diskonFormatted.setAttribute('max', rawValue);
+
+        if (rawValue === '') {
+        this.value = '';
+        } else {
+        this.value = 'Rp ' + formatRupiah(rawValue);
+        }
+        if (parseInt(diskonRaw.value) > parseInt(rawValue)) {
+        diskonRaw.value = rawValue;
+        diskonFormatted.value = rawValue === "" ? "" : 'Rp ' + formatRupiah(rawValue);
+        }
+        updatePendapatanBersih();
+        validateDiskon();
+        });
+
+        diskonFormatted.addEventListener('input', function(e) {
+        let rawValue = this.value.replace(/[^0-9]/g, '');
+        let pendapatanValue = parseInt(inputRaw.value) || 0;
+        if (rawValue !== "" && parseInt(rawValue) > pendapatanValue) {
+        rawValue = pendapatanValue.toString();
+        }
+        diskonRaw.value = rawValue;
+        if (rawValue === '') {
+        this.value = '';
+        } else {
+        this.value = 'Rp ' + formatRupiah(rawValue);
+        }
+        updatePendapatanBersih();
+        validateDiskon();
+        });
+
+        form.addEventListener('submit', function(e) {
+        if (!validateDiskon(true)) {
+        diskonFormatted.focus();
+        e.preventDefault();
+        }
+        });
+
+        // 2. Logika Show/Hide Field (Tagihan, QRIS, Transfer)
+
+        const metodeSelect = document.getElementById('Metode');
+        // const kodeBayarWrapper = document.getElementById('KodeBayarWrapper'); // tetap disable
+        const buktiBayarWrapper = document.getElementById('BuktiBayarWrapper');
+        // const kodeBayarInput = document.getElementById('KodeBayar');
+        const tanggalJatuhTempoMetodeWrapper = document.getElementById('TanggalJatuhTempoMetodeWrapper');
+        const tanggalJatuhTempoMetodeInput = document.getElementById('TanggalJatuhTempoMetode');
+
+        function isNonTunaiMetode(val) {
+        // Metode "Qris" dan "Transfer" dianggap non tunai
+        return val === 'Qris' || val === 'Transfer';
+        }
+
+        function toggleMetodeFields() {
+        // Hanya tampilkan Bukti Bayar jika non tunai (Qris atau Transfer)
+        if (isNonTunaiMetode(metodeSelect.value)) {
+        buktiBayarWrapper.style.display = 'block';
+        document.getElementById('BuktiBayar').setAttribute('required', 'required');
+        } else {
+        buktiBayarWrapper.style.display = 'none';
+        document.getElementById('BuktiBayar').removeAttribute('required');
+        document.getElementById('BuktiBayar').value = '';
+        }
+
+        // Tagihan:
+        if (metodeSelect.value === 'Tagihan') {
+        tanggalJatuhTempoMetodeWrapper.style.display = 'block';
+        tanggalJatuhTempoMetodeInput.setAttribute('required', 'required');
+        } else {
+        tanggalJatuhTempoMetodeWrapper.style.display = 'none';
+        tanggalJatuhTempoMetodeInput.removeAttribute('required');
+        tanggalJatuhTempoMetodeInput.value = '';
+        }
+        }
+
+        // Jalankan saat halaman dimuat (untuk handle old input)
+        toggleMetodeFields();
+
+        // Jalankan saat user mengganti pilihan
+        metodeSelect.addEventListener('change', toggleMetodeFields);
+        });
+        </script>
+    @endsection
