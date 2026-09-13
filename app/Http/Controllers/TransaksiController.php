@@ -197,7 +197,6 @@ class TransaksiController extends Controller
             $users = User::where('KodeTenant', $kodeTenant)->get();
         }
 
-
         return view('transaksi.index', compact('ekspedisi', 'users'));
     }
 
@@ -227,7 +226,10 @@ class TransaksiController extends Controller
 
         // dd($request->all());
         $data = $request->except(['BuktiBayar']);
-        $data['Divisi'] = auth()->user()->divisi ?? '-';
+        if (is_null(auth()->user()->divisi)) {
+            return redirect()->back()->with('error', 'Divisi Anda belum diisi. Silakan update profil Anda terlebih dahulu.');
+        }
+        $data['Divisi'] = auth()->user()->divisi;
 
         // Tambahkan KodeTenant dari user yang sedang login
         $data['KodeTenant'] = auth()->user()->KodeTenant;
@@ -348,10 +350,9 @@ class TransaksiController extends Controller
                 'Diskon',
                 'PendapatanBersih',
                 'Keterangan',
-                'KodeTenant', // Tambahkan kode tenant
+                'KodeTenant',  // Tambahkan kode tenant
             ])
             ->orderBy('created_at', 'desc');
-
 
         $FilterInfo = 'Semua Data';
         $Params = [];
