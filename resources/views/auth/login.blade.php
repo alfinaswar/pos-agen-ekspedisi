@@ -215,10 +215,13 @@
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label for="password" class="form-label d-flex justify-content-between align-items-center">
-                            <span>Password</span>
-
-                        </label>
+                     <label for="password" class="form-label d-flex justify-content-between align-items-center">
+    <span>Password</span>
+    <a href="{{ route('password.request') }}" class="text-decoration-none small"
+       style="color: #2a5298; font-weight: 600;">
+        Lupa Password?
+    </a>
+</label>
                         <div class="input-group">
                             <span class="input-group-text">
                                 <i class="bi bi-lock"></i>

@@ -1,0 +1,154 @@
+/* MAUREKAP Email Theme */
+:root {
+    --primary: #2a5298;
+    --primary-dark: #1e3c72;
+    --accent: #4a7bc7;
+    --bg: #f3f4f8;
+    --text: #223248;
+    --muted: #7f8fa6;
+    --white: #ffffff;
+    --success: #10b981;
+    --danger: #ef4444;
+}
+
+body,
+body *:not(html):not(style):not(br):not(tr):not(code) {
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Header dengan gradient */
+.header {
+    padding: 40px 0 30px;
+    text-align: center;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    border-radius: 12px 12px 0 0;
+}
+
+.header a img {
+    height: 70px;
+    width: auto;
+}
+
+/* Content card */
+.content-cell {
+    padding: 40px 30px;
+    background: var(--white);
+}
+
+/* Typography */
+h1, h2, h3 {
+    color: var(--primary-dark);
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+
+p {
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 15px;
+}
+
+/* Tombol utama - besar dan modern */
+.button-primary {
+    background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%) !important;
+    border-radius: 12px !important;
+    color: var(--white) !important;
+    display: inline-block;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 16px;
+    padding: 14px 32px !important;
+    box-shadow: 0 4px 16px rgba(42, 82, 152, 0.25);
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+}
+
+.button-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 7px 24px rgba(42, 82, 152, 0.35);
+}
+
+/* Tombol secondary */
+.button-secondary {
+    background: #f3f5fa !important;
+    border-radius: 10px !important;
+    color: var(--primary) !important;
+    display: inline-block;
+    text-decoration: none;
+    font-weight: 600;
+    padding: 10px 24px !important;
+    border: 1.5px solid #dde7f0;
+}
+
+/* Link */
+a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+a:hover {
+    color: var(--primary-dark);
+    text-decoration: underline;
+}
+
+/* Alert box */
+.alert-box {
+    background: #f7fafd;
+    border-left: 4px solid var(--primary);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 20px 0;
+}
+
+/* Footer */
+.footer {
+    background: var(--white);
+    border-top: 1px solid #e5e7eb;
+    padding: 20px 0;
+    text-align: center;
+}
+
+.footer p {
+    color: var(--muted);
+    font-size: 13px;
+    margin: 0;
+}
+
+/* Subtext */
+.sub {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+/* Code block untuk token */
+.code-block {
+    background: #f3f5fa;
+    border: 1.5px solid #dde7f0;
+    border-radius: 10px;
+    padding: 16px 20px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--primary-dark);
+    letter-spacing: 2px;
+    text-align: center;
+    margin: 20px 0;
+}
+
+/* Responsive */
+@media only screen and (max-width: 600px) {
+    .content-cell {
+        padding: 24px 20px;
+    }
+    .header {
+        padding: 30px 0 20px;
+    }
+    .header a img {
+        height: 60px;
+    }
+}
