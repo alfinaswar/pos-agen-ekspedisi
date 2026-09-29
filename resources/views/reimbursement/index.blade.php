@@ -14,7 +14,8 @@
             </div>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb m-0 py-0">
-                    <li class="breadcrumb-item"><a href="{{ route('home') }}" class="text-decoration-none text-reset">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('home') }}"
+                            class="text-decoration-none text-reset">Dashboard</a></li>
                     <li class="breadcrumb-item active" aria-current="page">Data Reimbursement</li>
                 </ol>
             </nav>
@@ -26,7 +27,8 @@
                     <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                         <h4 class="card-title mb-0 fw-semibold"><i class="ti ti-list me-2"></i>Data Pengajuan</h4>
                         <div class="ms-auto">
-                            <a href="{{ route('reimbursement.create') }}" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
+                            <a href="{{ route('reimbursement.create') }}"
+                                class="btn btn-primary btn-sm d-flex align-items-center gap-1">
                                 <i class="ti ti-plus"></i> Ajukan Reimbursement
                             </a>
                         </div>
@@ -39,20 +41,21 @@
                                 {{-- Filter Tanggal --}}
                                 <div class="col-md-3">
                                     <label for="FilterTanggal" class="form-label mb-1 fw-normal">Filter Tanggal</label>
-                                    <input type="text" id="FilterTanggal" class="form-control form-control-sm" autocomplete="off" placeholder="Pilih rentang tanggal">
+                                    <input type="text" id="FilterTanggal" class="form-control form-control-sm"
+                                        autocomplete="off" placeholder="Pilih rentang tanggal">
                                 </div>
 
                                 {{-- ✅ Filter Nama (BARU) --}}
-                                @if(in_array(auth()->user()->role, ['Admin', 'Superadmin']))
-                                <div class="col-md-3">
-                                    <label for="FilterNama" class="form-label mb-1 fw-normal">Filter Nama</label>
-                                    <select id="FilterNama" class="form-select form-select-sm">
-                                        <option value="">Semua Nama</option>
-                                        @foreach($users as $User)
-                                            <option value="{{ $User->id }}">{{ $User->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
+                                @if (in_array(auth()->user()->role, ['Admin', 'Superadmin']))
+                                    <div class="col-md-3">
+                                        <label for="FilterNama" class="form-label mb-1 fw-normal">Filter Nama</label>
+                                        <select id="FilterNama" class="form-select form-select-sm">
+                                            <option value="">Semua Nama</option>
+                                            @foreach ($users as $User)
+                                                <option value="{{ $User->id }}">{{ $User->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
                                 @endif
 
 
@@ -69,15 +72,19 @@
 
                                 {{-- Action Buttons --}}
                                 <div class="col-md-4 d-flex align-items-end gap-2">
-                                    <button type="button" id="BtnTampilkan" class="btn btn-primary btn-sm"><i class="ti ti-filter"></i> Tampilkan</button>
-                                    <button type="button" id="BtnReset" class="btn btn-secondary btn-sm"><i class="ti ti-refresh"></i> Reset</button>
-                                    <button type="button" id="BtnExport" class="btn btn-success btn-sm"><i class="ti ti-download"></i> Export</button>
+                                    <button type="button" id="BtnTampilkan" class="btn btn-primary btn-sm"><i
+                                            class="ti ti-filter"></i> Tampilkan</button>
+                                    <button type="button" id="BtnReset" class="btn btn-secondary btn-sm"><i
+                                            class="ti ti-refresh"></i> Reset</button>
+                                    <button type="button" id="BtnExport" class="btn btn-success btn-sm"><i
+                                            class="ti ti-download"></i> Export</button>
                                 </div>
                             </div>
                         </form>
 
                         <div class="table-responsive">
-                            <table class="table table-striped table-bordered dt-responsive nowrap align-middle mb-0" id="ReimbursementTable" style="width: 100%;">
+                            <table class="table table-striped table-bordered dt-responsive nowrap align-middle mb-0"
+                                id="ReimbursementTable" style="width: 100%;">
                                 <thead class="table-light">
                                     <tr>
                                         <th style="width: 50px;" class="text-center">#</th>
@@ -104,7 +111,6 @@
         </div>
     </div>
 @endsection
-
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
@@ -124,10 +130,20 @@
 
     <script>
         $(document).ready(function() {
-            const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, timerProgressBar: true });
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true
+            });
+            const StorageKey = 'ReimbursementFilterState'; // Key untuk sessionStorage
 
             @if (session('success'))
-                Toast.fire({ icon: 'success', title: '{{ session('success') }}' });
+                Toast.fire({
+                    icon: 'success',
+                    title: '{{ session('success') }}'
+                });
             @endif
 
             // 1. Init Date Range Picker
@@ -141,12 +157,60 @@
             });
 
             $('#FilterTanggal').on('apply.daterangepicker', function(Event, Picker) {
-                $(this).val(Picker.startDate.format('YYYY-MM-DD') + ' s/d ' + Picker.endDate.format('YYYY-MM-DD'));
+                $(this).val(Picker.startDate.format('YYYY-MM-DD') + ' s/d ' + Picker.endDate.format(
+                    'YYYY-MM-DD'));
             });
 
             $('#FilterTanggal').on('cancel.daterangepicker', function(Event, Picker) {
                 $(this).val('');
             });
+
+            // ✅ FUNGSI: Simpan state filter ke sessionStorage
+            function SaveFilterState() {
+                const FilterState = {
+                    FilterTanggal: $('#FilterTanggal').val(),
+                    FilterNama: $('#FilterNama').val(),
+                    FilterStatus: $('#FilterStatus').val()
+                };
+                sessionStorage.setItem(StorageKey, JSON.stringify(FilterState));
+            }
+
+            // ✅ FUNGSI: Load state filter dari sessionStorage
+            function LoadFilterState() {
+                const SavedState = sessionStorage.getItem(StorageKey);
+                if (SavedState) {
+                    try {
+                        const FilterState = JSON.parse(SavedState);
+
+                        // Restore Tanggal
+                        if (FilterState.FilterTanggal && FilterState.FilterTanggal.includes(' s/d ')) {
+                            $('#FilterTanggal').val(FilterState.FilterTanggal);
+                            const Arr = FilterState.FilterTanggal.split(' s/d ');
+                            const Picker = $('#FilterTanggal').data('daterangepicker');
+                            if (Picker) {
+                                Picker.setStartDate(moment(Arr[0]));
+                                Picker.setEndDate(moment(Arr[1]));
+                            }
+                        }
+
+                        // Restore Nama
+                        if (FilterState.FilterNama) {
+                            $('#FilterNama').val(FilterState.FilterNama);
+                        }
+
+                        // Restore Status
+                        if (FilterState.FilterStatus) {
+                            $('#FilterStatus').val(FilterState.FilterStatus);
+                        }
+
+                        return true; // State ditemukan
+                    } catch (Error) {
+                        console.error('Error parsing filter state:', Error);
+                        return false;
+                    }
+                }
+                return false;
+            }
 
             // 2. DataTables Initialization
             let Table = $('#ReimbursementTable').DataTable({
@@ -156,22 +220,19 @@
                 destroy: true,
                 autoWidth: false,
                 dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
-                     "rt" +
-                     "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-                buttons: [
-                    {
-                        extend: "excelHtml5",
-                        className: "d-none buttons-excel",
-                        exportOptions: {
-                            columns: ':not(:last-child)'
-                        }
+                    "rt" +
+                    "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                buttons: [{
+                    extend: "excelHtml5",
+                    className: "d-none buttons-excel",
+                    exportOptions: {
+                        columns: ':not(:last-child)'
                     }
-                ],
+                }],
                 ajax: {
                     url: "{{ route('reimbursement.index') }}",
                     type: 'GET',
-                    data: function (Data) {
-                        // ✅ Ambil filter tanggal
+                    data: function(Data) {
                         let Tanggal = $('#FilterTanggal').val();
                         let TanggalAwal = '';
                         let TanggalAkhir = '';
@@ -182,39 +243,69 @@
                         }
                         Data.tanggal_awal = TanggalAwal;
                         Data.tanggal_akhir = TanggalAkhir;
-
-                        // ✅ Ambil filter Nama (BARU)
                         Data.nama = $('#FilterNama').val();
-
-                        // ✅ Ambil filter Status
                         Data.status = $('#FilterStatus').val();
                     }
                 },
-                order: [[1, 'desc']],
+                order: [
+                    [1, 'desc']
+                ],
                 language: {
                     processing: '<div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div> Memuat data...',
-                    paginate: { next: '<i class="ti ti-chevron-right"></i>', previous: '<i class="ti ti-chevron-left"></i>' },
+                    paginate: {
+                        next: '<i class="ti ti-chevron-right"></i>',
+                        previous: '<i class="ti ti-chevron-left"></i>'
+                    },
                     url: "//cdn.datatables.net/plug-ins/1.13.7/i18n/id.json"
                 },
-                columnDefs: [
-                    { className: 'text-center', targets: [0, 5, 6, 7, 8] },
-                    { className: 'text-end', targets: [4] },
-                    { orderable: false, targets: [0, 8] }
+                columnDefs: [{
+                        className: 'text-center',
+                        targets: [0, 5, 6, 7, 8]
+                    },
+                    {
+                        className: 'text-end',
+                        targets: [4]
+                    },
+                    {
+                        orderable: false,
+                        targets: [0, 8]
+                    }
                 ],
-                columns: [
-                    { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false },
-                    {
-                        data: 'Tanggal', name: 'Tanggal',
-                        render: (Data) => Data ? new Date(Data).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'
-                    },
-                    { data: 'Nama', name: 'Nama', render: (Data) => `<span class="fw-semibold text-dark">${Data}</span>` },
-                    { data: 'Item', name: 'Item' },
-                    {
-                        data: 'Nominal', name: 'Nominal',
-                        render: (Data) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(Data || 0)
+                columns: [{
+                        data: 'DT_RowIndex',
+                        name: 'DT_RowIndex',
+                        searchable: false
                     },
                     {
-                        data: 'Status', name: 'Status',
+                        data: 'Tanggal',
+                        name: 'Tanggal',
+                        render: (Data) => Data ? new Date(Data).toLocaleDateString('id-ID', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric'
+                        }) : '-'
+                    },
+                    {
+                        data: 'Nama',
+                        name: 'Nama',
+                        render: (Data) => `<span class="fw-semibold text-dark">${Data}</span>`
+                    },
+                    {
+                        data: 'Item',
+                        name: 'Item'
+                    },
+                    {
+                        data: 'Nominal',
+                        name: 'Nominal',
+                        render: (Data) => new Intl.NumberFormat('id-ID', {
+                            style: 'currency',
+                            currency: 'IDR',
+                            minimumFractionDigits: 0
+                        }).format(Data || 0)
+                    },
+                    {
+                        data: 'Status',
+                        name: 'Status',
                         render: (Data) => {
                             let Badge = 'bg-secondary';
                             if (Data === 'Menunggu') Badge = 'bg-warning text-dark';
@@ -224,16 +315,33 @@
                         }
                     },
                     {
-                        data: 'BuktiUpload', name: 'BuktiUpload', orderable: false, searchable: false,
-                        render: (Data) => Data ? `<a href="/storage/${Data}" target="_blank" class="btn btn-sm btn-outline-primary" title="Lihat Bukti Pengajuan"><i class="ti ti-eye"></i></a>` : '<span class="text-muted">-</span>'
+                        data: 'BuktiUpload',
+                        name: 'BuktiUpload',
+                        orderable: false,
+                        searchable: false,
+                        render: (Data) => Data ?
+                            `<a href="/storage/${Data}" target="_blank" class="btn btn-sm btn-outline-primary" title="Lihat Bukti Pengajuan"><i class="ti ti-eye"></i></a>` :
+                            '<span class="text-muted">-</span>'
                     },
                     {
-                        data: 'BuktiTransfer', name: 'BuktiTransfer', orderable: false, searchable: false,
-                        render: (Data) => Data ? `<a href="/storage/${Data}" target="_blank" class="btn btn-sm btn-outline-success" title="Lihat Bukti Transfer"><i class="ti ti-eye"></i></a>` : '<span class="text-muted">-</span>'
+                        data: 'BuktiTransfer',
+                        name: 'BuktiTransfer',
+                        orderable: false,
+                        searchable: false,
+                        render: (Data) => Data ?
+                            `<a href="/storage/${Data}" target="_blank" class="btn btn-sm btn-outline-success" title="Lihat Bukti Transfer"><i class="ti ti-eye"></i></a>` :
+                            '<span class="text-muted">-</span>'
                     },
-                    { data: 'action', name: 'action', searchable: false }
+                    {
+                        data: 'action',
+                        name: 'action',
+                        searchable: false
+                    }
                 ],
-                lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+                lengthMenu: [
+                    [10, 25, 50, 100],
+                    [10, 25, 50, 100]
+                ],
                 pageLength: 10,
                 drawCallback: function(Settings) {
                     var Info = $('#ReimbursementTable_wrapper .dataTables_info');
@@ -243,19 +351,32 @@
                 }
             });
 
-            // 3. Tombol Tampilkan: reload datatable berdasarkan filter
+            // ✅ PENTING: Load state filter SEBELUM DataTables pertama kali load
+            // Jika ada state yang tersimpan, langsung reload dengan filter tersebut
+            if (LoadFilterState()) {
+                Table.ajax.reload();
+            }
+
+            // 3. Tombol Tampilkan: reload datatable & SIMPAN STATE
             $('#BtnTampilkan').on('click', function() {
+                SaveFilterState(); // ✅ Simpan state sebelum reload
                 Table.ajax.reload();
             });
 
-            // 4. Tombol Reset: reset semua filter
+            // 4. Tombol Reset: reset semua filter & HAPUS STATE
             $('#BtnReset').on('click', function() {
                 $('#FilterTanggal').val('');
                 $('#FilterNama').val('');
                 $('#FilterStatus').val('');
-                $('#FilterTanggal').data('daterangepicker').setStartDate(moment());
-                $('#FilterTanggal').data('daterangepicker').setEndDate(moment());
-                $('#FilterTanggal').data('daterangepicker').hide();
+
+                const Picker = $('#FilterTanggal').data('daterangepicker');
+                if (Picker) {
+                    Picker.setStartDate(moment());
+                    Picker.setEndDate(moment());
+                    Picker.hide();
+                }
+
+                sessionStorage.removeItem(StorageKey); // ✅ Hapus state dari storage
                 Table.ajax.reload();
             });
 
@@ -264,9 +385,10 @@
                 Table.button('.buttons-excel').trigger();
             });
 
-            // 6. Trigger reload ketika enter di input
+            // 6. Trigger reload ketika enter di input (juga simpan state)
             $('#FilterTanggal, #FilterNama, #FilterStatus').on('keyup', function(Event) {
                 if (Event.keyCode === 13) {
+                    SaveFilterState(); // ✅ Simpan state
                     Table.ajax.reload();
                 }
             });
@@ -279,24 +401,40 @@
                 Swal.fire({
                     title: 'Hapus Pengajuan?',
                     html: `Hapus data reimbursement atas nama:<br><strong class="text-primary">${Nama}</strong>?`,
-                    icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Ya, Hapus!', cancelButtonText: 'Batal', reverseButtons: true
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Ya, Hapus!',
+                    cancelButtonText: 'Batal',
+                    reverseButtons: true
                 }).then((Result) => {
                     if (Result.isConfirmed) {
                         $.ajax({
-                            url: "{{ route('reimbursement.destroy', ':id') }}".replace(':id', Id),
+                            url: "{{ route('reimbursement.destroy', ':id') }}".replace(
+                                ':id', Id),
                             type: 'DELETE',
-                            data: { _token: '{{ csrf_token() }}' },
+                            data: {
+                                _token: '{{ csrf_token() }}'
+                            },
                             success: function(Response) {
                                 if (Response.status === 200 || Response.success) {
-                                    Swal.fire({ icon: 'success', title: 'Berhasil!', text: Response.message, timer: 2000, showConfirmButton: false });
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Berhasil!',
+                                        text: Response.message,
+                                        timer: 2000,
+                                        showConfirmButton: false
+                                    });
                                     Table.ajax.reload(null, false);
                                 } else {
-                                    Swal.fire('Gagal!', Response.message || 'Terjadi kesalahan', 'error');
+                                    Swal.fire('Gagal!', Response.message ||
+                                        'Terjadi kesalahan', 'error');
                                 }
                             },
                             error: function(Xhr) {
-                                Swal.fire('Gagal!', Xhr.responseJSON?.message || 'Terjadi kesalahan.', 'error');
+                                Swal.fire('Gagal!', Xhr.responseJSON?.message ||
+                                    'Terjadi kesalahan.', 'error');
                             }
                         });
                     }

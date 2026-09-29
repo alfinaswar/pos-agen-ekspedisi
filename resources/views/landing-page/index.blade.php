@@ -1987,52 +1987,63 @@
                 font-size: 0.85rem;
             }
         }
+
         /* ================= PERBAIKAN RESPONSIVE HARGA (SCROLL) ================= */
-.pricing-scroll-container {
-    display: flex;
-    gap: 24px;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    padding: 10px 4px 32px 4px; /* Padding bawah untuk bayangan & ruang scroll */
-    -webkit-overflow-scrolling: touch; /* Scroll halus di iOS */
-    scrollbar-width: none; /* Sembunyikan scrollbar di Firefox */
-}
-.pricing-scroll-container::-webkit-scrollbar {
-    display: none; /* Sembunyikan scrollbar di Chrome/Safari/Edge */
-}
-.pricing-card {
-    flex: 0 0 85%; /* Lebar 85% di HP, agar kartu berikutnya terlihat sedikit (peek) */
-    scroll-snap-align: center;
-    min-width: 280px; /* Mencegah kartu terlalu gepeng */
-}
+        .pricing-scroll-container {
+            display: flex;
+            gap: 24px;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            padding: 10px 4px 32px 4px;
+            /* Padding bawah untuk bayangan & ruang scroll */
+            -webkit-overflow-scrolling: touch;
+            /* Scroll halus di iOS */
+            scrollbar-width: none;
+            /* Sembunyikan scrollbar di Firefox */
+        }
 
-/* Di Tablet & Desktop (>= 768px), kembalikan ke Grid 2 kolom yang rapi */
-@media (min-width: 768px) {
-    .pricing-scroll-container {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        overflow-x: visible;
-        padding-bottom: 0;
-    }
-    .pricing-card {
-        flex: none;
-        min-width: auto;
-        width: 100%;
-    }
-}
+        .pricing-scroll-container::-webkit-scrollbar {
+            display: none;
+            /* Sembunyikan scrollbar di Chrome/Safari/Edge */
+        }
 
-/* ================= PERBAIKAN KARTU FITUR UTAMA DI HP ================= */
-@media (max-width: 640px) {
-    .feature-main-grid {
-        flex-direction: column !important;
-        align-items: stretch !important;
-    }
-    .main-feature-card {
-        width: 100% !important;
-        max-width: 100% !important;
-        min-width: auto !important;
-    }
-}
+        .pricing-card {
+            flex: 0 0 85%;
+            /* Lebar 85% di HP, agar kartu berikutnya terlihat sedikit (peek) */
+            scroll-snap-align: center;
+            min-width: 280px;
+            /* Mencegah kartu terlalu gepeng */
+        }
+
+        /* Di Tablet & Desktop (>= 768px), kembalikan ke Grid 2 kolom yang rapi */
+        @media (min-width: 768px) {
+            .pricing-scroll-container {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                overflow-x: visible;
+                padding-bottom: 0;
+            }
+
+            .pricing-card {
+                flex: none;
+                min-width: auto;
+                width: 100%;
+            }
+        }
+
+        /* ================= PERBAIKAN KARTU FITUR UTAMA DI HP ================= */
+        @media (max-width: 640px) {
+            .feature-main-grid {
+                flex-direction: column !important;
+                align-items: stretch !important;
+            }
+
+            .main-feature-card {
+                width: 100% !important;
+                max-width: 100% !important;
+                min-width: auto !important;
+            }
+        }
     </style>
 </head>
 
@@ -2118,7 +2129,8 @@
                     </ul>
 
                     <div class="hero-cta" data-rv style="--d:.32s">
-                        <a href="{{ route('daftar') }}" class="btn btn-blue">Daftar Sekarang <span class="arr">→</span></a>
+                        <a href="{{ route('daftar') }}" class="btn btn-blue">Daftar Sekarang <span
+                                class="arr">→</span></a>
                     </div>
 
                     <div class="micro" data-rv style="--d:.4s">
@@ -2701,15 +2713,18 @@
             </div>
         </section>
         <!-- ============ HARGA ============ -->
-             <!-- ============ HARGA ============ -->
+        <!-- ============ HARGA ============ -->
         <section class="sec sec-alt" id="harga">
             <div class="container">
                 <div class="sec-head" data-rv>
                     <span class="sec-tag">Pilihan Paket</span>
                     <h2>Pilih Paket yang Cocok untuk Agen Anda</h2>
-                    <p>Mulai lebih rapi dengan promo spesial untuk periode terbatas. segera daftar dan rasakan sendiri kemudahannya.</p>
+                    <p>Mulai lebih rapi dengan promo spesial untuk periode terbatas. segera daftar dan rasakan sendiri
+                        kemudahannya.</p>
                     <p style="margin-top:8px;font-size:.88rem;color:var(--blue);font-weight:600">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            style="vertical-align:middle;margin-right:6px">
                             <circle cx="12" cy="12" r="10" />
                             <polyline points="12 6 12 12 16 14" />
                         </svg>
@@ -2721,10 +2736,14 @@
                 <div class="pricing-scroll-container" data-rv style="max-width:900px; margin:0 auto;">
                     @foreach ($Paket as $item)
                         <!-- UBAHAN DI SINI: Menggunakan class pricing-card -->
-                        <div class="pricing-card" style="background:#fff; border-radius:20px; padding:32px 28px; position:relative; transition:.25s; @if ($item->DurasiBulan == 12) border:2px solid var(--blue); box-shadow:0 20px 50px rgba(37,99,235,.15); @else border:2px solid var(--line); box-shadow:var(--shadow-sm); @endif">
+                        <div class="pricing-card"
+                            style="background:#fff; border-radius:20px; padding:32px 28px; position:relative; transition:.25s; @if ($item->DurasiBulan == 12) border:2px solid var(--blue); box-shadow:0 20px 50px rgba(37,99,235,.15); @else border:2px solid var(--line); box-shadow:var(--shadow-sm); @endif">
 
-                            <div style="position:absolute;top:-12px;left:28px; @if ($item->DurasiBulan == 12) background:var(--blue);color:#fff; @else background:var(--blue-50);border:1px solid var(--blue-100);color:var(--blue-700); @endif font-size:.7rem;font-weight:800;padding:6px 14px;border-radius:20px;display:flex;align-items:center;gap:6px">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <div
+                                style="position:absolute;top:-12px;left:28px; @if ($item->DurasiBulan == 12) background:var(--blue);color:#fff; @else background:var(--blue-50);border:1px solid var(--blue-100);color:var(--blue-700); @endif font-size:.7rem;font-weight:800;padding:6px 14px;border-radius:20px;display:flex;align-items:center;gap:6px">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
                                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
                                     <line x1="16" y1="2" x2="16" y2="6" />
                                     <line x1="8" y1="2" x2="8" y2="6" />
@@ -2734,16 +2753,20 @@
                             </div>
 
                             @if ($item->DurasiBulan == 1)
-                                <div style="position:absolute;top:-12px;right:28px;background:linear-gradient(135deg,#FFE4E6,#FEE2E2);color:#DC2626;font-size:.75rem;font-weight:800;padding:6px 14px;border-radius:20px;display:flex;align-items:center;gap:6px;box-shadow:0 4px 12px rgba(220,38,38,.15)">
+                                <div
+                                    style="position:absolute;top:-12px;right:28px;background:linear-gradient(135deg,#FFE4E6,#FEE2E2);color:#DC2626;font-size:.75rem;font-weight:800;padding:6px 14px;border-radius:20px;display:flex;align-items:center;gap:6px;box-shadow:0 4px 12px rgba(220,38,38,.15)">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                                        <polygon
+                                            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                                     </svg>
                                     PROMO SPESIAL 50%
                                 </div>
                             @elseif($item->DurasiBulan == 12)
-                                <div style="position:absolute;top:-12px;right:28px;background:linear-gradient(135deg,#DCFCE7,#BBF7D0);color:var(--green);font-size:.75rem;font-weight:800;padding:6px 14px;border-radius:20px;display:flex;align-items:center;gap:6px;box-shadow:0 4px 12px rgba(22,163,74,.15)">
+                                <div
+                                    style="position:absolute;top:-12px;right:28px;background:linear-gradient(135deg,#DCFCE7,#BBF7D0);color:var(--green);font-size:.75rem;font-weight:800;padding:6px 14px;border-radius:20px;display:flex;align-items:center;gap:6px;box-shadow:0 4px 12px rgba(22,163,74,.15)">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                                        <polygon
+                                            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                                     </svg>
                                     PALING HEMAT
                                 </div>
@@ -2751,27 +2774,39 @@
 
                             <div style="margin-top:24px">
                                 @if ($item->DurasiBulan == 1)
-                                    <p style="text-decoration:line-through;color:var(--muted);font-size:.9rem;margin-bottom:4px">Rp249.000/bulan</p>
+                                    <p
+                                        style="text-decoration:line-through;color:var(--muted);font-size:.9rem;margin-bottom:4px">
+                                        Rp249.000/bulan</p>
                                 @elseif($item->DurasiBulan == 12)
-                                    <p style="text-decoration:line-through;color:var(--muted);font-size:.9rem;margin-bottom:4px">Rp2.490.000/tahun</p>
+                                    <p
+                                        style="text-decoration:line-through;color:var(--muted);font-size:.9rem;margin-bottom:4px">
+                                        Rp2.490.000/tahun</p>
                                 @endif
 
                                 <div style="display:flex;align-items:flex-start;gap:4px;margin-bottom:12px">
                                     @if ($item->DurasiBulan == 1)
-                                        <span style="font-size:2.8rem;font-weight:800;color:var(--blue);line-height:1">Rp{{ number_format($item->Harga, 0, ',', '.') }}</span>
+                                        <span
+                                            style="font-size:2.8rem;font-weight:800;color:var(--blue);line-height:1">Rp{{ number_format($item->Harga, 0, ',', '.') }}</span>
                                         <span style="color:var(--muted);font-weight:600;margin-top:8px">/bulan</span>
                                     @elseif($item->DurasiBulan == 12)
-                                        <span style="font-size:2.8rem;font-weight:800;color:var(--blue);line-height:1">Rp{{ number_format($item->Harga, 0, ',', '.') }}</span>
+                                        <span
+                                            style="font-size:2.8rem;font-weight:800;color:var(--blue);line-height:1">Rp{{ number_format($item->Harga, 0, ',', '.') }}</span>
                                         <span style="color:var(--muted);font-weight:600;margin-top:8px">/tahun</span>
                                     @endif
                                 </div>
 
                                 @if ($item->DurasiBulan == 1)
-                                    <p style="background:var(--blue-50);color:var(--blue-700);font-size:.8rem;font-weight:600;padding:8px 12px;border-radius:8px;display:inline-block;margin-bottom:16px">Harga promo untuk 3 bulan pertama</p>
-                                    <p style="font-size:.85rem;color:var(--muted)">Setelah promo: <b style="color:var(--ink)">Rp249.000/bulan</b></p>
+                                    <p
+                                        style="background:var(--blue-50);color:var(--blue-700);font-size:.8rem;font-weight:600;padding:8px 12px;border-radius:8px;display:inline-block;margin-bottom:16px">
+                                        Harga promo untuk 3 bulan pertama</p>
+                                    <p style="font-size:.85rem;color:var(--muted)">Setelah promo: <b
+                                            style="color:var(--ink)">Rp249.000/bulan</b></p>
                                 @elseif($item->DurasiBulan == 12)
-                                    <p style="background:var(--green-50);color:var(--green);font-size:.85rem;font-weight:700;padding:8px 12px;border-radius:8px;display:inline-block;margin-bottom:12px">Hemat Rp1.240.000 per tahun</p>
-                                    <p style="font-size:.9rem;color:var(--muted)">Setara <b style="color:var(--ink);font-size:1.05rem">Rp104.000/bulan</b></p>
+                                    <p
+                                        style="background:var(--green-50);color:var(--green);font-size:.85rem;font-weight:700;padding:8px 12px;border-radius:8px;display:inline-block;margin-bottom:12px">
+                                        Hemat Rp1.240.000 per tahun</p>
+                                    <p style="font-size:.9rem;color:var(--muted)">Setara <b
+                                            style="color:var(--ink);font-size:1.05rem">Rp104.000/bulan</b></p>
                                 @endif
                             </div>
 
@@ -2781,9 +2816,13 @@
                                         $fiturList = json_decode($item->Fitur, true) ?? [];
                                     @endphp
                                     @foreach ($fiturList as $fitur)
-                                        <li style="display:flex;gap:10px;align-items:flex-start;font-size:.9rem;color:#33415C;font-weight:600">
-                                            <span style="width:20px;height:20px;background:var(--blue);border-radius:50%;display:grid;place-items:center;flex:none;margin-top:2px">
-                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <li
+                                            style="display:flex;gap:10px;align-items:flex-start;font-size:.9rem;color:#33415C;font-weight:600">
+                                            <span
+                                                style="width:20px;height:20px;background:var(--blue);border-radius:50%;display:grid;place-items:center;flex:none;margin-top:2px">
+                                                <svg width="12" height="12" viewBox="0 0 24 24"
+                                                    fill="none" stroke="currentColor" stroke-width="3.5"
+                                                    stroke-linecap="round" stroke-linejoin="round">
                                                     <polyline points="20 6 9 17 4 12" />
                                                 </svg>
                                             </span>
@@ -2794,9 +2833,12 @@
                             </div>
 
                             @if ($item->DurasiBulan == 1)
-                                <a href="{{ route('daftar') }}" class="btn btn-blue" style="width:100%;justify-content:center;margin-top:8px">Daftar Sekarang</a>
+                                <a href="{{ route('daftar') }}" class="btn btn-blue"
+                                    style="width:100%;justify-content:center;margin-top:8px">Daftar Sekarang</a>
                             @elseif($item->DurasiBulan == 12)
-                                <a href="{{ route('daftar') }}" class="btn btn-blue" style="width:100%;justify-content:center;margin-top:8px;box-shadow:0 8px 24px rgba(37,99,235,.35)">Pilih Paket Tahunan</a>
+                                <a href="{{ route('daftar') }}" class="btn btn-blue"
+                                    style="width:100%;justify-content:center;margin-top:8px;box-shadow:0 8px 24px rgba(37,99,235,.35)">Pilih
+                                    Paket Tahunan</a>
                             @endif
                         </div>
                     @endforeach
@@ -2804,8 +2846,10 @@
                 <!-- AKHIR UBAHAN -->
 
                 <div style="text-align:center;margin-top:28px" data-rv style="--d:.2s">
-                    <p style="display:inline-flex;align-items:center;gap:8px;background:var(--blue-50);color:var(--blue-700);padding:10px 18px;border-radius:30px;font-size:.85rem;font-weight:600">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <p
+                        style="display:inline-flex;align-items:center;gap:8px;background:var(--blue-50);color:var(--blue-700);padding:10px 18px;border-radius:30px;font-size:.85rem;font-weight:600">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                             <path d="m9 12 2 2 4-4" />
                         </svg>
@@ -2813,38 +2857,54 @@
                     </p>
                 </div>
 
-                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:800px;margin:32px auto 0;text-align:center" data-rv style="--d:.28s">
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:800px;margin:32px auto 0;text-align:center"
+                    data-rv style="--d:.28s">
                     <!-- (Konten 3 kolom di bawah harga tetap sama seperti kode Anda) -->
                     <div style="padding:20px">
-                        <div style="width:48px;height:48px;background:var(--blue-50);border-radius:12px;display:grid;place-items:center;margin:0 auto 12px;color:var(--blue)">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <div
+                            style="width:48px;height:48px;background:var(--blue-50);border-radius:12px;display:grid;place-items:center;margin:0 auto 12px;color:var(--blue)">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
                                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
                                 <line x1="16" y1="2" x2="16" y2="6" />
                                 <line x1="8" y1="2" x2="8" y2="6" />
                                 <line x1="3" y1="10" x2="21" y2="10" />
                             </svg>
                         </div>
-                        <h4 style="font-size:.95rem;font-weight:800;margin-bottom:6px;color:var(--navy)">Akses semua fitur</h4>
-                        <p style="font-size:.85rem;color:var(--muted);line-height:1.5">Nikmati kemudahan menggunakan seluruh fitur Maurekap tanpa batasan.</p>
+                        <h4 style="font-size:.95rem;font-weight:800;margin-bottom:6px;color:var(--navy)">Akses semua
+                            fitur</h4>
+                        <p style="font-size:.85rem;color:var(--muted);line-height:1.5">Nikmati kemudahan menggunakan
+                            seluruh fitur Maurekap tanpa batasan.</p>
                     </div>
                     <div style="padding:20px">
-                        <div style="width:48px;height:48px;background:var(--blue-50);border-radius:12px;display:grid;place-items:center;margin:0 auto 12px;color:var(--blue)">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <div
+                            style="width:48px;height:48px;background:var(--blue-50);border-radius:12px;display:grid;place-items:center;margin:0 auto 12px;color:var(--blue)">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
                                 <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
                             </svg>
                         </div>
-                        <h4 style="font-size:.95rem;font-weight:800;margin-bottom:6px;color:var(--navy)">Semua fitur aktif</h4>
-                        <p style="font-size:.85rem;color:var(--muted);line-height:1.5">Nikmati semua fitur terbaik tanpa pembatasan.</p>
+                        <h4 style="font-size:.95rem;font-weight:800;margin-bottom:6px;color:var(--navy)">Semua fitur
+                            aktif</h4>
+                        <p style="font-size:.85rem;color:var(--muted);line-height:1.5">Nikmati semua fitur terbaik
+                            tanpa pembatasan.</p>
                     </div>
                     <div style="padding:20px">
-                        <div style="width:48px;height:48px;background:var(--blue-50);border-radius:12px;display:grid;place-items:center;margin:0 auto 12px;color:var(--blue)">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <div
+                            style="width:48px;height:48px;background:var(--blue-50);border-radius:12px;display:grid;place-items:center;margin:0 auto 12px;color:var(--blue)">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
                                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                                 <path d="m9 12 2 2 4-4" />
                             </svg>
                         </div>
-                        <h4 style="font-size:.95rem;font-weight:800;margin-bottom:6px;color:var(--navy)">Bisa dibatalkan kapan saja</h4>
-                        <p style="font-size:.85rem;color:var(--muted);line-height:1.5">Batalkan kapan saja tanpa biaya atau komitmen tambahan.</p>
+                        <h4 style="font-size:.95rem;font-weight:800;margin-bottom:6px;color:var(--navy)">Bisa
+                            dibatalkan kapan saja</h4>
+                        <p style="font-size:.85rem;color:var(--muted);line-height:1.5">Batalkan kapan saja tanpa biaya
+                            atau komitmen tambahan.</p>
                     </div>
                 </div>
             </div>
@@ -2914,7 +2974,8 @@
                             bisnis Anda.</p>
                     </div>
                     <div class="cta-right">
-                        <a href="{{ route('daftar') }}" class="btn btn-orange">Daftar Sekarang <span class="arr">→</span></a>
+                        <a href="{{ route('daftar') }}" class="btn btn-orange">Daftar Sekarang <span
+                                class="arr">→</span></a>
 
                     </div>
                 </div>
@@ -2923,7 +2984,7 @@
 
     </main>
     <!-- Floating WhatsApp Button -->
-    <a href="https://wa.me/6285143671253?text=Halo%20Maurekap,%20saya%20tertarik%20dengan%20sistem%20rekap%20pembayaran%20ini.%20Boleh%20minta%20info%20lebih%20lanjut?"
+    <a href="https://wa.me/628985326712?text=Halo%20Maurekap,%20saya%20tertarik%20dengan%20sistem%20rekap%20pembayaran%20ini.%20Boleh%20minta%20info%20lebih%20lanjut?"
         class="wa-float" target="_blank" rel="noopener noreferrer" aria-label="Chat dengan kami via WhatsApp">
 
         <span class="wa-tooltip">Chat dengan kami</span>
@@ -2989,8 +3050,10 @@
                 <div>
                     <h4>BANTUAN</h4>
                     <ul>
-                        <li><a href="{{ asset('img/Panduan_Maurekap_Singkat.pdf') }}" target="_blank" rel="noopener">Panduan</a></li>
-                        <li><a href="{{ asset('img/Syarat_dan_Ketentuan_Maurekap.pdf') }}" target="_blank" rel="noopener">Syarat &amp; Ketentuan</a></li>
+                        <li><a href="{{ asset('img/Panduan_Maurekap_Singkat.pdf') }}" target="_blank"
+                                rel="noopener">Panduan</a></li>
+                        <li><a href="{{ asset('img/Syarat_dan_Ketentuan_Maurekap.pdf') }}" target="_blank"
+                                rel="noopener">Syarat &amp; Ketentuan</a></li>
 
                     </ul>
                 </div>
@@ -3000,7 +3063,8 @@
                         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                                 stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M12 3a9 9 0 0 0-7.8 13.5L3 21l4.7-1.2A9 9 0 1 0 12 3z" />
-                            </svg><span>WhatsApp<br>0851-4367-1253</span></li>
+                            </svg><span>WhatsApp<br>0898-5326-712</span></li>
+
 
                         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                                 stroke-linecap="round" stroke-linejoin="round">
